@@ -20,12 +20,12 @@ export const TENANT_PRISMA_SERVICE = 'TENANT_PRISMA_SERVICE';
         // Se houver um tenant_id, configuramos o prisma para usar o schema dele
         if (tenantId) {
           // Utiliza Client Extension do Prisma para setar o search_path
-          return prisma.$extends({
+          return prisma.client.$extends({
             query: {
               $allModels: {
                 async $allOperations({ args, query }) {
-                  const [, result] = await prisma.$transaction([
-                    prisma.$executeRawUnsafe(`SET search_path TO "${tenantId}"`),
+                  const [, result] = await prisma.client.$transaction([
+                    prisma.client.$executeRawUnsafe(`SET search_path TO "${tenantId}"`),
                     query(args),
                   ]);
                   return result;
@@ -36,7 +36,7 @@ export const TENANT_PRISMA_SERVICE = 'TENANT_PRISMA_SERVICE';
         }
 
         // Caso não haja tenant_id, retorna o prisma normal (schema public)
-        return prisma;
+        return prisma.client;
       },
     },
   ],

@@ -17,12 +17,13 @@ const iam_module_1 = require("./iam/iam.module");
 const customer_module_1 = require("./modules/customer/customer.module");
 const product_module_1 = require("./modules/product/product.module");
 const audit_module_1 = require("./modules/audit/audit.module");
+const contract_module_1 = require("./modules/contract/contract.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [tenant_module_1.TenantModule, iam_module_1.IamModule, customer_module_1.CustomerModule, product_module_1.ProductModule, audit_module_1.AuditModule],
+        imports: [tenant_module_1.TenantModule, iam_module_1.IamModule, customer_module_1.CustomerModule, product_module_1.ProductModule, audit_module_1.AuditModule, contract_module_1.ContractModule],
         controllers: [app_controller_1.AppController],
         providers: [
             app_service_1.AppService,

@@ -1,3 +1,4 @@
+import { PrismaClient } from '@prisma/client';
 import { Injectable, ConflictException, Inject } from '@nestjs/common';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -7,7 +8,7 @@ import { TENANT_PRISMA_SERVICE } from '../../tenant/tenant.module';
 export class CustomerService {
   constructor(
     @Inject(TENANT_PRISMA_SERVICE)
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaClient,
   ) {}
 
   async create(createCustomerDto: CreateCustomerDto, userId: string) {

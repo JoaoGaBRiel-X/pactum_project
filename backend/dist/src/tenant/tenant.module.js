@@ -26,12 +26,12 @@ exports.TenantModule = TenantModule = __decorate([
                 useFactory: (request, prisma) => {
                     const tenantId = request.headers['x-tenant-id'];
                     if (tenantId) {
-                        return prisma.$extends({
+                        return prisma.client.$extends({
                             query: {
                                 $allModels: {
                                     async $allOperations({ args, query }) {
-                                        const [, result] = await prisma.$transaction([
-                                            prisma.$executeRawUnsafe(`SET search_path TO "${tenantId}"`),
+                                        const [, result] = await prisma.client.$transaction([
+                                            prisma.client.$executeRawUnsafe(`SET search_path TO "${tenantId}"`),
                                             query(args),
                                         ]);
                                         return result;
@@ -40,7 +40,7 @@ exports.TenantModule = TenantModule = __decorate([
                             },
                         });
                     }
-                    return prisma;
+                    return prisma.client;
                 },
             },
         ],

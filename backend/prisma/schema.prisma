@@ -71,6 +71,7 @@ model Customer {
   corporateGroup   CorporateGroup? @relation(fields: [corporateGroupId], references: [id])
   contacts         Contact[]
   partners         Partner[]
+  contracts        Contract[]
   
   createdAt        DateTime        @default(now()) @map("created_at")
   updatedAt        DateTime        @updatedAt @map("updated_at")
@@ -121,6 +122,7 @@ model SoftwareProduct {
   description String?
   isActive    Boolean          @default(true) @map("is_active")
   modules     SoftwareModule[]
+  contracts   Contract[]
   
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
@@ -182,13 +184,18 @@ model AuditLog {
 model Contract {
   id             String            @id @default(uuid())
   customerId     String            @map("customer_id")
+  customer       Customer          @relation(fields: [customerId], references: [id])
   productId      String            @map("product_id")
+  product        SoftwareProduct   @relation(fields: [productId], references: [id])
   status         String            @default("DRAFT")
   startDate      DateTime?         @map("start_date")
   endDate        DateTime?         @map("end_date")
   totalValue     Decimal           @default(0.0) @map("total_value")
+  globalDiscount Decimal           @default(0.0) @map("global_discount")
   renewalMode    String            @default("AUTOMATIC") @map("renewal_mode")
   
+  items          ContractItem[]
+  documents      ContractDocument[]
   history        ContractHistory[]
   
   createdAt      DateTime          @default(now()) @map("created_at")
@@ -214,4 +221,33 @@ model ContractHistory {
   reason         String?
 
   @@map("contract_history")
+}
+
+model ContractItem {
+  id         String   @id @default(uuid())
+  contractId String   @map("contract_id")
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  
+  moduleId   String   @map("module_id") // ID do SoftwareModule
+  quantity   Int      @default(1)
+  unitPrice  Decimal  @map("unit_price") // Preço salvo na hora do contrato
+  discount   Decimal  @default(0.0)
+  
+  @@map("contract_items")
+}
+
+model ContractDocument {
+  id            String   @id @default(uuid())
+  contractId    String   @map("contract_id")
+  contract      Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  
+  type          String   // DOCX, PDF
+  path          String   // Caminho do S3/MinIO
+  clicksignKey  String?  @map("clicksign_key")
+  status        String   @default("GENERATED")
+  
+  createdAt     DateTime @default(now()) @map("created_at")
+  createdBy     String?  @map("created_by")
+
+  @@map("contract_documents")
 }

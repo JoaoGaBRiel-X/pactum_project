@@ -1,3 +1,4 @@
+import { PrismaClient } from '@prisma/client';
 import { Injectable, Inject } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TENANT_PRISMA_SERVICE } from '../../tenant/tenant.module';
@@ -6,7 +7,7 @@ import { TENANT_PRISMA_SERVICE } from '../../tenant/tenant.module';
 export class AuditService {
   constructor(
     @Inject(TENANT_PRISMA_SERVICE)
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaClient,
   ) {}
 
   async registerConsent(customerId: string, documentRef: string, ipAddress: string, userAgent: string, userId: string) {

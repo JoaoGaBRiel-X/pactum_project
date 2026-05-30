@@ -1,7 +1,7 @@
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaClient } from '@prisma/client';
 export declare class AuditService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
+    constructor(prisma: PrismaClient);
     registerConsent(customerId: string, documentRef: string, ipAddress: string, userAgent: string, userId: string): Promise<{
         id: string;
         createdAt: Date;

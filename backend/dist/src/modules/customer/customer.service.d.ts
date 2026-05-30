@@ -1,8 +1,8 @@
+import { PrismaClient } from '@prisma/client';
 import { CreateCustomerDto } from './dto/create-customer.dto';
-import { PrismaService } from '../../prisma/prisma.service';
 export declare class CustomerService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
+    constructor(prisma: PrismaClient);
     create(createCustomerDto: CreateCustomerDto, userId: string): Promise<{
         contacts: {
             name: string;
@@ -19,8 +19,8 @@ export declare class CustomerService {
         partners: {
             name: string;
             id: string;
-            createdAt: Date;
             document: string;
+            createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
@@ -29,8 +29,8 @@ export declare class CustomerService {
         }[];
     } & {
         id: string;
-        createdAt: Date;
         document: string;
+        createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;
@@ -62,8 +62,8 @@ export declare class CustomerService {
         }[];
     } & {
         id: string;
-        createdAt: Date;
         document: string;
+        createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;
@@ -96,8 +96,8 @@ export declare class CustomerService {
         partners: {
             name: string;
             id: string;
-            createdAt: Date;
             document: string;
+            createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
@@ -106,8 +106,8 @@ export declare class CustomerService {
         }[];
     } & {
         id: string;
-        createdAt: Date;
         document: string;
+        createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;

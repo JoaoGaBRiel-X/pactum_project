@@ -1,3 +1,4 @@
+import { PrismaClient } from '@prisma/client';
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -19,9 +20,9 @@ export class AuditInterceptor implements NestInterceptor {
           
           if (tenantId) {
             try {
-              await this.prisma.$transaction([
-                this.prisma.$executeRawUnsafe(`SET search_path TO "${tenantId}"`),
-                this.prisma.auditLog.create({
+              await this.prisma.client.$transaction([
+                this.prisma.client.$executeRawUnsafe(`SET search_path TO "${tenantId}"`),
+                this.prisma.client.auditLog.create({
                   data: {
                     action: method,
                     tableName: url.split('?')[0],

@@ -27,9 +27,9 @@ let AuditInterceptor = class AuditInterceptor {
                 const userId = user?.id || 'system-user';
                 if (tenantId) {
                     try {
-                        await this.prisma.$transaction([
-                            this.prisma.$executeRawUnsafe(`SET search_path TO "${tenantId}"`),
-                            this.prisma.auditLog.create({
+                        await this.prisma.client.$transaction([
+                            this.prisma.client.$executeRawUnsafe(`SET search_path TO "${tenantId}"`),
+                            this.prisma.client.auditLog.create({
                                 data: {
                                     action: method,
                                     tableName: url.split('?')[0],

@@ -1,8 +1,8 @@
+import { PrismaClient } from '@prisma/client';
 import { CreateSoftwareProductDto } from './dto/create-product.dto';
-import { PrismaService } from '../../prisma/prisma.service';
 export declare class ProductService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
+    constructor(prisma: PrismaClient);
     create(createProductDto: CreateSoftwareProductDto, userId: string): Promise<{
         modules: {
             name: string;
@@ -11,10 +11,10 @@ export declare class ProductService {
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
+            productId: string;
             description: string | null;
             isActive: boolean;
             price: import("@prisma/client-runtime-utils").Decimal;
-            productId: string;
         }[];
     } & {
         name: string;
@@ -34,10 +34,10 @@ export declare class ProductService {
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
+            productId: string;
             description: string | null;
             isActive: boolean;
             price: import("@prisma/client-runtime-utils").Decimal;
-            productId: string;
         }[];
     } & {
         name: string;
@@ -57,10 +57,10 @@ export declare class ProductService {
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
+            productId: string;
             description: string | null;
             isActive: boolean;
             price: import("@prisma/client-runtime-utils").Decimal;
-            productId: string;
         }[];
     } & {
         name: string;

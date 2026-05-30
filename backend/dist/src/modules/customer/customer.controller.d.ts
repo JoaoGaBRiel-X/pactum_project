@@ -19,8 +19,8 @@ export declare class CustomerController {
         partners: {
             name: string;
             id: string;
-            createdAt: Date;
             document: string;
+            createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
@@ -29,8 +29,8 @@ export declare class CustomerController {
         }[];
     } & {
         id: string;
-        createdAt: Date;
         document: string;
+        createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;
@@ -62,8 +62,8 @@ export declare class CustomerController {
         }[];
     } & {
         id: string;
-        createdAt: Date;
         document: string;
+        createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;
@@ -96,8 +96,8 @@ export declare class CustomerController {
         partners: {
             name: string;
             id: string;
-            createdAt: Date;
             document: string;
+            createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
@@ -106,8 +106,8 @@ export declare class CustomerController {
         }[];
     } & {
         id: string;
-        createdAt: Date;
         document: string;
+        createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;

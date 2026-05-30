@@ -1,3 +1,4 @@
+import { PrismaClient } from '@prisma/client';
 import { Injectable, Inject } from '@nestjs/common';
 import { CreateSoftwareProductDto } from './dto/create-product.dto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -7,7 +8,7 @@ import { TENANT_PRISMA_SERVICE } from '../../tenant/tenant.module';
 export class ProductService {
   constructor(
     @Inject(TENANT_PRISMA_SERVICE)
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaClient,
   ) {}
 
   async create(createProductDto: CreateSoftwareProductDto, userId: string) {

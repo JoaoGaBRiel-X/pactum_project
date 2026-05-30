@@ -11,10 +11,10 @@ export declare class ProductController {
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
+            productId: string;
             description: string | null;
             isActive: boolean;
             price: import("@prisma/client-runtime-utils").Decimal;
-            productId: string;
         }[];
     } & {
         name: string;
@@ -34,10 +34,10 @@ export declare class ProductController {
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
+            productId: string;
             description: string | null;
             isActive: boolean;
             price: import("@prisma/client-runtime-utils").Decimal;
-            productId: string;
         }[];
     } & {
         name: string;
@@ -57,10 +57,10 @@ export declare class ProductController {
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
+            productId: string;
             description: string | null;
             isActive: boolean;
             price: import("@prisma/client-runtime-utils").Decimal;
-            productId: string;
         }[];
     } & {
         name: string;

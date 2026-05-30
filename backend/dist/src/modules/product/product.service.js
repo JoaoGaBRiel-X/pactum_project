@@ -13,8 +13,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductService = void 0;
+const client_1 = require("@prisma/client");
 const common_1 = require("@nestjs/common");
-const prisma_service_1 = require("../../prisma/prisma.service");
 const tenant_module_1 = require("../../tenant/tenant.module");
 let ProductService = class ProductService {
     prisma;
@@ -56,6 +56,6 @@ exports.ProductService = ProductService;
 exports.ProductService = ProductService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(tenant_module_1.TENANT_PRISMA_SERVICE)),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [client_1.PrismaClient])
 ], ProductService);
 //# sourceMappingURL=product.service.js.map
