@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==========================================
+// IAM & Tenant Management (public schema)
+// ==========================================
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  document  String   @unique // CNPJ
+  schema    String   @unique // The schema name for this tenant (e.g. "tenant_123")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  users     User[]
+
+  @@map("tenants")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  tenantId  String   @map("tenant_id")
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  role      Role     @default(USER)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+// ==========================================
+// Tenant-Specific Models (Dynamic Schema)
+// These models will be queried in the schema
+// determined by the search_path.
+// ==========================================
+
+// --- Customer Management ---
+
+model CorporateGroup {
+  id        String     @id @default(uuid())
+  name      String
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  createdBy String?    @map("created_by")
+  updatedBy String?    @map("updated_by")
+  customers Customer[]
+
+  @@map("corporate_groups")
+}
+
+model Customer {
+  id               String          @id @default(uuid())
+  document         String          @unique // CNPJ
+  corporateName    String          @map("corporate_name")
+  tradeName        String?         @map("trade_name")
+  address          String?
+  corporateGroupId String?         @map("corporate_group_id")
+  corporateGroup   CorporateGroup? @relation(fields: [corporateGroupId], references: [id])
+  contacts         Contact[]
+  partners         Partner[]
+  
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+  createdBy        String?         @map("created_by")
+  updatedBy        String?         @map("updated_by")
+
+  @@map("customers")
+}
+
+model Contact {
+  id         String   @id @default(uuid())
+  name       String
+  email      String
+  phone      String?
+  role       String?
+  customerId String   @map("customer_id")
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  createdBy  String?  @map("created_by")
+  updatedBy  String?  @map("updated_by")
+
+  @@map("contacts")
+}
+
+model Partner {
+  id         String   @id @default(uuid())
+  name       String
+  document   String   // CPF/CNPJ do sócio
+  share      Decimal? // % de participação
+  customerId String   @map("customer_id")
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  createdBy  String?  @map("created_by")
+  updatedBy  String?  @map("updated_by")
+
+  @@map("partners")
+}
+
+// --- Product Catalog ---
+
+model SoftwareProduct {
+  id          String           @id @default(uuid())
+  name        String
+  description String?
+  isActive    Boolean          @default(true) @map("is_active")
+  modules     SoftwareModule[]
+  
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  createdBy   String?          @map("created_by")
+  updatedBy   String?          @map("updated_by")
+
+  @@map("software_products")
+}
+
+model SoftwareModule {
+  id          String          @id @default(uuid())
+  name        String
+  description String?
+  price       Decimal         @default(0.0) // Preço base do módulo
+  isActive    Boolean         @default(true) @map("is_active")
+  productId   String          @map("product_id")
+  product     SoftwareProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  createdBy   String?         @map("created_by")
+  updatedBy   String?         @map("updated_by")
+
+  @@map("software_modules")
+}
+
+// --- Audit & LGPD ---
+
+model ConsentRecord {
+  id            String   @id @default(uuid())
+  documentRef   String   @map("document_ref") // Referência ao termo aceito
+  ipAddress     String?  @map("ip_address")
+  userAgent     String?  @map("user_agent")
+  acceptedAt    DateTime @default(now()) @map("accepted_at")
+  customerId    String   @map("customer_id")
+  
+  createdAt     DateTime @default(now()) @map("created_at")
+  createdBy     String?  @map("created_by")
+
+  @@map("consent_records")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  action     String   // CREATE, UPDATE, DELETE
+  tableName  String   @map("table_name")
+  recordId   String   @map("record_id")
+  oldPayload Json?    @map("old_payload")
+  newPayload Json?    @map("new_payload")
+  userId     String?  @map("user_id")
+  
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}
+
+// --- Contract Management (Foundation for Phase 3) ---
+
+model Contract {
+  id             String            @id @default(uuid())
+  customerId     String            @map("customer_id")
+  productId      String            @map("product_id")
+  status         String            @default("DRAFT")
+  startDate      DateTime?         @map("start_date")
+  endDate        DateTime?         @map("end_date")
+  totalValue     Decimal           @default(0.0) @map("total_value")
+  renewalMode    String            @default("AUTOMATIC") @map("renewal_mode")
+  
+  history        ContractHistory[]
+  
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  createdBy      String?           @map("created_by")
+  updatedBy      String?           @map("updated_by")
+
+  @@map("contracts")
+}
+
+model ContractHistory {
+  id             String   @id @default(uuid())
+  contractId     String   @map("contract_id")
+  contract       Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  
+  // Snapshot dos detalhes do contrato no momento
+  status         String
+  totalValue     Decimal  @map("total_value")
+  modulesPayload Json     @map("modules_payload") // Guarda modulos e quantidades no momento
+  
+  changedAt      DateTime @default(now()) @map("changed_at")
+  changedBy      String?  @map("changed_by")
+  reason         String?
+
+  @@map("contract_history")
+}

@@ -1,0 +1,1 @@
+{"version":3,"file":"iam.module.js","sourceRoot":"","sources":["../../../src/iam/iam.module.ts"],"names":[],"mappings":";;;;;;;;;AAAA,2CAAwC;AACxC,0FAAsF;AACtF,oFAAgF;AAMzE,IAAM,SAAS,GAAf,MAAM,SAAS;CAAG,CAAA;AAAZ,8BAAS;oBAAT,SAAS;IAJrB,IAAA,eAAM,EAAC;QACN,WAAW,EAAE,CAAC,oDAAwB,CAAC;QACvC,SAAS,EAAE,CAAC,8CAAqB,CAAC;KACnC,CAAC;GACW,SAAS,CAAG"}
