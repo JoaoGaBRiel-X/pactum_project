@@ -2,6 +2,7 @@ declare class CreateContactDto {
     name: string;
     email: string;
     phone?: string;
+    cpf?: string;
     role?: string;
 }
 declare class CreatePartnerDto {

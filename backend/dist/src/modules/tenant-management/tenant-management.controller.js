@@ -16,6 +16,7 @@ exports.TenantManagementController = void 0;
 const common_1 = require("@nestjs/common");
 const tenant_management_service_1 = require("./tenant-management.service");
 const create_tenant_dto_1 = require("./dto/create-tenant.dto");
+const update_tenant_dto_1 = require("./dto/update-tenant.dto");
 const swagger_1 = require("@nestjs/swagger");
 const backoffice_guard_1 = require("../../iam/guards/backoffice.guard");
 const public_decorator_1 = require("../../iam/decorators/public.decorator");
@@ -29,6 +30,12 @@ let TenantManagementController = class TenantManagementController {
     }
     async findAll() {
         return this.tenantService.listTenants();
+    }
+    async findOne(id) {
+        return this.tenantService.getTenant(id);
+    }
+    async update(id, updateDto) {
+        return this.tenantService.updateTenant(id, updateDto);
     }
 };
 exports.TenantManagementController = TenantManagementController;
@@ -45,6 +52,21 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], TenantManagementController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], TenantManagementController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_tenant_dto_1.UpdateTenantDto]),
+    __metadata("design:returntype", Promise)
+], TenantManagementController.prototype, "update", null);
 exports.TenantManagementController = TenantManagementController = __decorate([
     (0, swagger_1.ApiTags)('Tenant Management'),
     (0, common_1.Controller)('tenants'),

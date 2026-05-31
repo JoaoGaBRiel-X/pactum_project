@@ -30,14 +30,23 @@ export default function TemplatesPage() {
       formData.append('name', name);
       formData.append('description', description);
 
-      return fetch('http://localhost:3333/api/documents/templates', {
+      const token = localStorage.getItem('gestao_token');
+      const tenantId = localStorage.getItem('gestao_tenant_id');
+
+      const res = await fetch('http://localhost:3333/api/documents/templates', {
         method: 'POST',
         headers: {
-          'x-tenant-id': 'tenant_1',
-          'x-user-id': 'system-user',
+          ...(tenantId && { 'x-tenant-id': tenantId }),
+          ...(token && { 'Authorization': `Bearer ${token}` }),
         },
         body: formData,
       });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Erro ao fazer upload do template');
+      }
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['templates'] });

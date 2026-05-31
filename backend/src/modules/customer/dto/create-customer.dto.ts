@@ -21,6 +21,11 @@ class CreateContactDto {
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
+  cpf?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
   role?: string;
 }
 

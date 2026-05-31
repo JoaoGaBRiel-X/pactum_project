@@ -13,7 +13,31 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContractCronService = void 0;
 const common_1 = require("@nestjs/common");
 const schedule_1 = require("@nestjs/schedule");
+const client_1 = require("@prisma/client");
 const prisma_service_1 = require("../../prisma/prisma.service");
+const pg_1 = require("pg");
+const adapter_pg_1 = require("@prisma/adapter-pg");
+require("dotenv/config");
+const cronClientCache = new Map();
+async function getCronTenantClient(schemaName) {
+    if (cronClientCache.has(schemaName)) {
+        return cronClientCache.get(schemaName);
+    }
+    const dbUrl = new URL(process.env.DATABASE_URL);
+    const pool = new pg_1.Pool({
+        user: dbUrl.username,
+        password: dbUrl.password,
+        host: dbUrl.hostname,
+        port: parseInt(dbUrl.port, 10),
+        database: dbUrl.pathname.slice(1),
+        max: 3,
+    });
+    const adapter = new adapter_pg_1.PrismaPg(pool, { schema: schemaName });
+    const client = new client_1.PrismaClient({ adapter });
+    await client.$connect();
+    cronClientCache.set(schemaName, client);
+    return client;
+}
 let ContractCronService = ContractCronService_1 = class ContractCronService {
     prisma;
     logger = new common_1.Logger(ContractCronService_1.name);
@@ -27,32 +51,16 @@ let ContractCronService = ContractCronService_1 = class ContractCronService {
             try {
                 const schema = tenant.schema;
                 this.logger.log(`Processando tenant: ${schema}`);
-                const tenantPrisma = this.prisma.client.$extends({
-                    query: {
-                        $allModels: {
-                            async $allOperations({ args, query }) {
-                                const [, result] = await this.prisma.client.$transaction([
-                                    this.prisma.client.$executeRawUnsafe(`SET search_path TO "${schema}"`),
-                                    query(args),
-                                ]);
-                                return result;
-                            },
-                        },
-                    },
-                });
+                const tenantPrisma = await getCronTenantClient(schema);
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 const contractsToRenew = await tenantPrisma.contract.findMany({
                     where: {
                         status: 'ACTIVE',
                         renewalMode: 'AUTOMATIC',
-                        endDate: {
-                            lte: today,
-                        },
+                        endDate: { lte: today },
                     },
-                    include: {
-                        items: true,
-                    }
+                    include: { items: true },
                 });
                 for (const contract of contractsToRenew) {
                     try {
@@ -60,23 +68,19 @@ let ContractCronService = ContractCronService_1 = class ContractCronService {
                             const newStartDate = new Date();
                             const newEndDate = new Date();
                             newEndDate.setFullYear(newEndDate.getFullYear() + 1);
-                            const updatedContract = await tx.contract.update({
+                            await tx.contract.update({
                                 where: { id: contract.id },
-                                data: {
-                                    startDate: newStartDate,
-                                    endDate: newEndDate,
-                                    updatedBy: 'system-cron',
-                                },
+                                data: { startDate: newStartDate, endDate: newEndDate, updatedBy: 'system-cron' },
                             });
                             const items = await tx.contractItem.findMany({ where: { contractId: contract.id } });
                             const modulesPayload = {
                                 globalDiscount: Number(contract.globalDiscount),
-                                items: items.map(it => ({
+                                items: items.map((it) => ({
                                     moduleId: it.moduleId,
                                     quantity: it.quantity,
                                     unitPrice: Number(it.unitPrice),
                                     discount: Number(it.discount),
-                                }))
+                                })),
                             };
                             await tx.contractHistory.create({
                                 data: {
@@ -86,7 +90,7 @@ let ContractCronService = ContractCronService_1 = class ContractCronService {
                                     changedBy: 'system-cron',
                                     reason: 'Renovação automática',
                                     modulesPayload,
-                                }
+                                },
                             });
                             this.logger.log(`Contrato ${contract.id} renovado automaticamente no tenant ${schema}.`);
                         });

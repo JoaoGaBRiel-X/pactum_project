@@ -15,6 +15,10 @@ model Tenant {
   name      String
   document  String   @unique // CNPJ
   schema    String   @unique // The schema name for this tenant (e.g. "tenant_123")
+  
+  legalRepName String?   @map("legal_rep_name")
+  legalRepCpf  String?   @map("legal_rep_cpf")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime     @updatedAt @map("updated_at")
   userLinks UserTenant[]
@@ -104,6 +108,7 @@ model Contact {
   name       String
   email      String
   phone      String?
+  cpf        String?
   role       String?
   customerId String   @map("customer_id")
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)

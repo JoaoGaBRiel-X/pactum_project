@@ -56,8 +56,13 @@ export default function TenantsPage() {
               </div>
 
               <div className="mt-6 pt-4 border-t flex justify-end">
-                <Button variant="outline" size="sm" className="w-full text-blue-600 border-blue-600 hover:bg-blue-50">
-                  Gerenciar
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full text-blue-600 border-blue-600 hover:bg-blue-50"
+                  onClick={() => router.push(`/admin/tenants/${tenant.id}/edit`)}
+                >
+                  Editar Dados
                 </Button>
               </div>
             </div>

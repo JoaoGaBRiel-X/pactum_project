@@ -22,19 +22,19 @@ let DocumentController = class DocumentController {
         this.documentService = documentService;
     }
     async uploadTemplate(file, name, description, req) {
-        const userId = req.headers['x-user-id'] || 'system-user';
+        const userId = req.user?.userId || 'system-user';
         return this.documentService.uploadTemplate(file, name, description, userId);
     }
-    async getTemplates(req) {
-        const userId = req.headers['x-user-id'] || 'system-user';
+    async getTemplates() {
         return this.documentService.getTemplates();
     }
     async generateContract(contractId, templateId, req) {
-        const userId = req.headers['x-user-id'] || 'system-user';
-        return this.documentService.generateContractDocument(contractId, templateId, userId);
+        const userId = req.user?.userId || 'system-user';
+        const tenantId = req.headers['x-tenant-id'];
+        return this.documentService.generateContractDocument(contractId, templateId, userId, tenantId);
     }
     async manualSign(documentId, req) {
-        const userId = req.headers['x-user-id'] || 'system-user';
+        const userId = req.user?.userId || 'system-user';
         return this.documentService.markAsManuallySigned(documentId, userId);
     }
 };
@@ -52,13 +52,11 @@ __decorate([
 ], DocumentController.prototype, "uploadTemplate", null);
 __decorate([
     (0, common_1.Get)('templates'),
-    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], DocumentController.prototype, "getTemplates", null);
 __decorate([
-    (0, common_1.Post)('generate'),
     __param(0, (0, common_1.Body)('contractId')),
     __param(1, (0, common_1.Body)('templateId')),
     __param(2, (0, common_1.Req)()),

@@ -15,6 +15,8 @@ class CreateTenantDto {
     name;
     document;
     adminName;
+    legalRepName;
+    legalRepCpf;
     adminEmail;
     adminPassword;
 }
@@ -34,6 +36,16 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)({ message: 'O nome do administrador é obrigatório.' }),
     __metadata("design:type", String)
 ], CreateTenantDto.prototype, "adminName", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateTenantDto.prototype, "legalRepName", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateTenantDto.prototype, "legalRepCpf", void 0);
 __decorate([
     (0, class_validator_1.IsEmail)({}, { message: 'O e-mail do administrador deve ser válido.' }),
     (0, class_validator_1.IsNotEmpty)({ message: 'O e-mail do administrador é obrigatório.' }),

@@ -20,9 +20,11 @@ export class AuditInterceptor implements NestInterceptor {
           
           if (tenantId) {
             try {
-              await this.prisma.client.$transaction([
-                this.prisma.client.$executeRawUnsafe(`SET search_path TO "${tenantId}"`),
-                this.prisma.client.auditLog.create({
+              const tenant = await this.prisma.client.tenant.findUnique({ where: { id: tenantId }, select: { schema: true } });
+              if (tenant) {
+                await this.prisma.client.$transaction([
+                  this.prisma.client.$executeRawUnsafe(`SET LOCAL search_path TO "${tenant.schema}"`),
+                  this.prisma.client.auditLog.create({
                   data: {
                     action: method,
                     tableName: url.split('?')[0],
@@ -32,6 +34,7 @@ export class AuditInterceptor implements NestInterceptor {
                   }
                 })
               ]);
+             }
             } catch (e) {
               console.error('Failed to save audit log', e);
             }

@@ -275,6 +275,36 @@ export default function ContractDetailsPage({ params }: { params: Promise<{ id: 
         )}
       </div>
 
+      {/* Histórico do Contrato */}
+      <div className="bg-white p-6 rounded-xl border border-border shadow-sm space-y-6">
+        <h2 className="text-lg font-semibold flex items-center gap-2 border-b pb-2">
+          <RefreshCw size={20} /> Histórico do Contrato
+        </h2>
+        {(!contract.history || contract.history.length === 0) ? (
+          <p className="text-sm text-muted-foreground italic">Nenhum histórico disponível.</p>
+        ) : (
+          <div className="relative border-l-2 border-slate-200 ml-3 space-y-8 pl-6">
+            {contract.history.map((hist: any, index: number) => (
+              <div key={hist.id} className="relative">
+                <div className="absolute -left-[33px] top-0 bg-white border-2 border-primary w-4 h-4 rounded-full"></div>
+                <div className="mb-1 text-xs font-semibold text-slate-500">
+                  {new Date(hist.changedAt).toLocaleString()}
+                </div>
+                <div className="font-semibold text-slate-800">
+                  Status alterado para: <span className="bg-slate-100 px-2 py-0.5 rounded text-xs">{hist.status}</span>
+                </div>
+                <div className="text-sm text-slate-600 mt-1">
+                  Motivo: {hist.reason || 'Nenhum motivo informado'}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Valor Total no momento: R$ {Number(hist.totalValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <Dialog open={isRenewalOpen} onOpenChange={setIsRenewalOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Renovar Contrato e Aplicar Reajuste</DialogTitle></DialogHeader>

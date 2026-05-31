@@ -16,6 +16,8 @@ export default function NewTenantPage() {
     document: '',
     adminName: '',
     adminEmail: '',
+    legalRepName: '',
+    legalRepCpf: '',
   });
   const [isProvisioning, setIsProvisioning] = useState(false);
   const [successData, setSuccessData] = useState<{ tenantName: string, tempPassword?: string } | null>(null);
@@ -33,7 +35,7 @@ export default function NewTenantPage() {
     }),
     onSuccess: (responseData: any) => {
       setSuccessData({
-        tenantName: responseData.tenant?.name || data.name,
+        tenantName: responseData.tenant?.name || formData.name,
         tempPassword: responseData.temporaryPassword
       });
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
@@ -143,6 +145,29 @@ export default function NewTenantPage() {
                   value={formData.document}
                   onAccept={(val) => setFormData({ ...formData, document: String(val) })}
                   placeholder="00.000.000/0000-00"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Nome do Representante Legal</label>
+                <input
+                  type="text"
+                  className="w-full border p-2 rounded"
+                  value={formData.legalRepName}
+                  onChange={(e) => setFormData({ ...formData, legalRepName: e.target.value })}
+                  placeholder="Nome do assinante do contrato"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">CPF do Representante</label>
+                <IMaskInput
+                  mask="000.000.000-00"
+                  className="w-full border p-2 rounded"
+                  value={formData.legalRepCpf}
+                  onAccept={(val) => setFormData({ ...formData, legalRepCpf: String(val) })}
+                  placeholder="000.000.000-00"
                 />
               </div>
             </div>

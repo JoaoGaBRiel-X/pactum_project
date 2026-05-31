@@ -49,6 +49,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DocumentService = void 0;
 const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
+const prisma_service_1 = require("../../prisma/prisma.service");
 const tenant_module_1 = require("../../tenant/tenant.module");
 const gotenberg_service_1 = require("./gotenberg.service");
 const template_service_1 = require("./template.service");
@@ -57,12 +58,14 @@ const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
 let DocumentService = DocumentService_1 = class DocumentService {
     prisma;
+    globalPrisma;
     gotenberg;
     template;
     clicksign;
     logger = new common_1.Logger(DocumentService_1.name);
-    constructor(prisma, gotenberg, template, clicksign) {
+    constructor(prisma, globalPrisma, gotenberg, template, clicksign) {
         this.prisma = prisma;
+        this.globalPrisma = globalPrisma;
         this.gotenberg = gotenberg;
         this.template = template;
         this.clicksign = clicksign;
@@ -72,12 +75,17 @@ let DocumentService = DocumentService_1 = class DocumentService {
             orderBy: { createdAt: 'desc' }
         });
     }
-    async generateContractDocument(contractId, templateId, userId) {
+    async generateContractDocument(contractId, templateId, userId, tenantId) {
         const contract = await this.prisma.contract.findUnique({
             where: { id: contractId },
             include: {
-                customer: true,
-                product: true
+                customer: {
+                    include: {
+                        contacts: true,
+                    }
+                },
+                product: true,
+                items: true,
             }
         });
         if (!contract)
@@ -87,6 +95,18 @@ let DocumentService = DocumentService_1 = class DocumentService {
         });
         if (!template)
             throw new common_1.NotFoundException('Template não encontrado');
+        let tenantInfo = { name: 'Locatário Padrão', document: '00.000.000/0000-00', legalRepName: 'Administrador Padrão', legalRepCpf: '000.000.000-00' };
+        if (tenantId) {
+            const globalTenant = await this.globalPrisma.client.tenant.findUnique({ where: { id: tenantId } });
+            if (globalTenant) {
+                tenantInfo = {
+                    name: globalTenant.name,
+                    document: globalTenant.document,
+                    legalRepName: globalTenant.legalRepName || 'Administrador',
+                    legalRepCpf: globalTenant.legalRepCpf || '000.000.000-00'
+                };
+            }
+        }
         let templateBuffer;
         try {
             templateBuffer = await fs.readFile(template.path);
@@ -95,16 +115,35 @@ let DocumentService = DocumentService_1 = class DocumentService {
             throw new Error(`Não foi possível ler o arquivo do template: ${template.path}`);
         }
         const viewData = {
+            tenant: {
+                name: tenantInfo.name,
+                document: tenantInfo.document,
+                legalRepName: tenantInfo.legalRepName,
+                legalRepCpf: tenantInfo.legalRepCpf,
+            },
             customer: {
-                name: contract.customer.corporateName,
-                cnpj: contract.customer.document,
+                corporateName: contract.customer.corporateName,
+                tradeName: contract.customer.tradeName || contract.customer.corporateName,
+                document: contract.customer.document,
+                address: contract.customer.address || 'Endereço não informado',
+                contactName: contract.customer.contacts?.[0]?.name || 'Representante não informado',
+                contactCpf: contract.customer.contacts?.[0]?.cpf || 'CPF não informado',
             },
             contract: {
-                value: Number(contract.totalValue).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                globalDiscount: Number(contract.globalDiscount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                totalValue: Number(contract.totalValue).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                renewalMode: contract.renewalMode === 'AUTOMATIC' ? 'Automática' : 'Manual',
             },
             software: {
-                name: contract.product.name
-            }
+                name: contract.product.name,
+                description: contract.product.description || '',
+            },
+            modules: contract.items.map(item => ({
+                name: item.moduleId,
+                quantity: item.quantity,
+                unitPrice: Number(item.unitPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                discount: Number(item.discount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+            }))
         };
         const filledDocxBuffer = await this.template.fillTemplate(templateBuffer, viewData);
         const pdfBuffer = await this.gotenberg.convertDocxToPdf(filledDocxBuffer, 'contract.docx');
@@ -125,13 +164,43 @@ let DocumentService = DocumentService_1 = class DocumentService {
         return document;
     }
     async markAsManuallySigned(documentId, userId) {
-        const document = await this.prisma.contractDocument.update({
-            where: { id: documentId },
-            data: {
-                status: 'SIGNED',
+        return this.prisma.$transaction(async (tx) => {
+            const document = await tx.contractDocument.update({
+                where: { id: documentId },
+                data: {
+                    status: 'SIGNED',
+                }
+            });
+            const contract = await tx.contract.findUnique({
+                where: { id: document.contractId },
+                include: { items: true }
+            });
+            if (contract && contract.status === 'PENDING_SIGNATURE' || contract?.status === 'DRAFT') {
+                await tx.contract.update({
+                    where: { id: contract.id },
+                    data: { status: 'ACTIVE', updatedBy: userId, startDate: new Date() }
+                });
+                await tx.contractHistory.create({
+                    data: {
+                        contractId: contract.id,
+                        status: 'ACTIVE',
+                        totalValue: contract.totalValue,
+                        changedBy: userId,
+                        reason: 'Ativado via Assinatura Manual de Documento',
+                        modulesPayload: {
+                            globalDiscount: Number(contract.globalDiscount),
+                            items: contract.items.map(it => ({
+                                moduleId: it.moduleId,
+                                quantity: it.quantity,
+                                unitPrice: Number(it.unitPrice),
+                                discount: Number(it.discount),
+                            }))
+                        },
+                    }
+                });
             }
+            return document;
         });
-        return document;
     }
     async uploadTemplate(file, name, description, userId) {
         const uploadsDir = path.resolve(__dirname, '../../../uploads/templates');
@@ -153,6 +222,7 @@ exports.DocumentService = DocumentService = DocumentService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(tenant_module_1.TENANT_PRISMA_SERVICE)),
     __metadata("design:paramtypes", [client_1.PrismaClient,
+        prisma_service_1.PrismaService,
         gotenberg_service_1.GotenbergService,
         template_service_1.TemplateService,
         clicksign_service_1.ClicksignService])

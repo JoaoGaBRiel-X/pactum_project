@@ -14,6 +14,7 @@ export declare class CustomerController {
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;
+            cpf: string | null;
             customerId: string;
         }[];
         partners: {
@@ -59,6 +60,7 @@ export declare class CustomerController {
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;
+            cpf: string | null;
             customerId: string;
         }[];
     } & {
@@ -93,6 +95,7 @@ export declare class CustomerController {
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;
+            cpf: string | null;
             customerId: string;
         }[];
         partners: {
@@ -130,6 +133,7 @@ export declare class CustomerController {
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;
+            cpf: string | null;
             customerId: string;
         }[];
         partners: {

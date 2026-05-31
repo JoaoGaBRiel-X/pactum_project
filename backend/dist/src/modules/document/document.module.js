@@ -15,12 +15,13 @@ const template_service_1 = require("./template.service");
 const gotenberg_service_1 = require("./gotenberg.service");
 const clicksign_service_1 = require("./clicksign.service");
 const tenant_module_1 = require("../../tenant/tenant.module");
+const prisma_module_1 = require("../../prisma/prisma.module");
 let DocumentModule = class DocumentModule {
 };
 exports.DocumentModule = DocumentModule;
 exports.DocumentModule = DocumentModule = __decorate([
     (0, common_1.Module)({
-        imports: [tenant_module_1.TenantModule],
+        imports: [tenant_module_1.TenantModule, prisma_module_1.PrismaModule],
         controllers: [document_controller_1.DocumentController, webhook_controller_1.WebhookController],
         providers: [document_service_1.DocumentService, template_service_1.TemplateService, gotenberg_service_1.GotenbergService, clicksign_service_1.ClicksignService],
         exports: [document_service_1.DocumentService]

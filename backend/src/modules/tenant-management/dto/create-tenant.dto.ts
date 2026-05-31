@@ -13,6 +13,14 @@ export class CreateTenantDto {
   @IsNotEmpty({ message: 'O nome do administrador é obrigatório.' })
   adminName: string;
 
+  @IsString()
+  @IsOptional()
+  legalRepName?: string;
+
+  @IsString()
+  @IsOptional()
+  legalRepCpf?: string;
+
   @IsEmail({}, { message: 'O e-mail do administrador deve ser válido.' })
   @IsNotEmpty({ message: 'O e-mail do administrador é obrigatório.' })
   adminEmail: string;

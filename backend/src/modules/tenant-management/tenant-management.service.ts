@@ -80,6 +80,8 @@ export class TenantManagementService {
         name: dto.name,
         document: dto.document,
         schema: schemaName,
+        legalRepName: dto.legalRepName,
+        legalRepCpf: dto.legalRepCpf,
       },
     });
 
@@ -119,6 +121,29 @@ export class TenantManagementService {
         }
       },
       orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async getTenant(id: string) {
+    return this.prisma.client.tenant.findUnique({
+      where: { id },
+      include: {
+        userLinks: {
+          include: { user: { select: { id: true, name: true, email: true } } }
+        }
+      }
+    });
+  }
+
+  async updateTenant(id: string, dto: any) {
+    return this.prisma.client.tenant.update({
+      where: { id },
+      data: {
+        name: dto.name,
+        document: dto.document,
+        legalRepName: dto.legalRepName,
+        legalRepCpf: dto.legalRepCpf,
+      }
     });
   }
 }

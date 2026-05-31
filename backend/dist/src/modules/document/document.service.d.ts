@@ -1,14 +1,16 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
 import { GotenbergService } from './gotenberg.service';
 import { TemplateService } from './template.service';
 import { ClicksignService } from './clicksign.service';
 export declare class DocumentService {
     private readonly prisma;
+    private readonly globalPrisma;
     private readonly gotenberg;
     private readonly template;
     private readonly clicksign;
     private readonly logger;
-    constructor(prisma: PrismaClient, gotenberg: GotenbergService, template: TemplateService, clicksign: ClicksignService);
+    constructor(prisma: PrismaClient, globalPrisma: PrismaService, gotenberg: GotenbergService, template: TemplateService, clicksign: ClicksignService);
     getTemplates(): Promise<{
         path: string;
         name: string;
@@ -20,7 +22,7 @@ export declare class DocumentService {
         description: string | null;
         isActive: boolean;
     }[]>;
-    generateContractDocument(contractId: string, templateId: string, userId: string): Promise<{
+    generateContractDocument(contractId: string, templateId: string, userId: string, tenantId?: string): Promise<{
         path: string;
         id: string;
         createdAt: Date;

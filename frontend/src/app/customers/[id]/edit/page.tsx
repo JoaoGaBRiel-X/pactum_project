@@ -32,9 +32,11 @@ const dynamicCnpjMask = (value: string) => {
 };
 
 const contactSchema = z.object({
+  id: z.string().optional(),
   name: z.string().min(2, 'Nome é obrigatório'),
   email: z.string().email('E-mail inválido').optional().or(z.literal('')),
   phone: z.string().optional(),
+  cpf: z.string().optional(),
   role: z.string().optional(),
 });
 
@@ -228,7 +230,7 @@ export default function EditCustomerPage({ params }: { params: Promise<{ id: str
         <div className="bg-white p-6 rounded-xl border border-border shadow-sm space-y-6">
           <div className="flex justify-between items-center border-b pb-2">
             <h2 className="text-lg font-semibold flex items-center gap-2"><Phone size={20} /> Contatos</h2>
-            <Button type="button" variant="outline" size="sm" onClick={() => appendContact({ name: '', email: '', phone: '', role: '' })}>
+            <Button type="button" variant="outline" size="sm" onClick={() => appendContact({ name: '', email: '', phone: '', cpf: '', role: '' })}>
               <Plus size={16} className="mr-2" /> Adicionar Contato
             </Button>
           </div>
@@ -264,6 +266,25 @@ export default function EditCustomerPage({ params }: { params: Promise<{ id: str
                         value={value || ''}
                         inputRef={ref}
                         placeholder="(11) 99999-9999"
+                        className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      />
+                    )}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>CPF</Label>
+                  <Controller
+                    control={control}
+                    name={`contacts.${index}.cpf`}
+                    render={({ field: { onChange, onBlur, value, ref } }) => (
+                      <IMaskInput
+                        mask="000.000.000-00"
+                        unmask={true}
+                        onAccept={(val) => onChange(val)}
+                        onBlur={onBlur}
+                        value={value || ''}
+                        inputRef={ref}
+                        placeholder="000.000.000-00"
                         className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       />
                     )}

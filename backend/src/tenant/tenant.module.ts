@@ -2,9 +2,46 @@ import { Global, Module, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaService } from '../prisma/prisma.service';
+import 'dotenv/config';
 
 export const TENANT_PRISMA_SERVICE = 'TENANT_PRISMA_SERVICE';
+
+/**
+ * Cache global de PrismaClients por nome de schema.
+ * Usa o parâmetro nativo `schema` do PrismaPg (pgOptions) que foi descoberto
+ * inspecionando o código fonte do adapter. Esta é a forma correta e documentada
+ * pelo adapter de definir o schema por cliente.
+ */
+const tenantClientCache = new Map<string, PrismaClient>();
+
+async function getTenantClient(schemaName: string): Promise<PrismaClient> {
+  if (tenantClientCache.has(schemaName)) {
+    return tenantClientCache.get(schemaName)!;
+  }
+
+  const dbUrl = new URL(process.env.DATABASE_URL as string);
+
+  const pool = new Pool({
+    user: dbUrl.username,
+    password: dbUrl.password,
+    host: dbUrl.hostname,
+    port: parseInt(dbUrl.port, 10),
+    database: dbUrl.pathname.slice(1),
+    max: 5,
+  });
+
+  // Passa o schema diretamente para o PrismaPg via pgOptions.schema
+  // Internamente o adapter usa isso para construir o search_path na conexão
+  const adapter = new PrismaPg(pool, { schema: schemaName });
+  const client = new PrismaClient({ adapter });
+  await client.$connect();
+
+  tenantClientCache.set(schemaName, client);
+  return client;
+}
 
 @Global()
 @Module({
@@ -16,33 +53,18 @@ export const TENANT_PRISMA_SERVICE = 'TENANT_PRISMA_SERVICE';
       inject: [REQUEST, PrismaService],
       useFactory: async (request: Request, prisma: PrismaService) => {
         const tenantId = request.headers['x-tenant-id'] as string;
-        
-        // Se houver um tenant_id, buscamos o schema correspondente
+
         if (tenantId) {
           const tenant = await prisma.client.tenant.findUnique({
             where: { id: tenantId },
-            select: { schema: true }
+            select: { schema: true },
           });
 
-          if (tenant) {
-            // Utiliza Client Extension do Prisma para setar o search_path
-            return prisma.client.$extends({
-              query: {
-                $allModels: {
-                  async $allOperations({ args, query }) {
-                    const [, result] = await prisma.client.$transaction([
-                      prisma.client.$executeRawUnsafe(`SET search_path TO "${tenant.schema}"`),
-                      query(args),
-                    ]);
-                    return result;
-                  },
-                },
-              },
-            });
+          if (tenant?.schema) {
+            return getTenantClient(tenant.schema);
           }
         }
 
-        // Caso não haja tenant_id válido, retorna o prisma normal (schema public)
         return prisma.client;
       },
     },

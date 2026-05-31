@@ -27,6 +27,7 @@ let PrismaService = class PrismaService {
             port: parseInt(url.port, 10),
             database: url.pathname.slice(1),
             max: 20,
+            options: '-c search_path=public',
         });
         const adapter = new adapter_pg_1.PrismaPg(pool);
         this.client = new client_1.PrismaClient({ adapter });

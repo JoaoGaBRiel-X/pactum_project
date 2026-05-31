@@ -101,6 +101,8 @@ let TenantManagementService = TenantManagementService_1 = class TenantManagement
                 name: dto.name,
                 document: dto.document,
                 schema: schemaName,
+                legalRepName: dto.legalRepName,
+                legalRepCpf: dto.legalRepCpf,
             },
         });
         if (existingUser) {
@@ -137,6 +139,27 @@ let TenantManagementService = TenantManagementService_1 = class TenantManagement
                 }
             },
             orderBy: { createdAt: 'desc' }
+        });
+    }
+    async getTenant(id) {
+        return this.prisma.client.tenant.findUnique({
+            where: { id },
+            include: {
+                userLinks: {
+                    include: { user: { select: { id: true, name: true, email: true } } }
+                }
+            }
+        });
+    }
+    async updateTenant(id, dto) {
+        return this.prisma.client.tenant.update({
+            where: { id },
+            data: {
+                name: dto.name,
+                document: dto.document,
+                legalRepName: dto.legalRepName,
+                legalRepCpf: dto.legalRepCpf,
+            }
         });
     }
 };

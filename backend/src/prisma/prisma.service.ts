@@ -21,6 +21,7 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
       port: parseInt(url.port, 10),
       database: url.pathname.slice(1),
       max: 20,
+      options: '-c search_path=public', // Garante que o client global só acessa o schema public
     });
     const adapter = new PrismaPg(pool);
     this.client = new PrismaClient({ adapter });

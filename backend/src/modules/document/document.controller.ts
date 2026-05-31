@@ -14,30 +14,29 @@ export class DocumentController {
     @Body('description') description: string,
     @Req() req: any
   ) {
-    const userId = req.headers['x-user-id'] || 'system-user';
+    const userId = req.user?.userId || 'system-user';
     return this.documentService.uploadTemplate(file, name, description, userId);
   }
 
   @Get('templates')
-  async getTemplates(@Req() req: any) {
-    const userId = req.headers['x-user-id'] || 'system-user';
+  async getTemplates() {
     // This is simple list endpoint
     return this.documentService.getTemplates();
   }
 
-  @Post('generate')
   async generateContract(
     @Body('contractId') contractId: string,
     @Body('templateId') templateId: string,
     @Req() req: any
   ) {
-    const userId = req.headers['x-user-id'] || 'system-user';
-    return this.documentService.generateContractDocument(contractId, templateId, userId);
+    const userId = req.user?.userId || 'system-user';
+    const tenantId = req.headers['x-tenant-id'];
+    return this.documentService.generateContractDocument(contractId, templateId, userId, tenantId);
   }
 
   @Post(':id/manual-sign')
   async manualSign(@Param('id') documentId: string, @Req() req: any) {
-    const userId = req.headers['x-user-id'] || 'system-user';
+    const userId = req.user?.userId || 'system-user';
     return this.documentService.markAsManuallySigned(documentId, userId);
   }
 }

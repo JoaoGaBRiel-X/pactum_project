@@ -10,6 +10,8 @@ export declare class TenantManagementService {
             id: string;
             document: string;
             schema: string;
+            legalRepName: string | null;
+            legalRepCpf: string | null;
             createdAt: Date;
             updatedAt: Date;
         };
@@ -24,7 +26,41 @@ export declare class TenantManagementService {
         id: string;
         document: string;
         schema: string;
+        legalRepName: string | null;
+        legalRepCpf: string | null;
         createdAt: Date;
         updatedAt: Date;
     })[]>;
+    getTenant(id: string): Promise<({
+        userLinks: ({
+            user: {
+                name: string;
+                id: string;
+                email: string;
+            };
+        } & {
+            userId: string;
+            tenantId: string;
+            role: import("@prisma/client").$Enums.Role;
+        })[];
+    } & {
+        name: string;
+        id: string;
+        document: string;
+        schema: string;
+        legalRepName: string | null;
+        legalRepCpf: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }) | null>;
+    updateTenant(id: string, dto: any): Promise<{
+        name: string;
+        id: string;
+        document: string;
+        schema: string;
+        legalRepName: string | null;
+        legalRepCpf: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
 }

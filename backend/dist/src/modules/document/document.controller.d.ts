@@ -13,7 +13,7 @@ export declare class DocumentController {
         description: string | null;
         isActive: boolean;
     }>;
-    getTemplates(req: any): Promise<{
+    getTemplates(): Promise<{
         path: string;
         name: string;
         id: string;
