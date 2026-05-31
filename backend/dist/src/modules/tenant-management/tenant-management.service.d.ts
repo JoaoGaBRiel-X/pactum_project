@@ -5,12 +5,15 @@ export declare class TenantManagementService {
     private readonly logger;
     constructor(prisma: PrismaService);
     createTenant(dto: CreateTenantDto): Promise<{
-        name: string;
-        id: string;
-        document: string;
-        schema: string;
-        createdAt: Date;
-        updatedAt: Date;
+        tenant: {
+            name: string;
+            id: string;
+            document: string;
+            schema: string;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        temporaryPassword: string;
     }>;
     listTenants(): Promise<({
         _count: {

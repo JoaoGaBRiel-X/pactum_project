@@ -68,7 +68,8 @@ let TenantManagementService = TenantManagementService_1 = class TenantManagement
             where: { email: dto.adminEmail },
         });
         const schemaName = `tenant_${(0, uuid_1.v4)().replace(/-/g, '').toLowerCase()}`;
-        const hashedPassword = await bcrypt.hash(dto.adminPassword, 10);
+        const generatedPassword = dto.adminPassword || Math.random().toString(36).slice(-8) + 'A@1';
+        const hashedPassword = await bcrypt.hash(generatedPassword, 10);
         try {
             await this.prisma.client.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
             this.logger.log(`Schema ${schemaName} criado com sucesso no banco de dados.`);
@@ -126,7 +127,7 @@ let TenantManagementService = TenantManagementService_1 = class TenantManagement
                 },
             });
         }
-        return tenant;
+        return { tenant, temporaryPassword: generatedPassword };
     }
     async listTenants() {
         return this.prisma.client.tenant.findMany({

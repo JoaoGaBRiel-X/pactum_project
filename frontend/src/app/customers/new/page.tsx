@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -51,6 +51,7 @@ const customerSchema = z.object({
   tradeName: z.string().optional(),
   email: z.string().email('E-mail inválido').optional().or(z.literal('')),
   phone: z.string().optional(),
+  corporateGroupId: z.string().optional(),
   contacts: z.array(contactSchema).optional(),
   partners: z.array(partnerSchema).optional(),
 });
@@ -60,6 +61,11 @@ type CustomerFormValues = z.infer<typeof customerSchema>;
 export default function NewCustomerPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  const { data: corporateGroups } = useQuery({
+    queryKey: ['corporate-groups'],
+    queryFn: () => apiFetch('/corporate-groups'),
+  });
 
   const { register, control, handleSubmit, setValue, formState: { errors } } = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema) as any,
@@ -182,6 +188,19 @@ export default function NewCustomerPage() {
             <div className="space-y-2">
               <Label htmlFor="email">E-mail Principal</Label>
               <Input id="email" type="email" {...register("email")} placeholder="contato@empresa.com" />
+            </div>
+            <div className="space-y-2 col-span-1 md:col-span-2">
+              <Label htmlFor="corporateGroupId">Grupo Econômico (Opcional)</Label>
+              <select 
+                id="corporateGroupId" 
+                {...register("corporateGroupId")} 
+                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <option value="">Nenhum</option>
+                {corporateGroups?.map((group: any) => (
+                  <option key={group.id} value={group.id}>{group.name}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

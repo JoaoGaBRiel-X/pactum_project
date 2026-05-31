@@ -30,6 +30,9 @@ export function Sidebar() {
         <Link href="/customers" className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">
           <Users size={18} /> Clientes
         </Link>
+        <Link href="/corporate-groups" className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">
+          <Users size={18} /> Grupos Econômicos
+        </Link>
         <Link href="/products" className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">
           <Package size={18} /> Produtos
         </Link>

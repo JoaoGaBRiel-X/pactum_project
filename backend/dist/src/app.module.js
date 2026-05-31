@@ -23,6 +23,7 @@ const schedule_1 = require("@nestjs/schedule");
 const adjustment_module_1 = require("./modules/adjustment/adjustment.module");
 const document_module_1 = require("./modules/document/document.module");
 const tenant_management_module_1 = require("./modules/tenant-management/tenant-management.module");
+const corporate_group_module_1 = require("./modules/corporate-group/corporate-group.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -39,7 +40,8 @@ exports.AppModule = AppModule = __decorate([
             financial_module_1.FinancialModule,
             adjustment_module_1.AdjustmentModule,
             tenant_management_module_1.TenantManagementModule,
-            document_module_1.DocumentModule
+            document_module_1.DocumentModule,
+            corporate_group_module_1.CorporateGroupModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [

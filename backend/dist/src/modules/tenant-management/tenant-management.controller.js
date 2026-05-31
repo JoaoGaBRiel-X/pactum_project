@@ -16,6 +16,9 @@ exports.TenantManagementController = void 0;
 const common_1 = require("@nestjs/common");
 const tenant_management_service_1 = require("./tenant-management.service");
 const create_tenant_dto_1 = require("./dto/create-tenant.dto");
+const swagger_1 = require("@nestjs/swagger");
+const backoffice_guard_1 = require("../../iam/guards/backoffice.guard");
+const public_decorator_1 = require("../../iam/decorators/public.decorator");
 let TenantManagementController = class TenantManagementController {
     tenantService;
     constructor(tenantService) {
@@ -43,7 +46,11 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], TenantManagementController.prototype, "findAll", null);
 exports.TenantManagementController = TenantManagementController = __decorate([
+    (0, swagger_1.ApiTags)('Tenant Management'),
     (0, common_1.Controller)('tenants'),
+    (0, public_decorator_1.Public)(),
+    (0, common_1.UseGuards)(backoffice_guard_1.BackofficeGuard),
+    (0, swagger_1.ApiSecurity)('x-api-key'),
     __metadata("design:paramtypes", [tenant_management_service_1.TenantManagementService])
 ], TenantManagementController);
 //# sourceMappingURL=tenant-management.controller.js.map

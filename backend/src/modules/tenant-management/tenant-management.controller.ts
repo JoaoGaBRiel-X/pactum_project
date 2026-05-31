@@ -1,12 +1,15 @@
-import { Controller, Post, Get, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards } from '@nestjs/common';
 import { TenantManagementService } from './tenant-management.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
+import { ApiTags, ApiOperation, ApiSecurity } from '@nestjs/swagger';
+import { BackofficeGuard } from '../../iam/guards/backoffice.guard';
+import { Public } from '../../iam/decorators/public.decorator';
 
-// Para simplificar no momento, não adicionaremos AuthGuard nesta rota específica, 
-// pois ela pode ser acessada externamente via "Sign Up" de SaaS, ou poderíamos 
-// restringir apenas para SuperAdmins no futuro.
-// @UseGuards(JwtAuthGuard)
+@ApiTags('Tenant Management')
 @Controller('tenants')
+@Public()
+@UseGuards(BackofficeGuard)
+@ApiSecurity('x-api-key')
 export class TenantManagementController {
   constructor(private readonly tenantService: TenantManagementService) {}
 

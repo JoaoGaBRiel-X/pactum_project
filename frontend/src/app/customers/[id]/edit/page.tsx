@@ -50,6 +50,7 @@ const customerSchema = z.object({
   tradeName: z.string().optional(),
   email: z.string().email('E-mail inválido').optional().or(z.literal('')),
   phone: z.string().optional(),
+  corporateGroupId: z.string().optional(),
   contacts: z.array(contactSchema).optional(),
   partners: z.array(partnerSchema).optional(),
 });
@@ -64,6 +65,11 @@ export default function EditCustomerPage({ params }: { params: Promise<{ id: str
   const { data: customer, isLoading } = useQuery({
     queryKey: ['customer', id],
     queryFn: () => apiFetch(`/customers/${id}`),
+  });
+
+  const { data: corporateGroups } = useQuery({
+    queryKey: ['corporate-groups'],
+    queryFn: () => apiFetch('/corporate-groups'),
   });
 
   const { register, control, handleSubmit, setValue, reset, formState: { errors } } = useForm<CustomerFormValues>({
@@ -86,6 +92,7 @@ export default function EditCustomerPage({ params }: { params: Promise<{ id: str
         tradeName: customer.tradeName || '',
         email: mainContact?.email || '',
         phone: mainContact?.phone || '',
+        corporateGroupId: customer.corporateGroupId || '',
         contacts: otherContacts,
         partners: customer.partners || [],
       });
@@ -200,6 +207,19 @@ export default function EditCustomerPage({ params }: { params: Promise<{ id: str
             <div className="space-y-2">
               <Label htmlFor="phone">Telefone</Label>
               <Input id="phone" {...register("phone")} placeholder="(00) 00000-0000" />
+            </div>
+            <div className="space-y-2 col-span-1 md:col-span-2">
+              <Label htmlFor="corporateGroupId">Grupo Econômico (Opcional)</Label>
+              <select 
+                id="corporateGroupId" 
+                {...register("corporateGroupId")} 
+                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <option value="">Nenhum</option>
+                {corporateGroups?.map((group: any) => (
+                  <option key={group.id} value={group.id}>{group.name}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

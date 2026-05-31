@@ -41,11 +41,11 @@ __decorate([
 ], CreateTenantDto.prototype, "adminEmail", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.MinLength)(8, { message: 'A senha deve ter no mínimo 8 caracteres.' }),
     (0, class_validator_1.Matches)(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
         message: 'A senha deve conter letras maiúsculas, minúsculas e números/caracteres especiais.',
     }),
-    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateTenantDto.prototype, "adminPassword", void 0);
 //# sourceMappingURL=create-tenant.dto.js.map

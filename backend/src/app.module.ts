@@ -14,6 +14,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AdjustmentModule } from './modules/adjustment/adjustment.module';
 import { DocumentModule } from './modules/document/document.module';
 import { TenantManagementModule } from './modules/tenant-management/tenant-management.module';
+import { CorporateGroupModule } from './modules/corporate-group/corporate-group.module';
 
 @Module({
   imports: [
@@ -27,7 +28,8 @@ import { TenantManagementModule } from './modules/tenant-management/tenant-manag
     FinancialModule,
     AdjustmentModule,
     TenantManagementModule,
-    DocumentModule
+    DocumentModule,
+    CorporateGroupModule
   ],
   controllers: [AppController],
   providers: [

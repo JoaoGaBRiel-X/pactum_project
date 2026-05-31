@@ -4,12 +4,15 @@ export declare class TenantManagementController {
     private readonly tenantService;
     constructor(tenantService: TenantManagementService);
     create(createDto: CreateTenantDto): Promise<{
-        name: string;
-        id: string;
-        document: string;
-        schema: string;
-        createdAt: Date;
-        updatedAt: Date;
+        tenant: {
+            name: string;
+            id: string;
+            document: string;
+            schema: string;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        temporaryPassword: string;
     }>;
     findAll(): Promise<({
         _count: {

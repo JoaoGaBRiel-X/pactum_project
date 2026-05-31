@@ -64,7 +64,7 @@ __decorate([
 ], AuthenticationController.prototype, "getMyTenants", null);
 exports.AuthenticationController = AuthenticationController = __decorate([
     (0, swagger_1.ApiTags)('Authentication'),
-    (0, common_1.Controller)('api/authentication'),
+    (0, common_1.Controller)('authentication'),
     __metadata("design:paramtypes", [authentication_service_1.AuthenticationService])
 ], AuthenticationController);
 //# sourceMappingURL=authentication.controller.js.map

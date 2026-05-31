@@ -26,6 +26,11 @@ export class CustomerService {
       });
     }
 
+    if (customerData.corporateGroupId) {
+      const group = await this.prisma.corporateGroup.findUnique({ where: { id: customerData.corporateGroupId } });
+      if (!group) throw new NotFoundException('Grupo Econômico não encontrado.');
+    }
+
     try {
       const customer = await this.prisma.customer.create({
         data: {
@@ -94,6 +99,11 @@ export class CustomerService {
         email: email || '',
         phone: phone || '',
       });
+    }
+
+    if (customerData.corporateGroupId) {
+      const group = await this.prisma.corporateGroup.findUnique({ where: { id: customerData.corporateGroupId } });
+      if (!group) throw new NotFoundException('Grupo Econômico não encontrado.');
     }
 
     try {

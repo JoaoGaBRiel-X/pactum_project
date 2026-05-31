@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsEmail, MinLength, Matches } from 'class-validator';
+import { IsNotEmpty, IsString, IsEmail, MinLength, Matches, IsOptional } from 'class-validator';
 
 export class CreateTenantDto {
   @IsString()
@@ -18,10 +18,10 @@ export class CreateTenantDto {
   adminEmail: string;
 
   @IsString()
+  @IsOptional()
   @MinLength(8, { message: 'A senha deve ter no mínimo 8 caracteres.' })
   @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
     message: 'A senha deve conter letras maiúsculas, minúsculas e números/caracteres especiais.',
   })
-  @IsNotEmpty()
-  adminPassword: string;
+  adminPassword?: string;
 }

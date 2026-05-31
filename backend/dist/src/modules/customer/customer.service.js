@@ -31,6 +31,11 @@ let CustomerService = class CustomerService {
                 phone: phone || '',
             });
         }
+        if (customerData.corporateGroupId) {
+            const group = await this.prisma.corporateGroup.findUnique({ where: { id: customerData.corporateGroupId } });
+            if (!group)
+                throw new common_1.NotFoundException('Grupo Econômico não encontrado.');
+        }
         try {
             const customer = await this.prisma.customer.create({
                 data: {
@@ -90,6 +95,11 @@ let CustomerService = class CustomerService {
                 email: email || '',
                 phone: phone || '',
             });
+        }
+        if (customerData.corporateGroupId) {
+            const group = await this.prisma.corporateGroup.findUnique({ where: { id: customerData.corporateGroupId } });
+            if (!group)
+                throw new common_1.NotFoundException('Grupo Econômico não encontrado.');
         }
         try {
             const customer = await this.prisma.customer.update({

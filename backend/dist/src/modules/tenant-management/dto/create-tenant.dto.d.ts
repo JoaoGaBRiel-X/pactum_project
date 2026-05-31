@@ -3,5 +3,5 @@ export declare class CreateTenantDto {
     document: string;
     adminName: string;
     adminEmail: string;
-    adminPassword: string;
+    adminPassword?: string;
 }

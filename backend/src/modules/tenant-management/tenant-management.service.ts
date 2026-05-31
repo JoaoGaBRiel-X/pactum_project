@@ -33,8 +33,14 @@ export class TenantManagementService {
 
     const schemaName = `tenant_${uuidv4().replace(/-/g, '').toLowerCase()}`;
 
+    // TODO: Melhoria Futura - Disparo de E-mail
+    // Atualmente estamos gerando a senha em texto plano e retornando no controller.
+    // O ideal é enviar um e-mail transacional (AWS SES, SendGrid) com um link mágico 
+    // ou senha temporária que expira.
+    const generatedPassword = dto.adminPassword || Math.random().toString(36).slice(-8) + 'A@1';
+    
     // Hash da senha do admin
-    const hashedPassword = await bcrypt.hash(dto.adminPassword, 10);
+    const hashedPassword = await bcrypt.hash(generatedPassword, 10);
 
     // 2. Criar Schema PostgreSQL PRIMEIRO
     try {
@@ -102,7 +108,7 @@ export class TenantManagementService {
       });
     }
 
-    return tenant;
+    return { tenant, temporaryPassword: generatedPassword };
   }
 
   async listTenants() {
