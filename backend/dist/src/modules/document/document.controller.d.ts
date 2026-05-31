@@ -4,8 +4,8 @@ export declare class DocumentController {
     constructor(documentService: DocumentService);
     uploadTemplate(file: Express.Multer.File, name: string, description: string, req: any): Promise<{
         path: string;
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
@@ -15,8 +15,8 @@ export declare class DocumentController {
     }>;
     getTemplates(): Promise<{
         path: string;
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;

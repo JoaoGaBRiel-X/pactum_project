@@ -45,6 +45,13 @@ let FinancialController = class FinancialController {
         }
         return this.financialService.createRenegotiation(customerId, receivableIds, Number(discount || 0), userId);
     }
+    uploadBoleto(id, file, req) {
+        const userId = req.user?.id || 'system-user';
+        if (!file) {
+            throw new common_1.BadRequestException('O arquivo do boleto é obrigatório.');
+        }
+        return this.financialService.uploadBoleto(id, file.buffer, file.originalname, userId);
+    }
 };
 exports.FinancialController = FinancialController;
 __decorate([
@@ -83,6 +90,18 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], FinancialController.prototype, "createRenegotiation", null);
+__decorate([
+    (0, common_1.Post)(':id/boleto'),
+    (0, swagger_1.ApiOperation)({ summary: 'Upload a PDF boleto for a receivable' }),
+    (0, swagger_1.ApiConsumes)('multipart/form-data'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('boleto')),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.UploadedFile)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], FinancialController.prototype, "uploadBoleto", null);
 exports.FinancialController = FinancialController = __decorate([
     (0, swagger_1.ApiTags)('Financial'),
     (0, common_1.Controller)('financial'),

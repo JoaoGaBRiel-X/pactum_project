@@ -15,6 +15,9 @@ import { AdjustmentModule } from './modules/adjustment/adjustment.module';
 import { DocumentModule } from './modules/document/document.module';
 import { TenantManagementModule } from './modules/tenant-management/tenant-management.module';
 import { CorporateGroupModule } from './modules/corporate-group/corporate-group.module';
+import { NotificationModule } from './modules/notification/notification.module';
+import { PortalAuthModule } from './modules/portal/auth/portal-auth.module';
+import { PortalFinancialModule } from './modules/portal/financial/portal-financial.module';
 
 @Module({
   imports: [
@@ -29,7 +32,10 @@ import { CorporateGroupModule } from './modules/corporate-group/corporate-group.
     AdjustmentModule,
     TenantManagementModule,
     DocumentModule,
-    CorporateGroupModule
+    CorporateGroupModule,
+    NotificationModule,
+    PortalAuthModule,
+    PortalFinancialModule
   ],
   controllers: [AppController],
   providers: [

@@ -19,6 +19,6 @@ export declare class AuthenticationController {
         tenantId: string;
         name: string;
         document: string;
-        role: import("@prisma/client").$Enums.Role;
+        role: string;
     }[]>;
 }

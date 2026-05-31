@@ -6,14 +6,14 @@ export declare class TenantManagementController {
     constructor(tenantService: TenantManagementService);
     create(createDto: CreateTenantDto): Promise<{
         tenant: {
-            name: string;
-            id: string;
-            document: string;
             schema: string;
-            legalRepName: string | null;
-            legalRepCpf: string | null;
+            id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
+            document: string;
+            legalRepName: string | null;
+            legalRepCpf: string | null;
         };
         temporaryPassword: string;
     }>;
@@ -22,21 +22,21 @@ export declare class TenantManagementController {
             userLinks: number;
         };
     } & {
-        name: string;
-        id: string;
-        document: string;
         schema: string;
-        legalRepName: string | null;
-        legalRepCpf: string | null;
+        id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
+        document: string;
+        legalRepName: string | null;
+        legalRepCpf: string | null;
     })[]>;
     findOne(id: string): Promise<({
         userLinks: ({
             user: {
-                name: string;
                 id: string;
                 email: string;
+                name: string;
             };
         } & {
             userId: string;
@@ -44,23 +44,23 @@ export declare class TenantManagementController {
             role: import("@prisma/client").$Enums.Role;
         })[];
     } & {
-        name: string;
-        id: string;
-        document: string;
         schema: string;
-        legalRepName: string | null;
-        legalRepCpf: string | null;
+        id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
+        document: string;
+        legalRepName: string | null;
+        legalRepCpf: string | null;
     }) | null>;
     update(id: string, updateDto: UpdateTenantDto): Promise<{
-        name: string;
-        id: string;
-        document: string;
         schema: string;
-        legalRepName: string | null;
-        legalRepCpf: string | null;
+        id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
+        document: string;
+        legalRepName: string | null;
+        legalRepCpf: string | null;
     }>;
 }

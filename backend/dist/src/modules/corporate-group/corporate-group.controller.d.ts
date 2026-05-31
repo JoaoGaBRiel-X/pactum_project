@@ -5,8 +5,8 @@ export declare class CorporateGroupController {
     private readonly corporateGroupService;
     constructor(corporateGroupService: CorporateGroupService);
     create(createCorporateGroupDto: CreateCorporateGroupDto, req: any): Promise<{
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
@@ -17,8 +17,8 @@ export declare class CorporateGroupController {
             customers: number;
         };
     } & {
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
@@ -31,16 +31,16 @@ export declare class CorporateGroupController {
             corporateName: string;
         }[];
     } & {
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;
     }>;
     update(id: string, updateCorporateGroupDto: UpdateCorporateGroupDto, req: any): Promise<{
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;

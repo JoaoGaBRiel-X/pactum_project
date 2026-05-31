@@ -5,8 +5,8 @@ export declare class CorporateGroupService {
     private readonly prisma;
     constructor(prisma: PrismaClient);
     create(createCorporateGroupDto: CreateCorporateGroupDto, userId: string): Promise<{
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
@@ -17,8 +17,8 @@ export declare class CorporateGroupService {
             customers: number;
         };
     } & {
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
@@ -31,16 +31,16 @@ export declare class CorporateGroupService {
             corporateName: string;
         }[];
     } & {
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;
     }>;
     update(id: string, updateCorporateGroupDto: UpdateCorporateGroupDto, userId: string): Promise<{
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;

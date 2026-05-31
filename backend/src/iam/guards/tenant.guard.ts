@@ -40,6 +40,19 @@ export class TenantGuard implements CanActivate {
       return true; 
     }
 
+    const globalUser = await this.prisma.client.user.findUnique({
+      where: { id: user.userId },
+      select: { isSuperAdmin: true }
+    });
+
+    if (globalUser?.isSuperAdmin) {
+      request.tenantContext = {
+        tenantId: tenantId as string,
+        role: 'SUPERADMIN'
+      };
+      return true;
+    }
+
     const userTenant = await this.prisma.client.userTenant.findUnique({
       where: {
         userId_tenantId: {

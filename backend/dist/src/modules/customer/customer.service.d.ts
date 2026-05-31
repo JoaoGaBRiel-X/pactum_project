@@ -6,24 +6,26 @@ export declare class CustomerService {
     constructor(prisma: PrismaClient);
     create(createCustomerDto: CreateCustomerDto, userId: string): Promise<{
         contacts: {
-            name: string;
             id: string;
+            email: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             role: string | null;
-            email: string;
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;
             cpf: string | null;
+            passwordHash: string | null;
+            portalAccess: boolean;
             customerId: string;
         }[];
         partners: {
-            name: string;
             id: string;
-            document: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
+            document: string;
             createdBy: string | null;
             updatedBy: string | null;
             customerId: string;
@@ -31,9 +33,9 @@ export declare class CustomerService {
         }[];
     } & {
         id: string;
-        document: string;
         createdAt: Date;
         updatedAt: Date;
+        document: string;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;
@@ -44,31 +46,33 @@ export declare class CustomerService {
     }>;
     findAll(): Promise<({
         corporateGroup: {
-            name: string;
             id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
         } | null;
         contacts: {
-            name: string;
             id: string;
+            email: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             role: string | null;
-            email: string;
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;
             cpf: string | null;
+            passwordHash: string | null;
+            portalAccess: boolean;
             customerId: string;
         }[];
     } & {
         id: string;
-        document: string;
         createdAt: Date;
         updatedAt: Date;
+        document: string;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;
@@ -79,32 +83,34 @@ export declare class CustomerService {
     })[]>;
     findOne(id: string): Promise<{
         corporateGroup: {
-            name: string;
             id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
         } | null;
         contacts: {
-            name: string;
             id: string;
+            email: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             role: string | null;
-            email: string;
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;
             cpf: string | null;
+            passwordHash: string | null;
+            portalAccess: boolean;
             customerId: string;
         }[];
         partners: {
-            name: string;
             id: string;
-            document: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
+            document: string;
             createdBy: string | null;
             updatedBy: string | null;
             customerId: string;
@@ -112,9 +118,9 @@ export declare class CustomerService {
         }[];
     } & {
         id: string;
-        document: string;
         createdAt: Date;
         updatedAt: Date;
+        document: string;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;
@@ -125,24 +131,26 @@ export declare class CustomerService {
     }>;
     update(id: string, updateCustomerDto: UpdateCustomerDto, userId: string): Promise<{
         contacts: {
-            name: string;
             id: string;
+            email: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             role: string | null;
-            email: string;
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;
             cpf: string | null;
+            passwordHash: string | null;
+            portalAccess: boolean;
             customerId: string;
         }[];
         partners: {
-            name: string;
             id: string;
-            document: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
+            document: string;
             createdBy: string | null;
             updatedBy: string | null;
             customerId: string;
@@ -150,9 +158,9 @@ export declare class CustomerService {
         }[];
     } & {
         id: string;
-        document: string;
         createdAt: Date;
         updatedAt: Date;
+        document: string;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;

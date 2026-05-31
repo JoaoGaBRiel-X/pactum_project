@@ -6,14 +6,14 @@ export declare class TenantManagementService {
     constructor(prisma: PrismaService);
     createTenant(dto: CreateTenantDto): Promise<{
         tenant: {
-            name: string;
-            id: string;
-            document: string;
             schema: string;
-            legalRepName: string | null;
-            legalRepCpf: string | null;
+            id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
+            document: string;
+            legalRepName: string | null;
+            legalRepCpf: string | null;
         };
         temporaryPassword: string;
     }>;
@@ -22,21 +22,21 @@ export declare class TenantManagementService {
             userLinks: number;
         };
     } & {
-        name: string;
-        id: string;
-        document: string;
         schema: string;
-        legalRepName: string | null;
-        legalRepCpf: string | null;
+        id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
+        document: string;
+        legalRepName: string | null;
+        legalRepCpf: string | null;
     })[]>;
     getTenant(id: string): Promise<({
         userLinks: ({
             user: {
-                name: string;
                 id: string;
                 email: string;
+                name: string;
             };
         } & {
             userId: string;
@@ -44,23 +44,23 @@ export declare class TenantManagementService {
             role: import("@prisma/client").$Enums.Role;
         })[];
     } & {
-        name: string;
-        id: string;
-        document: string;
         schema: string;
-        legalRepName: string | null;
-        legalRepCpf: string | null;
+        id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
+        document: string;
+        legalRepName: string | null;
+        legalRepCpf: string | null;
     }) | null>;
     updateTenant(id: string, dto: any): Promise<{
-        name: string;
-        id: string;
-        document: string;
         schema: string;
-        legalRepName: string | null;
-        legalRepCpf: string | null;
+        id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
+        document: string;
+        legalRepName: string | null;
+        legalRepCpf: string | null;
     }>;
 }

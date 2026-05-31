@@ -48,6 +48,9 @@ export function Sidebar() {
         <Link href="/financial" className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">
           <DollarSign size={18} /> Financeiro
         </Link>
+        <Link href="/admin/notifications" className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">
+          <FileText size={18} /> Templates de E-mail
+        </Link>
       </nav>
       <div className="p-4 border-t border-slate-800">
         <button onClick={handleLogout} className="flex w-full items-center gap-3 px-4 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors text-left">

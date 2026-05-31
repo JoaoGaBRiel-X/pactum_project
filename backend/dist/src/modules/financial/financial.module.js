@@ -11,12 +11,13 @@ const common_1 = require("@nestjs/common");
 const financial_service_1 = require("./financial.service");
 const financial_controller_1 = require("./financial.controller");
 const tenant_module_1 = require("../../tenant/tenant.module");
+const notification_module_1 = require("../notification/notification.module");
 let FinancialModule = class FinancialModule {
 };
 exports.FinancialModule = FinancialModule;
 exports.FinancialModule = FinancialModule = __decorate([
     (0, common_1.Module)({
-        imports: [tenant_module_1.TenantModule],
+        imports: [tenant_module_1.TenantModule, notification_module_1.NotificationModule],
         controllers: [financial_controller_1.FinancialController],
         providers: [financial_service_1.FinancialService],
         exports: [financial_service_1.FinancialService],

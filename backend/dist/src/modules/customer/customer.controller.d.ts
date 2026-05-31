@@ -5,24 +5,26 @@ export declare class CustomerController {
     constructor(customerService: CustomerService);
     create(createCustomerDto: CreateCustomerDto, req: any): Promise<{
         contacts: {
-            name: string;
             id: string;
+            email: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             role: string | null;
-            email: string;
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;
             cpf: string | null;
+            passwordHash: string | null;
+            portalAccess: boolean;
             customerId: string;
         }[];
         partners: {
-            name: string;
             id: string;
-            document: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
+            document: string;
             createdBy: string | null;
             updatedBy: string | null;
             customerId: string;
@@ -30,9 +32,9 @@ export declare class CustomerController {
         }[];
     } & {
         id: string;
-        document: string;
         createdAt: Date;
         updatedAt: Date;
+        document: string;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;
@@ -43,31 +45,33 @@ export declare class CustomerController {
     }>;
     findAll(): Promise<({
         corporateGroup: {
-            name: string;
             id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
         } | null;
         contacts: {
-            name: string;
             id: string;
+            email: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             role: string | null;
-            email: string;
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;
             cpf: string | null;
+            passwordHash: string | null;
+            portalAccess: boolean;
             customerId: string;
         }[];
     } & {
         id: string;
-        document: string;
         createdAt: Date;
         updatedAt: Date;
+        document: string;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;
@@ -78,32 +82,34 @@ export declare class CustomerController {
     })[]>;
     findOne(id: string): Promise<{
         corporateGroup: {
-            name: string;
             id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
         } | null;
         contacts: {
-            name: string;
             id: string;
+            email: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             role: string | null;
-            email: string;
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;
             cpf: string | null;
+            passwordHash: string | null;
+            portalAccess: boolean;
             customerId: string;
         }[];
         partners: {
-            name: string;
             id: string;
-            document: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
+            document: string;
             createdBy: string | null;
             updatedBy: string | null;
             customerId: string;
@@ -111,9 +117,9 @@ export declare class CustomerController {
         }[];
     } & {
         id: string;
-        document: string;
         createdAt: Date;
         updatedAt: Date;
+        document: string;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;
@@ -124,24 +130,26 @@ export declare class CustomerController {
     }>;
     update(id: string, updateCustomerDto: any, req: any): Promise<{
         contacts: {
-            name: string;
             id: string;
+            email: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             role: string | null;
-            email: string;
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;
             cpf: string | null;
+            passwordHash: string | null;
+            portalAccess: boolean;
             customerId: string;
         }[];
         partners: {
-            name: string;
             id: string;
-            document: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
+            document: string;
             createdBy: string | null;
             updatedBy: string | null;
             customerId: string;
@@ -149,9 +157,9 @@ export declare class CustomerController {
         }[];
     } & {
         id: string;
-        document: string;
         createdAt: Date;
         updatedAt: Date;
+        document: string;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;

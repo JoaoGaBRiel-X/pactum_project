@@ -6,8 +6,8 @@ export declare class AdjustmentController {
         name: string;
         description?: string;
     }, req: any): Promise<{
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
@@ -22,8 +22,8 @@ export declare class AdjustmentController {
             accumulatedRate: import("@prisma/client-runtime-utils").Decimal;
         }[];
     } & {
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;

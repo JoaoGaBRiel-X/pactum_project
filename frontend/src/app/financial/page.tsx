@@ -15,6 +15,9 @@ export default function FinancialPage() {
   const [paymentMethod, setPaymentMethod] = useState('BOLETO');
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
+  const [selectedForBoleto, setSelectedForBoleto] = useState<any>(null);
+  const [boletoFile, setBoletoFile] = useState<File | null>(null);
+
   const { data: receivables, isLoading } = useQuery({
     queryKey: ['receivables'],
     queryFn: () => apiFetch('/financial/receivables'),
@@ -51,6 +54,31 @@ export default function FinancialPage() {
       alert('Pagamento registrado com sucesso!');
       setSelectedReceivable(null);
       setReceiptFile(null);
+      queryClient.invalidateQueries({ queryKey: ['receivables'] });
+    },
+    onError: (err: any) => alert(`Erro: ${err.message}`)
+  });
+
+  const uploadBoletoMutation = useMutation({
+    mutationFn: async () => {
+      const formData = new FormData();
+      if (!boletoFile) throw new Error('Selecione um arquivo primeiro');
+      formData.append('boleto', boletoFile);
+
+      const res = await fetch(`http://localhost:3333/api/financial/${selectedForBoleto.id}/boleto`, {
+        method: 'POST',
+        headers: {
+          'x-tenant-id': 'tenant_1'
+        },
+        body: formData,
+      });
+      if (!res.ok) throw new Error('Falha ao anexar boleto');
+      return res.json();
+    },
+    onSuccess: () => {
+      alert('Boleto anexado com sucesso!');
+      setSelectedForBoleto(null);
+      setBoletoFile(null);
       queryClient.invalidateQueries({ queryKey: ['receivables'] });
     },
     onError: (err: any) => alert(`Erro: ${err.message}`)
@@ -131,14 +159,28 @@ export default function FinancialPage() {
                 </TableCell>
                 <TableCell>{getStatusBadge(r.status)}</TableCell>
                 <TableCell>
-                  {r.status !== 'PAID' && r.status !== 'RENEGOTIATED' && (
-                    <Button variant="outline" size="sm" onClick={() => {
-                      setSelectedReceivable(r);
-                      setPaymentAmount(r.amount);
-                    }}>
-                      <CheckCircle size={14} className="mr-1 text-green-600" /> Liquidar
-                    </Button>
-                  )}
+                  <div className="flex gap-2">
+                    {r.status !== 'PAID' && r.status !== 'RENEGOTIATED' && (
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setSelectedReceivable(r);
+                        setPaymentAmount(r.amount);
+                      }}>
+                        <CheckCircle size={14} className="mr-1 text-green-600" /> Liquidar
+                      </Button>
+                    )}
+                    {r.status !== 'PAID' && r.status !== 'RENEGOTIATED' && !r.boletoUrl && (
+                      <Button variant="secondary" size="sm" onClick={() => setSelectedForBoleto(r)}>
+                        <Upload size={14} className="mr-1" /> Anexar Boleto
+                      </Button>
+                    )}
+                    {r.boletoUrl && (
+                      <a href={`http://localhost:3333${r.boletoUrl}`} target="_blank" rel="noreferrer">
+                        <Button variant="ghost" size="sm" className="text-blue-600">
+                          <FileText size={14} className="mr-1" /> Ver Boleto
+                        </Button>
+                      </a>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -198,6 +240,40 @@ export default function FinancialPage() {
               <Button variant="ghost" onClick={() => setSelectedReceivable(null)}>Cancelar</Button>
               <Button onClick={() => registerPaymentMutation.mutate()} disabled={registerPaymentMutation.isPending}>
                 {registerPaymentMutation.isPending ? 'Salvando...' : 'Confirmar Baixa'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Upload de Boleto */}
+      {selectedForBoleto && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
+              <h3 className="font-bold text-lg text-slate-800">Anexar PDF do Boleto</h3>
+              <button onClick={() => setSelectedForBoleto(null)} className="text-slate-500 hover:text-slate-800">✕</button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-800 border border-blue-100">
+                Anexando boleto para <strong>{selectedForBoleto.customer.corporateName}</strong>, competência {selectedForBoleto.competence || '-'}.
+              </div>
+              <div className="space-y-2 pt-2">
+                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                  <FileText size={16} /> Arquivo PDF
+                </label>
+                <input 
+                  type="file" 
+                  accept="application/pdf"
+                  onChange={(e) => setBoletoFile(e.target.files?.[0] || null)}
+                  className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              </div>
+            </div>
+            <div className="p-4 border-t bg-slate-50 flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setSelectedForBoleto(null)}>Cancelar</Button>
+              <Button onClick={() => uploadBoletoMutation.mutate()} disabled={uploadBoletoMutation.isPending || !boletoFile}>
+                {uploadBoletoMutation.isPending ? 'Enviando...' : 'Confirmar Upload'}
               </Button>
             </div>
           </div>

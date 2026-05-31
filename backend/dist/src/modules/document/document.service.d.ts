@@ -13,8 +13,8 @@ export declare class DocumentService {
     constructor(prisma: PrismaClient, globalPrisma: PrismaService, gotenberg: GotenbergService, template: TemplateService, clicksign: ClicksignService);
     getTemplates(): Promise<{
         path: string;
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
@@ -44,8 +44,8 @@ export declare class DocumentService {
     }>;
     uploadTemplate(file: Express.Multer.File, name: string, description: string, userId: string): Promise<{
         path: string;
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;

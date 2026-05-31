@@ -6,8 +6,8 @@ export declare class ProductController {
     constructor(productService: ProductService);
     create(createProductDto: CreateSoftwareProductDto, req: any): Promise<{
         modules: {
-            name: string;
             id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
@@ -18,8 +18,8 @@ export declare class ProductController {
             price: import("@prisma/client-runtime-utils").Decimal;
         }[];
     } & {
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
@@ -29,8 +29,8 @@ export declare class ProductController {
     }>;
     findAll(): Promise<({
         modules: {
-            name: string;
             id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
@@ -41,8 +41,8 @@ export declare class ProductController {
             price: import("@prisma/client-runtime-utils").Decimal;
         }[];
     } & {
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
@@ -52,8 +52,8 @@ export declare class ProductController {
     })[]>;
     findOne(id: string): Promise<{
         modules: {
-            name: string;
             id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
@@ -64,8 +64,8 @@ export declare class ProductController {
             price: import("@prisma/client-runtime-utils").Decimal;
         }[];
     } & {
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
@@ -75,8 +75,8 @@ export declare class ProductController {
     }>;
     update(id: string, updateProductDto: UpdateSoftwareProductDto, req: any): Promise<{
         modules: {
-            name: string;
             id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
@@ -87,8 +87,8 @@ export declare class ProductController {
             price: import("@prisma/client-runtime-utils").Decimal;
         }[];
     } & {
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;

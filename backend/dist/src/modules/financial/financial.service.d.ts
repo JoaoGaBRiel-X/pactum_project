@@ -1,7 +1,9 @@
 import { PrismaClient } from '@prisma/client';
+import { NotificationService } from '../notification/notification.service';
 export declare class FinancialService {
     private readonly prisma;
-    constructor(prisma: PrismaClient);
+    private readonly notificationService;
+    constructor(prisma: PrismaClient, notificationService: NotificationService);
     findAllReceivables(): Promise<({
         customer: {
             document: string;
@@ -26,6 +28,7 @@ export declare class FinancialService {
         dueDate: Date;
         competence: string | null;
         renegotiationId: string | null;
+        boletoUrl: string | null;
     })[]>;
     generateBilling(userId: string): Promise<{
         message: string;
@@ -45,6 +48,7 @@ export declare class FinancialService {
         dueDate: Date;
         competence: string | null;
         renegotiationId: string | null;
+        boletoUrl: string | null;
     }>;
     createRenegotiation(customerId: string, receivableIds: string[], discount: number, userId: string): Promise<{
         id: string;
@@ -60,5 +64,52 @@ export declare class FinancialService {
         discount: import("@prisma/client-runtime-utils").Decimal;
         finalAmount: import("@prisma/client-runtime-utils").Decimal;
         consolidatedReceivableIds: import("@prisma/client/runtime/client").JsonValue;
+    }>;
+    uploadBoleto(receivableId: string, boletoBuffer: Buffer, boletoName: string, userId: string): Promise<{
+        customer: {
+            contacts: {
+                id: string;
+                email: string;
+                name: string;
+                createdAt: Date;
+                updatedAt: Date;
+                role: string | null;
+                createdBy: string | null;
+                updatedBy: string | null;
+                phone: string | null;
+                cpf: string | null;
+                passwordHash: string | null;
+                portalAccess: boolean;
+                customerId: string;
+            }[];
+        } & {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            document: string;
+            createdBy: string | null;
+            updatedBy: string | null;
+            corporateName: string;
+            tradeName: string | null;
+            address: string | null;
+            corporateGroupId: string | null;
+            delinquencyScore: number;
+        };
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        createdBy: string | null;
+        updatedBy: string | null;
+        customerId: string;
+        status: string;
+        contractId: string | null;
+        description: string;
+        type: string;
+        amount: import("@prisma/client-runtime-utils").Decimal;
+        dueDate: Date;
+        competence: string | null;
+        renegotiationId: string | null;
+        boletoUrl: string | null;
     }>;
 }

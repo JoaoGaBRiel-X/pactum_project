@@ -49,12 +49,15 @@ exports.FinancialService = void 0;
 const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
 const tenant_module_1 = require("../../tenant/tenant.module");
+const notification_service_1 = require("../notification/notification.service");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 let FinancialService = class FinancialService {
     prisma;
-    constructor(prisma) {
+    notificationService;
+    constructor(prisma, notificationService) {
         this.prisma = prisma;
+        this.notificationService = notificationService;
     }
     async findAllReceivables() {
         return this.prisma.receivable.findMany({
@@ -205,11 +208,43 @@ let FinancialService = class FinancialService {
             return renegotiation;
         });
     }
+    async uploadBoleto(receivableId, boletoBuffer, boletoName, userId) {
+        const receivable = await this.prisma.receivable.findUnique({ where: { id: receivableId } });
+        if (!receivable)
+            throw new common_1.NotFoundException('Conta a receber não encontrada.');
+        const uploadDir = path.join(process.cwd(), 'uploads', 'boletos');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        const fileName = `${Date.now()}-${boletoName}`;
+        const filePath = path.join(uploadDir, fileName);
+        fs.writeFileSync(filePath, boletoBuffer);
+        const boletoUrl = `/uploads/boletos/${fileName}`;
+        const updatedReceivable = await this.prisma.receivable.update({
+            where: { id: receivableId },
+            data: {
+                boletoUrl,
+                updatedBy: userId,
+            },
+            include: {
+                customer: { include: { contacts: true } },
+            }
+        });
+        const firstContact = updatedReceivable.customer?.contacts?.[0];
+        if (firstContact?.email) {
+            this.notificationService.sendNotification('NEW_BOLETO', firstContact.email, {
+                customer: updatedReceivable.customer,
+                receivable: updatedReceivable,
+            });
+        }
+        return updatedReceivable;
+    }
 };
 exports.FinancialService = FinancialService;
 exports.FinancialService = FinancialService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(tenant_module_1.TENANT_PRISMA_SERVICE)),
-    __metadata("design:paramtypes", [client_1.PrismaClient])
+    __metadata("design:paramtypes", [client_1.PrismaClient,
+        notification_service_1.NotificationService])
 ], FinancialService);
 //# sourceMappingURL=financial.service.js.map

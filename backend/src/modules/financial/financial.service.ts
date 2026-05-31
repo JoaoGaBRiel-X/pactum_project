@@ -1,6 +1,7 @@
 import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { TENANT_PRISMA_SERVICE } from '../../tenant/tenant.module';
+import { NotificationService } from '../notification/notification.service';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -9,6 +10,7 @@ export class FinancialService {
   constructor(
     @Inject(TENANT_PRISMA_SERVICE)
     private readonly prisma: PrismaClient,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async findAllReceivables() {
@@ -191,5 +193,41 @@ export class FinancialService {
 
       return renegotiation;
     });
+  }
+
+  async uploadBoleto(receivableId: string, boletoBuffer: Buffer, boletoName: string, userId: string) {
+    const receivable = await this.prisma.receivable.findUnique({ where: { id: receivableId } });
+    if (!receivable) throw new NotFoundException('Conta a receber não encontrada.');
+
+    const uploadDir = path.join(process.cwd(), 'uploads', 'boletos');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    const fileName = `${Date.now()}-${boletoName}`;
+    const filePath = path.join(uploadDir, fileName);
+    fs.writeFileSync(filePath, boletoBuffer);
+    const boletoUrl = `/uploads/boletos/${fileName}`;
+
+    const updatedReceivable = await this.prisma.receivable.update({
+      where: { id: receivableId },
+      data: {
+        boletoUrl,
+        updatedBy: userId,
+      },
+      include: {
+        customer: { include: { contacts: true } },
+      }
+    });
+
+    // Send notification if customer has a contact email
+    const firstContact = updatedReceivable.customer?.contacts?.[0];
+    if (firstContact?.email) {
+      this.notificationService.sendNotification('NEW_BOLETO', firstContact.email, {
+        customer: updatedReceivable.customer,
+        receivable: updatedReceivable,
+      });
+    }
+
+    return updatedReceivable;
   }
 }

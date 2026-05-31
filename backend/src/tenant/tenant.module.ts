@@ -15,9 +15,9 @@ export const TENANT_PRISMA_SERVICE = 'TENANT_PRISMA_SERVICE';
  * inspecionando o código fonte do adapter. Esta é a forma correta e documentada
  * pelo adapter de definir o schema por cliente.
  */
-const tenantClientCache = new Map<string, PrismaClient>();
+export const tenantClientCache = new Map<string, PrismaClient>();
 
-async function getTenantClient(schemaName: string): Promise<PrismaClient> {
+export async function getTenantClient(schemaName: string): Promise<PrismaClient> {
   if (tenantClientCache.has(schemaName)) {
     return tenantClientCache.get(schemaName)!;
   }

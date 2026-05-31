@@ -6,7 +6,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TenantModule = exports.TENANT_PRISMA_SERVICE = void 0;
+exports.TenantModule = exports.tenantClientCache = exports.TENANT_PRISMA_SERVICE = void 0;
+exports.getTenantClient = getTenantClient;
 const common_1 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
 const client_1 = require("@prisma/client");
@@ -15,10 +16,10 @@ const adapter_pg_1 = require("@prisma/adapter-pg");
 const prisma_service_1 = require("../prisma/prisma.service");
 require("dotenv/config");
 exports.TENANT_PRISMA_SERVICE = 'TENANT_PRISMA_SERVICE';
-const tenantClientCache = new Map();
+exports.tenantClientCache = new Map();
 async function getTenantClient(schemaName) {
-    if (tenantClientCache.has(schemaName)) {
-        return tenantClientCache.get(schemaName);
+    if (exports.tenantClientCache.has(schemaName)) {
+        return exports.tenantClientCache.get(schemaName);
     }
     const dbUrl = new URL(process.env.DATABASE_URL);
     const pool = new pg_1.Pool({
@@ -32,7 +33,7 @@ async function getTenantClient(schemaName) {
     const adapter = new adapter_pg_1.PrismaPg(pool, { schema: schemaName });
     const client = new client_1.PrismaClient({ adapter });
     await client.$connect();
-    tenantClientCache.set(schemaName, client);
+    exports.tenantClientCache.set(schemaName, client);
     return client;
 }
 let TenantModule = class TenantModule {

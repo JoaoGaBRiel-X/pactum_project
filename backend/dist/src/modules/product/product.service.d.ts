@@ -6,8 +6,8 @@ export declare class ProductService {
     constructor(prisma: PrismaClient);
     create(createProductDto: CreateSoftwareProductDto, userId: string): Promise<{
         modules: {
-            name: string;
             id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
@@ -18,8 +18,8 @@ export declare class ProductService {
             price: import("@prisma/client-runtime-utils").Decimal;
         }[];
     } & {
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
@@ -29,8 +29,8 @@ export declare class ProductService {
     }>;
     findAll(): Promise<({
         modules: {
-            name: string;
             id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
@@ -41,8 +41,8 @@ export declare class ProductService {
             price: import("@prisma/client-runtime-utils").Decimal;
         }[];
     } & {
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
@@ -52,8 +52,8 @@ export declare class ProductService {
     })[]>;
     findOne(id: string): Promise<{
         modules: {
-            name: string;
             id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
@@ -64,8 +64,8 @@ export declare class ProductService {
             price: import("@prisma/client-runtime-utils").Decimal;
         }[];
     } & {
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
@@ -75,8 +75,8 @@ export declare class ProductService {
     }>;
     update(id: string, updateProductDto: UpdateSoftwareProductDto, userId: string): Promise<{
         modules: {
-            name: string;
             id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
@@ -87,8 +87,8 @@ export declare class ProductService {
             price: import("@prisma/client-runtime-utils").Decimal;
         }[];
     } & {
-        name: string;
         id: string;
+        name: string;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;

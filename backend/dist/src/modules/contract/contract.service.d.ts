@@ -64,9 +64,9 @@ export declare class ContractService {
     findOne(id: string): Promise<({
         customer: {
             id: string;
-            document: string;
             createdAt: Date;
             updatedAt: Date;
+            document: string;
             createdBy: string | null;
             updatedBy: string | null;
             corporateName: string;
@@ -77,8 +77,8 @@ export declare class ContractService {
         };
         product: {
             modules: {
-                name: string;
                 id: string;
+                name: string;
                 createdAt: Date;
                 updatedAt: Date;
                 createdBy: string | null;
@@ -89,8 +89,8 @@ export declare class ContractService {
                 price: import("@prisma/client-runtime-utils").Decimal;
             }[];
         } & {
-            name: string;
             id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;

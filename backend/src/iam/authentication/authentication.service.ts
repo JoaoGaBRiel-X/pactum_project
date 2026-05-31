@@ -130,6 +130,21 @@ export class AuthenticationService {
   }
 
   async getUserTenants(userId: string) {
+    const user = await this.prisma.client.user.findUnique({
+      where: { id: userId },
+      select: { isSuperAdmin: true },
+    });
+
+    if (user?.isSuperAdmin) {
+      const allTenants = await this.prisma.client.tenant.findMany();
+      return allTenants.map((t) => ({
+        tenantId: t.id,
+        name: t.name,
+        document: t.document,
+        role: 'SUPERADMIN',
+      }));
+    }
+
     const userTenants = await this.prisma.client.userTenant.findMany({
       where: { userId },
       include: {

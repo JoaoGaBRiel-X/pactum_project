@@ -64,4 +64,26 @@ export class FinancialController {
       userId
     );
   }
+
+  @Post(':id/boleto')
+  @ApiOperation({ summary: 'Upload a PDF boleto for a receivable' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('boleto'))
+  uploadBoleto(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: any,
+  ) {
+    const userId = req.user?.id || 'system-user';
+    if (!file) {
+      throw new BadRequestException('O arquivo do boleto é obrigatório.');
+    }
+
+    return this.financialService.uploadBoleto(
+      id,
+      file.buffer,
+      file.originalname,
+      userId
+    );
+  }
 }
