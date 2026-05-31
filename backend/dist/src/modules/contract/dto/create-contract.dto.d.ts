@@ -1,17 +1,13 @@
-export declare enum RenewalMode {
-    AUTOMATIC = "AUTOMATIC",
-    MANUAL = "MANUAL"
-}
-declare class ContractItemDto {
+export declare class CreateContractItemDto {
     moduleId: string;
     quantity: number;
-    discount?: number;
+    discount: number;
 }
 export declare class CreateContractDto {
     customerId: string;
     productId: string;
-    globalDiscount?: number;
-    renewalMode?: RenewalMode;
-    items: ContractItemDto[];
+    globalDiscount: number;
+    renewalMode: string;
+    adjustmentIndexId?: string;
+    items: CreateContractItemDto[];
 }
-export {};

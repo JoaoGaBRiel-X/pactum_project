@@ -65,6 +65,11 @@ let ContractService = class ContractService {
         if (totalValue < 0)
             throw new common_1.BadRequestException('Desconto global maior que o valor total do contrato.');
         return this.prisma.$transaction(async (tx) => {
+            let nextAdjustmentDate = null;
+            if (createDto.adjustmentIndexId) {
+                nextAdjustmentDate = new Date();
+                nextAdjustmentDate.setFullYear(nextAdjustmentDate.getFullYear() + 1);
+            }
             const contract = await tx.contract.create({
                 data: {
                     customerId,
@@ -74,6 +79,8 @@ let ContractService = class ContractService {
                     renewalMode,
                     status: 'DRAFT',
                     createdBy: userId,
+                    adjustmentIndexId: createDto.adjustmentIndexId,
+                    nextAdjustmentDate: nextAdjustmentDate,
                     items: {
                         create: contractItemsData,
                     },
@@ -114,6 +121,7 @@ let ContractService = class ContractService {
                 customer: true,
                 product: { include: { modules: true } },
                 items: true,
+                documents: { orderBy: { createdAt: 'desc' } },
                 history: {
                     orderBy: { changedAt: 'desc' }
                 },

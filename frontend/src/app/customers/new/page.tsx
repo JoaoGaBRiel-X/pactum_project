@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash, Users, Building, Mail, Phone, Briefcase } from 'lucide-react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { IMaskInput } from 'react-imask';
 
 const formatCnpj = (value: string) => {
   const v = value.replace(/\D/g, '').slice(0, 14);
@@ -142,16 +143,30 @@ export default function NewCustomerPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="document">CNPJ *</Label>
-              <Input 
-                id="document" 
-                placeholder="00.000.000/0001-00"
-                maxLength={18}
-                {...register("document", {
-                  onChange: (e) => {
-                    e.target.value = dynamicCnpjMask(e.target.value);
-                  }
-                })} 
-                onBlur={(e) => searchCnpj(e.target.value)}
+              <Controller
+                control={control}
+                name="document"
+                render={({ field: { onChange, onBlur, value, ref } }) => (
+                  <IMaskInput
+                    mask={[
+                      { mask: '000.000.000-00' },
+                      { mask: '00.000.000/0000-00' }
+                    ]}
+                    unmask={true}
+                    onAccept={(val) => {
+                      onChange(val);
+                      if (val.length === 14) searchCnpj(val);
+                    }}
+                    onBlur={(e) => {
+                      onBlur();
+                      if (value && value.length === 14) searchCnpj(value);
+                    }}
+                    value={value || ''}
+                    inputRef={ref}
+                    placeholder="00.000.000/0001-00"
+                    className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  />
+                )}
               />
               {errors.document && <p className="text-destructive text-sm">{errors.document.message}</p>}
             </div>
@@ -196,7 +211,25 @@ export default function NewCustomerPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Telefone</Label>
-                  <Input {...register(`contacts.${index}.phone`)} placeholder="(11) 99999-9999" />
+                  <Controller
+                    control={control}
+                    name={`contacts.${index}.phone`}
+                    render={({ field: { onChange, onBlur, value, ref } }) => (
+                      <IMaskInput
+                        mask={[
+                          { mask: '(00) 0000-0000' },
+                          { mask: '(00) 00000-0000' }
+                        ]}
+                        unmask={true}
+                        onAccept={(val) => onChange(val)}
+                        onBlur={onBlur}
+                        value={value || ''}
+                        inputRef={ref}
+                        placeholder="(11) 99999-9999"
+                        className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      />
+                    )}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>E-mail</Label>
@@ -231,13 +264,53 @@ export default function NewCustomerPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>CPF/CNPJ</Label>
-                  <Input {...register(`partners.${index}.document`)} placeholder="Documento" />
+                  <Controller
+                    control={control}
+                    name={`partners.${index}.document`}
+                    render={({ field: { onChange, onBlur, value, ref } }) => (
+                      <IMaskInput
+                        mask={[
+                          { mask: '000.000.000-00' },
+                          { mask: '00.000.000/0000-00' }
+                        ]}
+                        unmask={true}
+                        onAccept={(val) => onChange(val)}
+                        onBlur={onBlur}
+                        value={value || ''}
+                        inputRef={ref}
+                        placeholder="Documento"
+                        className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      />
+                    )}
+                  />
                   {errors.partners?.[index]?.document && <p className="text-destructive text-xs">{errors.partners[index]?.document?.message}</p>}
                 </div>
                 <div className="flex gap-2 items-end">
                   <div className="space-y-2 flex-1">
                     <Label>% Participação</Label>
-                    <Input type="number" {...register(`partners.${index}.share`)} placeholder="%" />
+                    <Controller
+                      control={control}
+                      name={`partners.${index}.share`}
+                      render={({ field: { onChange, onBlur, value, ref } }) => (
+                        <IMaskInput
+                          mask={Number}
+                          scale={2}
+                          padFractionalZeros={true}
+                          normalizeZeros={true}
+                          radix=","
+                          mapToRadix={['.']}
+                          min={0}
+                          max={100}
+                          unmask={'typed'}
+                          onAccept={(val) => onChange(val)}
+                          onBlur={onBlur}
+                          value={String(value || '')}
+                          inputRef={ref}
+                          placeholder="%"
+                          className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        />
+                      )}
+                    />
                   </div>
                   <Button type="button" variant="destructive" size="icon" onClick={() => removePartner(index)}>
                     <Trash size={16} />

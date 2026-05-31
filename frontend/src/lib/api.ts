@@ -1,8 +1,20 @@
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const defaultHeaders = {
+  const isClient = typeof window !== 'undefined';
+  const defaultHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
-    'x-tenant-id': 'tenant_1', // Temporariamente mockado
   };
+
+  if (isClient) {
+    const token = localStorage.getItem('gestao_token');
+    if (token) {
+      defaultHeaders['Authorization'] = `Bearer ${token}`;
+    }
+    
+    const tenantId = localStorage.getItem('gestao_tenant_id');
+    if (tenantId) {
+      defaultHeaders['x-tenant-id'] = tenantId;
+    }
+  }
   
   const res = await fetch(`http://localhost:3333/api${endpoint}`, {
     ...options,

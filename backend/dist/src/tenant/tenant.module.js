@@ -23,22 +23,28 @@ exports.TenantModule = TenantModule = __decorate([
                 provide: exports.TENANT_PRISMA_SERVICE,
                 scope: common_1.Scope.REQUEST,
                 inject: [core_1.REQUEST, prisma_service_1.PrismaService],
-                useFactory: (request, prisma) => {
+                useFactory: async (request, prisma) => {
                     const tenantId = request.headers['x-tenant-id'];
                     if (tenantId) {
-                        return prisma.client.$extends({
-                            query: {
-                                $allModels: {
-                                    async $allOperations({ args, query }) {
-                                        const [, result] = await prisma.client.$transaction([
-                                            prisma.client.$executeRawUnsafe(`SET search_path TO "${tenantId}"`),
-                                            query(args),
-                                        ]);
-                                        return result;
+                        const tenant = await prisma.client.tenant.findUnique({
+                            where: { id: tenantId },
+                            select: { schema: true }
+                        });
+                        if (tenant) {
+                            return prisma.client.$extends({
+                                query: {
+                                    $allModels: {
+                                        async $allOperations({ args, query }) {
+                                            const [, result] = await prisma.client.$transaction([
+                                                prisma.client.$executeRawUnsafe(`SET search_path TO "${tenant.schema}"`),
+                                                query(args),
+                                            ]);
+                                            return result;
+                                        },
                                     },
                                 },
-                            },
-                        });
+                            });
+                        }
                     }
                     return prisma.client;
                 },

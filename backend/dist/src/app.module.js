@@ -20,6 +20,9 @@ const audit_module_1 = require("./modules/audit/audit.module");
 const contract_module_1 = require("./modules/contract/contract.module");
 const financial_module_1 = require("./modules/financial/financial.module");
 const schedule_1 = require("@nestjs/schedule");
+const adjustment_module_1 = require("./modules/adjustment/adjustment.module");
+const document_module_1 = require("./modules/document/document.module");
+const tenant_management_module_1 = require("./modules/tenant-management/tenant-management.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -33,7 +36,10 @@ exports.AppModule = AppModule = __decorate([
             product_module_1.ProductModule,
             audit_module_1.AuditModule,
             contract_module_1.ContractModule,
-            financial_module_1.FinancialModule
+            financial_module_1.FinancialModule,
+            adjustment_module_1.AdjustmentModule,
+            tenant_management_module_1.TenantManagementModule,
+            document_module_1.DocumentModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [

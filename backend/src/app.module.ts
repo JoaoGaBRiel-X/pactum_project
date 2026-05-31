@@ -11,6 +11,9 @@ import { AuditModule } from './modules/audit/audit.module';
 import { ContractModule } from './modules/contract/contract.module';
 import { FinancialModule } from './modules/financial/financial.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AdjustmentModule } from './modules/adjustment/adjustment.module';
+import { DocumentModule } from './modules/document/document.module';
+import { TenantManagementModule } from './modules/tenant-management/tenant-management.module';
 
 @Module({
   imports: [
@@ -21,7 +24,10 @@ import { ScheduleModule } from '@nestjs/schedule';
     ProductModule, 
     AuditModule, 
     ContractModule,
-    FinancialModule
+    FinancialModule,
+    AdjustmentModule,
+    TenantManagementModule,
+    DocumentModule
   ],
   controllers: [AppController],
   providers: [

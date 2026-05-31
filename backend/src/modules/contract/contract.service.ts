@@ -66,6 +66,13 @@ export class ContractService {
 
     // Use interactive transaction to guarantee consistency
     return this.prisma.$transaction(async (tx) => {
+      let nextAdjustmentDate = null;
+      if (createDto.adjustmentIndexId) {
+        // Set next adjustment date to 1 year from now
+        nextAdjustmentDate = new Date();
+        nextAdjustmentDate.setFullYear(nextAdjustmentDate.getFullYear() + 1);
+      }
+
       // 1. Create the Contract and its Items
       const contract = await tx.contract.create({
         data: {
@@ -76,6 +83,8 @@ export class ContractService {
           renewalMode,
           status: 'DRAFT',
           createdBy: userId,
+          adjustmentIndexId: createDto.adjustmentIndexId,
+          nextAdjustmentDate: nextAdjustmentDate,
           items: {
             create: contractItemsData,
           },
@@ -121,6 +130,7 @@ export class ContractService {
         customer: true,
         product: { include: { modules: true } },
         items: true,
+        documents: { orderBy: { createdAt: 'desc' } },
         history: {
           orderBy: { changedAt: 'desc' }
         },

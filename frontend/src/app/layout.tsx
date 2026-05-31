@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { Sidebar } from '@/components/layout/Sidebar';
-import { Header } from '@/components/layout/Header';
+import { MainLayoutWrapper } from '@/components/layout/MainLayoutWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,11 +21,9 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className={`${inter.className} bg-slate-50 min-h-screen`}>
         <Providers>
-          <Sidebar />
-          <Header />
-          <main className="ml-64 p-8">
+          <MainLayoutWrapper>
             {children}
-          </main>
+          </MainLayoutWrapper>
         </Providers>
       </body>
     </html>

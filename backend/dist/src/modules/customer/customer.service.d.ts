@@ -10,8 +10,8 @@ export declare class CustomerService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            email: string;
             role: string | null;
+            email: string;
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;
@@ -55,8 +55,8 @@ export declare class CustomerService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            email: string;
             role: string | null;
+            email: string;
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;
@@ -89,8 +89,8 @@ export declare class CustomerService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            email: string;
             role: string | null;
+            email: string;
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;
@@ -126,8 +126,8 @@ export declare class CustomerService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            email: string;
             role: string | null;
+            email: string;
             createdBy: string | null;
             updatedBy: string | null;
             phone: string | null;

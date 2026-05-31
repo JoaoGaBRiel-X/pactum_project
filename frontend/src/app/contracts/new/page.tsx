@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileText, Calculator, Building, Package } from 'lucide-react';
-import { useForm, useFieldArray, useWatch } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { IMaskInput } from 'react-imask';
 
 const contractItemSchema = z.object({
   moduleId: z.string().min(1, 'Selecione um módulo'),
@@ -23,6 +24,7 @@ const contractSchema = z.object({
   productId: z.string().min(1, 'Selecione o Produto'),
   globalDiscount: z.coerce.number().min(0).default(0),
   renewalMode: z.enum(['AUTOMATIC', 'MANUAL']).default('AUTOMATIC'),
+  adjustmentIndexId: z.string().optional(),
   items: z.array(contractItemSchema).min(1, 'Adicione pelo menos um módulo'),
 });
 
@@ -34,6 +36,7 @@ export default function NewContractPage() {
 
   const { data: customers } = useQuery({ queryKey: ['customers'], queryFn: () => apiFetch('/customers') });
   const { data: products } = useQuery({ queryKey: ['products'], queryFn: () => apiFetch('/products') });
+  const { data: indexes } = useQuery({ queryKey: ['adjustments-indexes'], queryFn: () => apiFetch('/adjustments/indexes') });
 
   const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ContractFormValues>({
     resolver: zodResolver(contractSchema) as any,
@@ -134,6 +137,16 @@ export default function NewContractPage() {
                 <option value="MANUAL">Manual (Exige aprovação)</option>
               </select>
             </div>
+
+            <div className="space-y-2">
+              <Label className="text-slate-700 font-medium">Índice de Reajuste</Label>
+              <select {...register('adjustmentIndexId')} className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                <option value="">Nenhum (Sem Reajuste)</option>
+                {indexes?.map((idx: any) => (
+                  <option key={idx.id} value={idx.id}>{idx.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -171,12 +184,48 @@ export default function NewContractPage() {
                     
                     <div className="space-y-2 col-span-2">
                       <Label className="text-slate-700 font-medium">Quantidade</Label>
-                      <Input type="number" min="1" className="h-10 bg-white border-slate-300 text-slate-900 focus-visible:ring-primary" {...register(`items.${index}.quantity`)} />
+                      <Controller
+                        control={control}
+                        name={`items.${index}.quantity`}
+                        render={({ field: { onChange, onBlur, value, ref } }) => (
+                          <IMaskInput
+                            mask={Number}
+                            scale={0}
+                            min={1}
+                            unmask={true}
+                            onAccept={(val) => onChange(val)}
+                            onBlur={onBlur}
+                            value={String(value || '')}
+                            inputRef={ref}
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          />
+                        )}
+                      />
                     </div>
                     
                     <div className="space-y-2 col-span-3">
                       <Label className="text-slate-700 font-medium">Desconto Unit. (R$)</Label>
-                      <Input type="number" step="0.01" min="0" className="h-10 bg-white border-slate-300 text-slate-900 focus-visible:ring-primary" {...register(`items.${index}.discount`)} />
+                      <Controller
+                        control={control}
+                        name={`items.${index}.discount`}
+                        render={({ field: { onChange, onBlur, value, ref } }) => (
+                          <IMaskInput
+                            mask={Number}
+                            scale={2}
+                            padFractionalZeros={true}
+                            normalizeZeros={true}
+                            radix=","
+                            mapToRadix={['.']}
+                            min={0}
+                            unmask={'typed'}
+                            onAccept={(val) => onChange(val)}
+                            onBlur={onBlur}
+                            value={String(value || '0')}
+                            inputRef={ref}
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          />
+                        )}
+                      />
                     </div>
 
                     <div className="col-span-2 pb-2 text-right">
@@ -197,7 +246,27 @@ export default function NewContractPage() {
             <div className="flex justify-end pt-4 border-t">
               <div className="w-1/3 space-y-2">
                 <Label className="text-slate-700 font-medium">Desconto Global (R$)</Label>
-                <Input type="number" step="0.01" min="0" className="h-10 bg-white border-slate-300 text-slate-900 focus-visible:ring-primary" {...register('globalDiscount')} />
+                <Controller
+                  control={control}
+                  name="globalDiscount"
+                  render={({ field: { onChange, onBlur, value, ref } }) => (
+                    <IMaskInput
+                      mask={Number}
+                      scale={2}
+                      padFractionalZeros={true}
+                      normalizeZeros={true}
+                      radix=","
+                      mapToRadix={['.']}
+                      min={0}
+                      unmask={'typed'}
+                      onAccept={(val) => onChange(val)}
+                      onBlur={onBlur}
+                      value={String(value || '0')}
+                      inputRef={ref}
+                      className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    />
+                  )}
+                />
               </div>
             </div>
           </div>

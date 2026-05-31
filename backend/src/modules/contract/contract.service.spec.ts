@@ -77,7 +77,7 @@ describe('ContractService', () => {
       return Promise.all(arg);
     });
 
-    const result = await service.create(createDto);
+    const result = await service.create(createDto, 'user-1');
     
     expect(mockPrisma.client.softwareProduct.findUnique).toHaveBeenCalledWith({
       where: { id: 'prod-1' },

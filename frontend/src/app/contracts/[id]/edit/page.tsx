@@ -212,12 +212,48 @@ export default function EditContractPage({ params }: { params: Promise<{ id: str
                     
                     <div className="space-y-2 col-span-2">
                       <Label className="text-slate-700 font-medium">Quantidade</Label>
-                      <Input type="number" min="1" className="h-10 bg-white border-slate-300 text-slate-900 focus-visible:ring-primary" {...register(`items.${index}.quantity`)} />
+                      <Controller
+                        control={control}
+                        name={`items.${index}.quantity`}
+                        render={({ field: { onChange, onBlur, value, ref } }) => (
+                          <IMaskInput
+                            mask={Number}
+                            scale={0}
+                            min={1}
+                            unmask={true}
+                            onAccept={(val) => onChange(val)}
+                            onBlur={onBlur}
+                            value={String(value || '')}
+                            inputRef={ref}
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          />
+                        )}
+                      />
                     </div>
                     
                     <div className="space-y-2 col-span-3">
                       <Label className="text-slate-700 font-medium">Desconto Unit. (R$)</Label>
-                      <Input type="number" step="0.01" min="0" className="h-10 bg-white border-slate-300 text-slate-900 focus-visible:ring-primary" {...register(`items.${index}.discount`)} />
+                      <Controller
+                        control={control}
+                        name={`items.${index}.discount`}
+                        render={({ field: { onChange, onBlur, value, ref } }) => (
+                          <IMaskInput
+                            mask={Number}
+                            scale={2}
+                            padFractionalZeros={true}
+                            normalizeZeros={true}
+                            radix=","
+                            mapToRadix={['.']}
+                            min={0}
+                            unmask={'typed'}
+                            onAccept={(val) => onChange(val)}
+                            onBlur={onBlur}
+                            value={String(value || '0')}
+                            inputRef={ref}
+                            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          />
+                        )}
+                      />
                     </div>
 
                     <div className="col-span-2 pb-2 text-right">
@@ -238,7 +274,27 @@ export default function EditContractPage({ params }: { params: Promise<{ id: str
             <div className="flex justify-end pt-4 border-t">
               <div className="w-1/3 space-y-2">
                 <Label className="text-slate-700 font-medium">Desconto Global (R$)</Label>
-                <Input type="number" step="0.01" min="0" className="h-10 bg-white border-slate-300 text-slate-900 focus-visible:ring-primary" {...register('globalDiscount')} />
+                <Controller
+                  control={control}
+                  name="globalDiscount"
+                  render={({ field: { onChange, onBlur, value, ref } }) => (
+                    <IMaskInput
+                      mask={Number}
+                      scale={2}
+                      padFractionalZeros={true}
+                      normalizeZeros={true}
+                      radix=","
+                      mapToRadix={['.']}
+                      min={0}
+                      unmask={'typed'}
+                      onAccept={(val) => onChange(val)}
+                      onBlur={onBlur}
+                      value={String(value || '0')}
+                      inputRef={ref}
+                      className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    />
+                  )}
+                />
               </div>
             </div>
           </div>

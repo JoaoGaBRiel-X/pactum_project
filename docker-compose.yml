@@ -70,6 +70,15 @@ services:
       - app_network
     restart: unless-stopped
 
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    container_name: gestao_contratos_gotenberg
+    ports:
+      - '3001:3000'
+    networks:
+      - app_network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   minio_data:
