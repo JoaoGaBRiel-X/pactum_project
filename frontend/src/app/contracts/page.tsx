@@ -83,8 +83,7 @@ export default function ContractsPage() {
               <TableRow key={contract.id} className="hover:bg-slate-50 transition-colors">
                 <TableCell className="font-medium text-slate-800">
                   <div className="text-xs text-muted-foreground">{contract.id.split('-')[0]}</div>
-                  {/* Ideally fetch customer name, but for now we just show customer ID or wait for relation */}
-                  Cliente: {contract.customerId.substring(0, 8)}...
+                  Cliente: {contract.customer?.corporateName || contract.customerId.split('-')[0]}
                 </TableCell>
                 <TableCell className="font-semibold text-primary">
                   R$ {Number(contract.totalValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -108,9 +107,11 @@ export default function ContractsPage() {
                       </Button>
                     </div>
                   ) : (
-                    <Button variant="outline" size="sm" title="Ver Detalhes">
-                      <Eye size={16} /> Detalhes
-                    </Button>
+                    <Link href={`/contracts/${contract.id}`}>
+                      <Button variant="outline" size="sm" title="Ver Detalhes">
+                        <Eye size={16} className="mr-1" /> Detalhes
+                      </Button>
+                    </Link>
                   )}
                 </TableCell>
               </TableRow>

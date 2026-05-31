@@ -58,6 +58,42 @@ export declare class ContractService {
         productId: string;
     })[]>;
     findOne(id: string): Promise<({
+        customer: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            createdBy: string | null;
+            updatedBy: string | null;
+            document: string;
+            corporateName: string;
+            tradeName: string | null;
+            address: string | null;
+            corporateGroupId: string | null;
+            delinquencyScore: number;
+        };
+        product: {
+            modules: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                createdBy: string | null;
+                updatedBy: string | null;
+                productId: string;
+                name: string;
+                description: string | null;
+                isActive: boolean;
+                price: import("@prisma/client-runtime-utils").Decimal;
+            }[];
+        } & {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            createdBy: string | null;
+            updatedBy: string | null;
+            name: string;
+            description: string | null;
+            isActive: boolean;
+        };
         items: {
             id: string;
             moduleId: string;

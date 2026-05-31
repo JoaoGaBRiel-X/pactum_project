@@ -34,11 +34,7 @@ describe('ProductService', () => {
 
   describe('create', () => {
     it('should create a product with modules', async () => {
-      const createDto = {
-        name: 'ERP Complete',
-        description: 'Complete ERP suite',
-        modules: [{ name: 'Finance', basePrice: 100, isActive: true }],
-      };
+      const createDto = { name: 'ERP', description: 'Sistema', modules: [{ name: 'Financeiro', price: 100, isActive: true }] };
       
       mockPrismaService.softwareProduct.create.mockResolvedValue({
         id: '1',

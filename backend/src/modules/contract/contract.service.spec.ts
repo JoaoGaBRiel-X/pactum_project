@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ContractService } from './contract.service';
-import { TENANT_PRISMA_SERVICE } from '../../../tenant/tenant.module';
+import { TENANT_PRISMA_SERVICE } from '../../tenant/tenant.module';
 
 const mockPrisma = {
   client: {

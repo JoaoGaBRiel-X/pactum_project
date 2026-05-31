@@ -18,6 +18,7 @@ const customer_module_1 = require("./modules/customer/customer.module");
 const product_module_1 = require("./modules/product/product.module");
 const audit_module_1 = require("./modules/audit/audit.module");
 const contract_module_1 = require("./modules/contract/contract.module");
+const financial_module_1 = require("./modules/financial/financial.module");
 const schedule_1 = require("@nestjs/schedule");
 let AppModule = class AppModule {
 };
@@ -31,7 +32,8 @@ exports.AppModule = AppModule = __decorate([
             customer_module_1.CustomerModule,
             product_module_1.ProductModule,
             audit_module_1.AuditModule,
-            contract_module_1.ContractModule
+            contract_module_1.ContractModule,
+            financial_module_1.FinancialModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [

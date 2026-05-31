@@ -111,6 +111,8 @@ let ContractService = class ContractService {
         return this.prisma.contract.findUnique({
             where: { id },
             include: {
+                customer: true,
+                product: { include: { modules: true } },
                 items: true,
                 history: {
                     orderBy: { changedAt: 'desc' }

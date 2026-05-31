@@ -72,6 +72,10 @@ model Customer {
   contacts         Contact[]
   partners         Partner[]
   contracts        Contract[]
+  receivables      Receivable[]
+  renegotiations   DebtRenegotiation[]
+  delinquencyScore Int             @default(1000) @map("delinquency_score")
+
   
   createdAt        DateTime        @default(now()) @map("created_at")
   updatedAt        DateTime        @updatedAt @map("updated_at")
@@ -197,6 +201,8 @@ model Contract {
   items          ContractItem[]
   documents      ContractDocument[]
   history        ContractHistory[]
+  receivables    Receivable[]
+
   
   createdAt      DateTime          @default(now()) @map("created_at")
   updatedAt      DateTime          @updatedAt @map("updated_at")
@@ -250,4 +256,74 @@ model ContractDocument {
   createdBy     String?  @map("created_by")
 
   @@map("contract_documents")
+}
+
+// ==========================================
+// Financial Management (Phase 4)
+// ==========================================
+
+model Receivable {
+  id              String    @id @default(uuid())
+  contractId      String?   @map("contract_id")
+  contract        Contract? @relation(fields: [contractId], references: [id])
+  customerId      String    @map("customer_id")
+  customer        Customer  @relation(fields: [customerId], references: [id])
+  
+  description     String
+  type            String    @default("RECURRING") // RECURRING, SETUP_FEE, ONE_TIME, RENEGOTIATION
+  amount          Decimal
+  dueDate         DateTime  @map("due_date")
+  status          String    @default("PENDING") // PENDING, PAID, OVERDUE, CANCELED, RENEGOTIATED
+  
+  competence      String?   // ex: 2023-10
+  
+  payments        Payment[]
+  renegotiationId String?   @map("renegotiation_id")
+
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  createdBy       String?   @map("created_by")
+  updatedBy       String?   @map("updated_by")
+
+  @@map("receivables")
+}
+
+model Payment {
+  id              String     @id @default(uuid())
+  receivableId    String     @map("receivable_id")
+  receivable      Receivable @relation(fields: [receivableId], references: [id])
+  
+  amount          Decimal
+  paymentDate     DateTime   @map("payment_date")
+  method          String     // MANUAL, BOLETO, PIX, CREDIT_CARD
+  status          String     @default("CONFIRMED") // PENDING, CONFIRMED, FAILED
+  receiptUrl      String?    @map("receipt_url")
+  
+  createdAt       DateTime   @default(now()) @map("created_at")
+  createdBy       String?    @map("created_by")
+
+  @@map("payments")
+}
+
+model DebtRenegotiation {
+  id              String   @id @default(uuid())
+  customerId      String   @map("customer_id")
+  customer        Customer @relation(fields: [customerId], references: [id])
+  
+  originalDebt    Decimal  @map("original_debt")
+  interestApplied Decimal  @default(0) @map("interest_applied")
+  penaltyApplied  Decimal  @default(0) @map("penalty_applied")
+  discount        Decimal  @default(0)
+  finalAmount     Decimal  @map("final_amount")
+  
+  status          String   @default("PENDING") // PENDING, APPROVED, CANCELED
+  
+  consolidatedReceivableIds Json @map("consolidated_receivable_ids")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  createdBy       String?  @map("created_by")
+  updatedBy       String?  @map("updated_by")
+
+  @@map("debt_renegotiations")
 }

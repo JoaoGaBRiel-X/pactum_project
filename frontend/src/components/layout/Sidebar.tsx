@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Users, Package, Home, Settings, LogOut, FileText } from 'lucide-react';
+import { Users, Package, Home, Settings, LogOut, FileText, DollarSign } from 'lucide-react';
 
 export function Sidebar() {
   return (
@@ -19,6 +19,9 @@ export function Sidebar() {
         </Link>
         <Link href="/contracts" className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">
           <FileText size={18} /> Contratos
+        </Link>
+        <Link href="/financial" className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">
+          <DollarSign size={18} /> Financeiro
         </Link>
       </nav>
       <div className="p-4 border-t border-slate-800">

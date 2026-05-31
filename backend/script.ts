@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { await prisma.contract.updateMany({ data: { status: 'ACTIVE' } }); console.log('Done'); } main();

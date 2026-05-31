@@ -6,152 +6,156 @@ export declare class CustomerService {
     constructor(prisma: PrismaClient);
     create(createCustomerDto: CreateCustomerDto, userId: string): Promise<{
         contacts: {
+            name: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
+            role: string | null;
             createdBy: string | null;
             updatedBy: string | null;
-            name: string;
-            email: string;
             phone: string | null;
-            role: string | null;
             customerId: string;
         }[];
         partners: {
+            name: string;
             id: string;
             document: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
-            name: string;
-            share: import("@prisma/client-runtime-utils").Decimal | null;
             customerId: string;
+            share: import("@prisma/client-runtime-utils").Decimal | null;
         }[];
     } & {
         id: string;
         document: string;
-        corporateName: string;
-        tradeName: string | null;
-        address: string | null;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;
+        corporateName: string;
+        tradeName: string | null;
+        address: string | null;
         corporateGroupId: string | null;
+        delinquencyScore: number;
     }>;
     findAll(): Promise<({
         corporateGroup: {
+            name: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
-            name: string;
         } | null;
         contacts: {
+            name: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
+            role: string | null;
             createdBy: string | null;
             updatedBy: string | null;
-            name: string;
-            email: string;
             phone: string | null;
-            role: string | null;
             customerId: string;
         }[];
     } & {
         id: string;
         document: string;
-        corporateName: string;
-        tradeName: string | null;
-        address: string | null;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;
+        corporateName: string;
+        tradeName: string | null;
+        address: string | null;
         corporateGroupId: string | null;
+        delinquencyScore: number;
     })[]>;
     findOne(id: string): Promise<{
         corporateGroup: {
+            name: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
-            name: string;
         } | null;
         contacts: {
+            name: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
+            role: string | null;
             createdBy: string | null;
             updatedBy: string | null;
-            name: string;
-            email: string;
             phone: string | null;
-            role: string | null;
             customerId: string;
         }[];
         partners: {
+            name: string;
             id: string;
             document: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
-            name: string;
-            share: import("@prisma/client-runtime-utils").Decimal | null;
             customerId: string;
+            share: import("@prisma/client-runtime-utils").Decimal | null;
         }[];
     } & {
         id: string;
         document: string;
-        corporateName: string;
-        tradeName: string | null;
-        address: string | null;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;
+        corporateName: string;
+        tradeName: string | null;
+        address: string | null;
         corporateGroupId: string | null;
+        delinquencyScore: number;
     }>;
     update(id: string, updateCustomerDto: UpdateCustomerDto, userId: string): Promise<{
         contacts: {
+            name: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
+            role: string | null;
             createdBy: string | null;
             updatedBy: string | null;
-            name: string;
-            email: string;
             phone: string | null;
-            role: string | null;
             customerId: string;
         }[];
         partners: {
+            name: string;
             id: string;
             document: string;
             createdAt: Date;
             updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
-            name: string;
-            share: import("@prisma/client-runtime-utils").Decimal | null;
             customerId: string;
+            share: import("@prisma/client-runtime-utils").Decimal | null;
         }[];
     } & {
         id: string;
         document: string;
-        corporateName: string;
-        tradeName: string | null;
-        address: string | null;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;
+        corporateName: string;
+        tradeName: string | null;
+        address: string | null;
         corporateGroupId: string | null;
+        delinquencyScore: number;
     }>;
     remove(id: string): Promise<{
         message: string;

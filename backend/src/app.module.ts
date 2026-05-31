@@ -9,6 +9,7 @@ import { CustomerModule } from './modules/customer/customer.module';
 import { ProductModule } from './modules/product/product.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { ContractModule } from './modules/contract/contract.module';
+import { FinancialModule } from './modules/financial/financial.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
@@ -19,7 +20,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     CustomerModule, 
     ProductModule, 
     AuditModule, 
-    ContractModule
+    ContractModule,
+    FinancialModule
   ],
   controllers: [AppController],
   providers: [
