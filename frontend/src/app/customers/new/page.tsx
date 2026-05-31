@@ -12,6 +12,25 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
+const formatCnpj = (value: string) => {
+  const v = value.replace(/\D/g, '').slice(0, 14);
+  if (v.length === 14) {
+    return v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+  }
+  return v; // While typing, you might want a dynamic mask, but for simplicity we let them type numbers and format at 14, or format dynamically:
+};
+
+const dynamicCnpjMask = (value: string) => {
+  let v = value.replace(/\D/g, '');
+  if (v.length > 14) v = v.slice(0, 14);
+  v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+  v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+  v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+  v = v.replace(/(\d{4})(\d)/, '$1-$2');
+  return v;
+};
+
+
 const contactSchema = z.object({
   name: z.string().min(2, 'Nome é obrigatório'),
   email: z.string().email('E-mail inválido').optional().or(z.literal('')),
@@ -22,7 +41,7 @@ const contactSchema = z.object({
 const partnerSchema = z.object({
   name: z.string().min(2, 'Nome é obrigatório'),
   document: z.string().min(11, 'Documento inválido'),
-  percentage: z.coerce.number().min(0).max(100).optional(),
+  share: z.coerce.number().min(0).max(100).optional(),
 });
 
 const customerSchema = z.object({
@@ -41,8 +60,8 @@ export default function NewCustomerPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { register, control, handleSubmit, formState: { errors } } = useForm<CustomerFormValues>({
-    resolver: zodResolver(customerSchema),
+  const { register, control, handleSubmit, setValue, formState: { errors } } = useForm<CustomerFormValues>({
+    resolver: zodResolver(customerSchema) as any,
     defaultValues: {
       contacts: [],
       partners: [],
@@ -59,6 +78,33 @@ export default function NewCustomerPage() {
     name: "partners",
   });
 
+  const searchCnpj = async (cnpj: string) => {
+    const cleanCnpj = cnpj.replace(/\D/g, '');
+    if (cleanCnpj.length !== 14) return;
+    try {
+      const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cleanCnpj}`);
+      if (res.ok) {
+        const data = await res.json();
+        setValue('corporateName', data.razao_social || '');
+        setValue('tradeName', data.nome_fantasia || '');
+        
+        if (data.qsa && Array.isArray(data.qsa)) {
+          // Clear current partners and add new ones
+          setValue('partners', []);
+          data.qsa.forEach((socio: any) => {
+            appendPartner({
+              name: socio.nome_socio,
+              document: socio.cnpj_cpf_do_socio || '',
+              share: 0
+            });
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao buscar CNPJ na BrasilAPI", err);
+    }
+  };
+
   const mutation = useMutation({
     mutationFn: (newCustomer: CustomerFormValues) => apiFetch('/customers', {
       method: 'POST',
@@ -70,8 +116,12 @@ export default function NewCustomerPage() {
     },
   });
 
-  const onSubmit = (data: CustomerFormValues) => {
-    mutation.mutate(data);
+  const onSubmit = (data: any) => {
+    const payload = {
+      ...data,
+      document: data.document.replace(/\D/g, '') // Send only numbers to backend
+    };
+    mutation.mutate(payload);
   };
 
   return (
@@ -92,7 +142,17 @@ export default function NewCustomerPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="document">CNPJ *</Label>
-              <Input id="document" {...register("document")} placeholder="00.000.000/0001-00" />
+              <Input 
+                id="document" 
+                placeholder="00.000.000/0001-00"
+                maxLength={18}
+                {...register("document", {
+                  onChange: (e) => {
+                    e.target.value = dynamicCnpjMask(e.target.value);
+                  }
+                })} 
+                onBlur={(e) => searchCnpj(e.target.value)}
+              />
               {errors.document && <p className="text-destructive text-sm">{errors.document.message}</p>}
             </div>
             <div className="space-y-2">
@@ -154,7 +214,7 @@ export default function NewCustomerPage() {
         <div className="bg-white p-6 rounded-xl border border-border shadow-sm space-y-6">
           <div className="flex justify-between items-center border-b pb-2">
             <h2 className="text-lg font-semibold flex items-center gap-2"><Users size={20} /> Sócios</h2>
-            <Button type="button" variant="outline" size="sm" onClick={() => appendPartner({ name: '', document: '', percentage: 0 })}>
+            <Button type="button" variant="outline" size="sm" onClick={() => appendPartner({ name: '', document: '', share: 0 })}>
               <Plus size={16} className="mr-2" /> Adicionar Sócio
             </Button>
           </div>
@@ -177,7 +237,7 @@ export default function NewCustomerPage() {
                 <div className="flex gap-2 items-end">
                   <div className="space-y-2 flex-1">
                     <Label>% Participação</Label>
-                    <Input type="number" {...register(`partners.${index}.percentage`)} placeholder="%" />
+                    <Input type="number" {...register(`partners.${index}.share`)} placeholder="%" />
                   </div>
                   <Button type="button" variant="destructive" size="icon" onClick={() => removePartner(index)}>
                     <Trash size={16} />

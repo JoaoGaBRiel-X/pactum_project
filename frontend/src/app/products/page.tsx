@@ -1,9 +1,10 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Pencil, Trash2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -18,6 +19,24 @@ export default function ProductsPage() {
     queryKey: ['products'],
     queryFn: () => apiFetch('/products'),
   });
+
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => apiFetch(`/products/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+    onError: (err: any) => {
+      alert(`Erro ao excluir: ${err.message || 'Desconhecido'}`);
+    }
+  });
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este produto? Se houver contratos vinculados a ação falhará.')) {
+      deleteMutation.mutate(id);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -69,7 +88,16 @@ export default function ProductsPage() {
                 </TableCell>
                 <TableCell>{product.modules?.length || 0} módulos</TableCell>
                 <TableCell>
-                  <Button variant="outline" size="sm">Ver Detalhes</Button>
+                  <div className="flex items-center gap-2">
+                    <Link href={`/products/${product.id}/edit`}>
+                      <Button variant="outline" size="sm" title="Editar Produto">
+                        <Pencil size={16} />
+                      </Button>
+                    </Link>
+                    <Button variant="destructive" size="sm" title="Excluir" onClick={() => handleDelete(product.id)}>
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

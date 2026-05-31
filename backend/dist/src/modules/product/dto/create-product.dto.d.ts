@@ -1,4 +1,5 @@
 declare class CreateSoftwareModuleDto {
+    id?: string;
     name: string;
     description?: string;
     price: number;

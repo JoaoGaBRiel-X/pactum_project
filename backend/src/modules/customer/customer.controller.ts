@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Req } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Req } from '@nestjs/common';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
@@ -26,5 +26,18 @@ export class CustomerController {
   @ApiOperation({ summary: 'Obter detalhes de um cliente' })
   findOne(@Param('id') id: string) {
     return this.customerService.findOne(id);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Atualizar um cliente' })
+  update(@Param('id') id: string, @Body() updateCustomerDto: any, @Req() req: any) {
+    const userId = req.user?.id || 'system-user';
+    return this.customerService.update(id, updateCustomerDto, userId);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Excluir um cliente' })
+  remove(@Param('id') id: string) {
+    return this.customerService.remove(id);
   }
 }

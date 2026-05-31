@@ -36,7 +36,7 @@ export default function NewContractPage() {
   const { data: products } = useQuery({ queryKey: ['products'], queryFn: () => apiFetch('/products') });
 
   const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ContractFormValues>({
-    resolver: zodResolver(contractSchema),
+    resolver: zodResolver(contractSchema) as any,
     defaultValues: {
       globalDiscount: 0,
       renewalMode: 'AUTOMATIC',
@@ -85,7 +85,7 @@ export default function NewContractPage() {
     },
   });
 
-  const onSubmit = (data: ContractFormValues) => {
+  const onSubmit = (data: any) => {
     mutation.mutate(data);
   };
 

@@ -22,16 +22,24 @@ let CustomerService = class CustomerService {
         this.prisma = prisma;
     }
     async create(createCustomerDto, userId) {
-        const { contacts, partners, ...customerData } = createCustomerDto;
+        const { contacts = [], partners, ...dtoRest } = createCustomerDto;
+        const { email, phone, ...customerData } = dtoRest;
+        if (email || phone) {
+            contacts.push({
+                name: 'Contato Principal',
+                email: email || '',
+                phone: phone || '',
+            });
+        }
         try {
             const customer = await this.prisma.customer.create({
                 data: {
                     ...customerData,
                     createdBy: userId,
-                    contacts: contacts ? {
+                    contacts: contacts.length > 0 ? {
                         create: contacts.map(c => ({ ...c, createdBy: userId }))
                     } : undefined,
-                    partners: partners ? {
+                    partners: partners && partners.length > 0 ? {
                         create: partners.map(p => ({ ...p, createdBy: userId }))
                     } : undefined,
                 },
@@ -58,7 +66,7 @@ let CustomerService = class CustomerService {
         });
     }
     async findOne(id) {
-        return this.prisma.customer.findUnique({
+        const customer = await this.prisma.customer.findUnique({
             where: { id },
             include: {
                 contacts: true,
@@ -66,6 +74,66 @@ let CustomerService = class CustomerService {
                 corporateGroup: true,
             }
         });
+        if (!customer) {
+            throw new common_1.NotFoundException('Cliente não encontrado.');
+        }
+        return customer;
+    }
+    async update(id, updateCustomerDto, userId) {
+        await this.findOne(id);
+        const { contacts, partners, ...dtoRest } = updateCustomerDto;
+        const { email, phone, ...customerData } = dtoRest;
+        const finalContacts = contacts || [];
+        if (email || phone) {
+            finalContacts.push({
+                name: 'Contato Principal',
+                email: email || '',
+                phone: phone || '',
+            });
+        }
+        try {
+            const customer = await this.prisma.customer.update({
+                where: { id },
+                data: {
+                    ...customerData,
+                    updatedBy: userId,
+                    contacts: finalContacts.length >= 0 && contacts !== undefined ? {
+                        deleteMany: {},
+                        create: finalContacts.map(c => ({ ...c, createdBy: userId, updatedBy: userId }))
+                    } : undefined,
+                    partners: partners !== undefined ? {
+                        deleteMany: {},
+                        create: partners.map(p => ({ ...p, createdBy: userId, updatedBy: userId }))
+                    } : undefined,
+                },
+                include: {
+                    contacts: true,
+                    partners: true,
+                }
+            });
+            return customer;
+        }
+        catch (error) {
+            if (error.code === 'P2002') {
+                throw new common_1.ConflictException('Já existe um cliente cadastrado com este CNPJ neste tenant.');
+            }
+            throw error;
+        }
+    }
+    async remove(id) {
+        await this.findOne(id);
+        try {
+            await this.prisma.customer.delete({
+                where: { id }
+            });
+            return { message: 'Cliente excluído com sucesso.' };
+        }
+        catch (error) {
+            if (error.code === 'P2003') {
+                throw new common_1.BadRequestException('Não é possível excluir este cliente, pois existem contratos ou registros vinculados a ele.');
+            }
+            throw error;
+        }
     }
 };
 exports.CustomerService = CustomerService;

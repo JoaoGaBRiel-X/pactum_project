@@ -1,9 +1,10 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Pencil, Trash2, Eye } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -18,6 +19,24 @@ export default function CustomersPage() {
     queryKey: ['customers'],
     queryFn: () => apiFetch('/customers'),
   });
+
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => apiFetch(`/customers/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+    },
+    onError: (err: any) => {
+      alert(`Erro ao excluir: ${err.message || 'Desconhecido'}`);
+    }
+  });
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este cliente? Se houver contratos vinculados a ação falhará.')) {
+      deleteMutation.mutate(id);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -65,7 +84,16 @@ export default function CustomersPage() {
                 <TableCell>{customer.corporateName}</TableCell>
                 <TableCell>{customer.contacts?.length || 0} contatos</TableCell>
                 <TableCell>
-                  <Button variant="outline" size="sm">Ver Detalhes</Button>
+                  <div className="flex items-center gap-2">
+                    <Link href={`/customers/${customer.id}/edit`}>
+                      <Button variant="outline" size="sm" title="Editar Cliente">
+                        <Pencil size={16} />
+                      </Button>
+                    </Link>
+                    <Button variant="destructive" size="sm" title="Excluir" onClick={() => handleDelete(customer.id)}>
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

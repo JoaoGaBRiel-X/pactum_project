@@ -118,6 +118,161 @@ let ContractService = class ContractService {
             }
         });
     }
+    async update(id, updateDto, userId) {
+        const contract = await this.prisma.contract.findUnique({ where: { id }, include: { items: true } });
+        if (!contract)
+            throw new common_1.NotFoundException('Contrato não encontrado.');
+        if (contract.status !== 'DRAFT')
+            throw new common_1.BadRequestException('Apenas contratos em rascunho podem ser alterados diretamente.');
+        return this.prisma.$transaction(async (tx) => {
+            let totalValue = Number(contract.totalValue);
+            let globalDiscount = updateDto.globalDiscount !== undefined ? updateDto.globalDiscount : Number(contract.globalDiscount);
+            let historyPayloadItems = [];
+            const contractItemsData = [];
+            if (updateDto.items && updateDto.items.length > 0) {
+                totalValue = 0;
+                const product = await tx.softwareProduct.findUnique({
+                    where: { id: updateDto.productId || contract.productId },
+                    include: { modules: true }
+                });
+                if (!product)
+                    throw new common_1.NotFoundException('Produto não encontrado.');
+                for (const item of updateDto.items) {
+                    const module = product.modules.find(m => m.id === item.moduleId);
+                    if (!module)
+                        throw new common_1.BadRequestException(`Módulo ${item.moduleId} não encontrado no produto.`);
+                    const unitPrice = Number(module.price);
+                    const discount = item.discount || 0;
+                    const itemTotal = (unitPrice - discount) * item.quantity;
+                    totalValue += itemTotal;
+                    contractItemsData.push({
+                        moduleId: item.moduleId,
+                        quantity: item.quantity,
+                        unitPrice: unitPrice,
+                        discount: discount,
+                    });
+                    historyPayloadItems.push({
+                        moduleId: item.moduleId,
+                        moduleName: module.name,
+                        quantity: item.quantity,
+                        unitPrice: unitPrice,
+                        discount: discount,
+                    });
+                }
+                totalValue -= globalDiscount;
+                if (totalValue < 0)
+                    throw new common_1.BadRequestException('Desconto global maior que o valor total.');
+                await tx.contractItem.deleteMany({ where: { contractId: id } });
+            }
+            else {
+                if (updateDto.globalDiscount !== undefined) {
+                    const items = await tx.contractItem.findMany({ where: { contractId: id } });
+                    totalValue = items.reduce((acc, it) => acc + ((Number(it.unitPrice) - Number(it.discount)) * it.quantity), 0);
+                    totalValue -= globalDiscount;
+                }
+            }
+            const updatedContract = await tx.contract.update({
+                where: { id },
+                data: {
+                    customerId: updateDto.customerId,
+                    productId: updateDto.productId,
+                    globalDiscount,
+                    totalValue,
+                    renewalMode: updateDto.renewalMode,
+                    updatedBy: userId,
+                    ...(contractItemsData.length > 0 && {
+                        items: { create: contractItemsData }
+                    })
+                },
+                include: { items: true }
+            });
+            await tx.contractHistory.create({
+                data: {
+                    contractId: id,
+                    status: updatedContract.status,
+                    totalValue: totalValue,
+                    changedBy: userId,
+                    reason: 'Atualização do rascunho',
+                    modulesPayload: {
+                        globalDiscount,
+                        items: historyPayloadItems.length > 0 ? historyPayloadItems : undefined,
+                    },
+                }
+            });
+            return updatedContract;
+        });
+    }
+    async updateStatus(id, updateStatusDto, userId) {
+        const { status, reason } = updateStatusDto;
+        const contract = await this.prisma.contract.findUnique({
+            where: { id },
+            include: { items: true }
+        });
+        if (!contract)
+            throw new common_1.NotFoundException('Contrato não encontrado.');
+        const currentStatus = contract.status;
+        const invalidTransition = () => new common_1.BadRequestException(`Transição de status inválida: ${currentStatus} -> ${status}`);
+        if (currentStatus === 'CANCELLED' || currentStatus === 'EXPIRED') {
+            throw new common_1.BadRequestException(`Contrato não pode ser alterado a partir do status ${currentStatus}`);
+        }
+        if (status === 'ACTIVE' && currentStatus === 'DRAFT') {
+        }
+        let startDate = contract.startDate;
+        let endDate = contract.endDate;
+        if (status === 'ACTIVE' && !startDate) {
+            startDate = new Date();
+            endDate = new Date();
+            endDate.setFullYear(endDate.getFullYear() + 1);
+        }
+        return this.prisma.$transaction(async (tx) => {
+            const updatedContract = await tx.contract.update({
+                where: { id },
+                data: {
+                    status,
+                    updatedBy: userId,
+                    ...(startDate && { startDate }),
+                    ...(endDate && { endDate }),
+                },
+            });
+            const items = await tx.contractItem.findMany({ where: { contractId: id } });
+            const modulesPayload = {
+                globalDiscount: Number(contract.globalDiscount),
+                items: items.map(it => ({
+                    moduleId: it.moduleId,
+                    quantity: it.quantity,
+                    unitPrice: Number(it.unitPrice),
+                    discount: Number(it.discount),
+                }))
+            };
+            await tx.contractHistory.create({
+                data: {
+                    contractId: id,
+                    status,
+                    totalValue: contract.totalValue,
+                    changedBy: userId,
+                    reason,
+                    modulesPayload,
+                }
+            });
+            return updatedContract;
+        });
+    }
+    async remove(id) {
+        const contract = await this.prisma.contract.findUnique({
+            where: { id },
+            select: { status: true }
+        });
+        if (!contract) {
+            throw new common_1.NotFoundException('Contrato não encontrado.');
+        }
+        if (contract.status !== 'DRAFT') {
+            throw new common_1.BadRequestException('Apenas contratos em rascunho podem ser excluídos.');
+        }
+        await this.prisma.contract.delete({
+            where: { id }
+        });
+        return { message: 'Contrato excluído com sucesso.' };
+    }
 };
 exports.ContractService = ContractService;
 exports.ContractService = ContractService = __decorate([

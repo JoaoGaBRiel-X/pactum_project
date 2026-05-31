@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FileText, Plus, FileSignature, AlertCircle } from 'lucide-react';
+import { FileText, Plus, FileSignature, AlertCircle, Pencil, Trash2, Eye } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ContractsPage() {
@@ -13,6 +12,24 @@ export default function ContractsPage() {
     queryKey: ['contracts'],
     queryFn: () => apiFetch('/contracts'),
   });
+
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => apiFetch(`/contracts/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+    },
+    onError: (err: any) => {
+      alert(`Erro ao excluir: ${err.message || 'Desconhecido'}`);
+    }
+  });
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Tem certeza que deseja excluir fisicamente este contrato em Rascunho? Essa ação é irreversível.')) {
+      deleteMutation.mutate(id);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -79,7 +96,22 @@ export default function ContractsPage() {
                   {getStatusBadge(contract.status)}
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">Ver Detalhes</Button>
+                  {contract.status === 'DRAFT' ? (
+                    <div className="flex items-center gap-2">
+                      <Link href={`/contracts/${contract.id}/edit`}>
+                        <Button variant="outline" size="sm" title="Editar Rascunho">
+                          <Pencil size={16} />
+                        </Button>
+                      </Link>
+                      <Button variant="destructive" size="sm" title="Excluir Rascunho" onClick={() => handleDelete(contract.id)}>
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button variant="outline" size="sm" title="Ver Detalhes">
+                      <Eye size={16} /> Detalhes
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

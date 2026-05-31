@@ -32,6 +32,13 @@ let CustomerController = class CustomerController {
     findOne(id) {
         return this.customerService.findOne(id);
     }
+    update(id, updateCustomerDto, req) {
+        const userId = req.user?.id || 'system-user';
+        return this.customerService.update(id, updateCustomerDto, userId);
+    }
+    remove(id) {
+        return this.customerService.remove(id);
+    }
 };
 exports.CustomerController = CustomerController;
 __decorate([
@@ -58,6 +65,24 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], CustomerController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Put)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Atualizar um cliente' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], CustomerController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Excluir um cliente' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CustomerController.prototype, "remove", null);
 exports.CustomerController = CustomerController = __decorate([
     (0, swagger_1.ApiTags)('customers'),
     (0, common_1.Controller)('customers'),

@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const contract_service_1 = require("./contract.service");
 const document_service_1 = require("./document/document.service");
 const create_contract_dto_1 = require("./dto/create-contract.dto");
+const update_contract_dto_1 = require("./dto/update-contract.dto");
+const update_contract_status_dto_1 = require("./dto/update-contract-status.dto");
 const swagger_1 = require("@nestjs/swagger");
 let ContractController = class ContractController {
     contractService;
@@ -39,6 +41,17 @@ let ContractController = class ContractController {
     }
     findOne(id) {
         return this.contractService.findOne(id);
+    }
+    updateStatus(id, updateStatusDto, req) {
+        const userId = req.user?.id || 'system-user';
+        return this.contractService.updateStatus(id, updateStatusDto, userId);
+    }
+    update(id, updateContractDto, req) {
+        const userId = req.user?.id || 'system-user';
+        return this.contractService.update(id, updateContractDto, userId);
+    }
+    remove(id) {
+        return this.contractService.remove(id);
     }
 };
 exports.ContractController = ContractController;
@@ -75,6 +88,34 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ContractController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Patch)(':id/status'),
+    (0, swagger_1.ApiOperation)({ summary: 'Update contract status' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_contract_status_dto_1.UpdateContractStatusDto, Object]),
+    __metadata("design:returntype", void 0)
+], ContractController.prototype, "updateStatus", null);
+__decorate([
+    (0, common_1.Put)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Update a draft contract' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_contract_dto_1.UpdateContractDto, Object]),
+    __metadata("design:returntype", void 0)
+], ContractController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete a draft contract' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ContractController.prototype, "remove", null);
 exports.ContractController = ContractController = __decorate([
     (0, swagger_1.ApiTags)('Contracts'),
     (0, common_1.Controller)('contracts'),

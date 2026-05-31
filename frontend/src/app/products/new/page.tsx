@@ -13,8 +13,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
 const moduleSchema = z.object({
+  id: z.string().optional(),
   name: z.string().min(2, 'Nome é obrigatório'),
-  basePrice: z.coerce.number().min(0, 'Preço inválido'),
+  price: z.coerce.number().min(0, 'Preço inválido'),
   isActive: z.boolean().default(true),
 });
 
@@ -32,10 +33,10 @@ export default function NewProductPage() {
   const queryClient = useQueryClient();
 
   const { register, control, handleSubmit, formState: { errors } } = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(productSchema) as any,
     defaultValues: {
       isActive: true,
-      modules: [{ name: '', basePrice: 0, isActive: true }],
+      modules: [{ name: '', price: 0, isActive: true }],
     }
   });
 
@@ -55,7 +56,7 @@ export default function NewProductPage() {
     },
   });
 
-  const onSubmit = (data: ProductFormValues) => {
+  const onSubmit = (data: any) => {
     mutation.mutate(data);
   };
 
@@ -91,7 +92,7 @@ export default function NewProductPage() {
         <div className="bg-white p-6 rounded-xl border border-border shadow-sm space-y-6">
           <div className="flex justify-between items-center border-b pb-2">
             <h2 className="text-lg font-semibold flex items-center gap-2"><Box size={20} /> Módulos Comercializáveis</h2>
-            <Button type="button" variant="outline" size="sm" onClick={() => append({ name: '', basePrice: 0, isActive: true })}>
+            <Button type="button" variant="outline" size="sm" onClick={() => append({ name: '', price: 0, isActive: true })}>
               <Plus size={16} className="mr-2" /> Adicionar Módulo
             </Button>
           </div>
@@ -109,8 +110,8 @@ export default function NewProductPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Preço Base (R$)</Label>
-                  <Input type="number" step="0.01" {...register(`modules.${index}.basePrice`)} placeholder="0.00" />
-                  {errors.modules?.[index]?.basePrice && <p className="text-destructive text-xs">{errors.modules[index]?.basePrice?.message}</p>}
+                  <Input type="number" step="0.01" {...register(`modules.${index}.price`)} placeholder="0.00" />
+                  {errors.modules?.[index]?.price && <p className="text-destructive text-xs">{errors.modules[index]?.price?.message}</p>}
                 </div>
                 <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} disabled={fields.length === 1}>
                   <Trash size={16} />

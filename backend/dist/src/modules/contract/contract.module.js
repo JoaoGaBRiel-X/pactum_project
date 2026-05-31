@@ -11,12 +11,13 @@ const common_1 = require("@nestjs/common");
 const contract_service_1 = require("./contract.service");
 const contract_controller_1 = require("./contract.controller");
 const document_service_1 = require("./document/document.service");
+const contract_cron_service_1 = require("./contract-cron.service");
 let ContractModule = class ContractModule {
 };
 exports.ContractModule = ContractModule;
 exports.ContractModule = ContractModule = __decorate([
     (0, common_1.Module)({
-        providers: [contract_service_1.ContractService, document_service_1.DocumentService],
+        providers: [contract_service_1.ContractService, document_service_1.DocumentService, contract_cron_service_1.ContractCronService],
         controllers: [contract_controller_1.ContractController]
     })
 ], ContractModule);

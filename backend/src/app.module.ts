@@ -9,9 +9,18 @@ import { CustomerModule } from './modules/customer/customer.module';
 import { ProductModule } from './modules/product/product.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { ContractModule } from './modules/contract/contract.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [TenantModule, IamModule, CustomerModule, ProductModule, AuditModule, ContractModule],
+  imports: [
+    ScheduleModule.forRoot(),
+    TenantModule, 
+    IamModule, 
+    CustomerModule, 
+    ProductModule, 
+    AuditModule, 
+    ContractModule
+  ],
   controllers: [AppController],
   providers: [
     AppService,
