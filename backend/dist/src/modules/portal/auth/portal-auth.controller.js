@@ -23,7 +23,10 @@ let PortalAuthController = class PortalAuthController {
         this.portalAuthService = portalAuthService;
     }
     login(tenantSlug, body) {
-        return this.portalAuthService.login(tenantSlug, body.email, body.password);
+        return this.portalAuthService.login(tenantSlug, body.email, body.password, body.keepConnected);
+    }
+    refreshTokens(body) {
+        return this.portalAuthService.refreshTokens(body.refreshToken);
     }
     setupPassword(body) {
         return this.portalAuthService.setupPassword(body.token, body.password);
@@ -44,6 +47,16 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], PortalAuthController.prototype, "login", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Post)('refresh'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Renova os tokens usando o Refresh Token' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], PortalAuthController.prototype, "refreshTokens", null);
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Post)('setup-password'),

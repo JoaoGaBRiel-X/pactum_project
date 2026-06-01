@@ -11,6 +11,7 @@ export default function PortalLoginPage({ params }: { params: Promise<{ tenantSl
   const { tenantSlug } = use(params);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [keepConnected, setKeepConnected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,10 +26,11 @@ export default function PortalLoginPage({ params }: { params: Promise<{ tenantSl
     try {
       const data = await apiFetch(`/portal/${tenantSlug}/auth/login`, {
         method: 'POST',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, keepConnected }),
       });
 
       localStorage.setItem('portal_token', data.access_token);
+      localStorage.setItem('portal_refresh_token', data.refresh_token);
       localStorage.setItem('portal_user', JSON.stringify(data.user));
 
       router.push(`/portal/${tenantSlug}/dashboard`);
@@ -104,6 +106,18 @@ export default function PortalLoginPage({ params }: { params: Promise<{ tenantSl
               )}
 
               <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="keepConnected"
+                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600 cursor-pointer"
+                    checked={keepConnected}
+                    onChange={(e) => setKeepConnected(e.target.checked)}
+                  />
+                  <label htmlFor="keepConnected" className="cursor-pointer text-sm font-medium text-slate-700">
+                    Mantenha-me conectado
+                  </label>
+                </div>
                 <div className="text-sm">
                   <button type="button" onClick={() => { setMode('recover'); setError(''); }} className="font-medium text-blue-600 hover:text-blue-500">
                     Primeiro Acesso / Esqueci a senha

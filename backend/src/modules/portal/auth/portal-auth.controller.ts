@@ -13,7 +13,15 @@ export class PortalAuthController {
   @Post('login')
   @ApiOperation({ summary: 'Login for Customer Contacts' })
   login(@Param('tenantSlug') tenantSlug: string, @Body() body: any) {
-    return this.portalAuthService.login(tenantSlug, body.email, body.password);
+    return this.portalAuthService.login(tenantSlug, body.email, body.password, body.keepConnected);
+  }
+
+  @Public()
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Renova os tokens usando o Refresh Token' })
+  refreshTokens(@Body() body: { refreshToken: string }) {
+    return this.portalAuthService.refreshTokens(body.refreshToken);
   }
 
   @Public()

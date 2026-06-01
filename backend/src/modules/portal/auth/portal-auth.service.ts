@@ -21,10 +21,10 @@ export class PortalAuthService {
     });
   }
 
-  async login(tenantSlug: string, email: string, passwordString: string) {
-    // 1. Encontrar o tenant pelo slug
+  async login(tenantSlug: string, email: string, passwordString: string, keepConnected: boolean = false) {
+    // 1. Procurar o Tenant
     const tenant = await this.globalPrisma.client.tenant.findUnique({
-      where: { slug: tenantSlug },
+      where: { schema: tenantSlug },
     });
 
     if (!tenant) {
@@ -64,6 +64,10 @@ export class PortalAuthService {
     }
 
     // 4. Gerar o Token
+    return this.generateTokens(contact, tenant, keepConnected);
+  }
+
+  private async generateTokens(contact: any, tenant: any, keepConnected: boolean) {
     const payload = {
       sub: contact.id,
       email: contact.email,
@@ -71,10 +75,14 @@ export class PortalAuthService {
       tenantId: tenant.id,
       tenantSlug: tenant.schema,
       customerId: contact.customerId,
+      kc: keepConnected
     };
 
+    const refreshExpiresIn = keepConnected ? '4h' : '15m';
+
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: await this.jwtService.signAsync(payload, { expiresIn: '15m' }),
+      refresh_token: await this.jwtService.signAsync(payload, { expiresIn: refreshExpiresIn }),
       user: {
         id: contact.id,
         name: contact.name,
@@ -83,6 +91,29 @@ export class PortalAuthService {
         tenantId: tenant.id,
       }
     };
+  }
+
+  async refreshTokens(refreshToken: string) {
+    try {
+      const payload = await this.jwtService.verifyAsync(refreshToken);
+      const tenantSlug = payload.tenantSlug;
+      
+      const tenant = await this.globalPrisma.client.tenant.findUnique({
+        where: { schema: tenantSlug },
+      });
+      if (!tenant) throw new UnauthorizedException('Tenant inválido');
+      
+      const tenantPrisma = await getTenantClient(tenant.schema);
+      const contact = await tenantPrisma.contact.findUnique({
+        where: { id: payload.sub }
+      });
+      
+      if (!contact || !contact.portalAccess) throw new UnauthorizedException('Acesso revogado');
+
+      return this.generateTokens(contact, tenant, payload.kc || false);
+    } catch (e) {
+      throw new UnauthorizedException('Token de renovação inválido ou expirado');
+    }
   }
 
   // Método para gerar o Magic Link e disparar o e-mail

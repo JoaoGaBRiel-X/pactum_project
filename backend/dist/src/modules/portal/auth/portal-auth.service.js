@@ -64,9 +64,9 @@ let PortalAuthService = PortalAuthService_1 = class PortalAuthService {
             ignoreTLS: true,
         });
     }
-    async login(tenantSlug, email, passwordString) {
+    async login(tenantSlug, email, passwordString, keepConnected = false) {
         const tenant = await this.globalPrisma.client.tenant.findUnique({
-            where: { slug: tenantSlug },
+            where: { schema: tenantSlug },
         });
         if (!tenant) {
             throw new common_1.NotFoundException('Empresa não encontrada');
@@ -92,6 +92,9 @@ let PortalAuthService = PortalAuthService_1 = class PortalAuthService {
         if (!isValid) {
             throw new common_1.UnauthorizedException('Credenciais inválidas');
         }
+        return this.generateTokens(contact, tenant, keepConnected);
+    }
+    async generateTokens(contact, tenant, keepConnected) {
         const payload = {
             sub: contact.id,
             email: contact.email,
@@ -99,9 +102,12 @@ let PortalAuthService = PortalAuthService_1 = class PortalAuthService {
             tenantId: tenant.id,
             tenantSlug: tenant.schema,
             customerId: contact.customerId,
+            kc: keepConnected
         };
+        const refreshExpiresIn = keepConnected ? '4h' : '15m';
         return {
-            access_token: this.jwtService.sign(payload),
+            access_token: await this.jwtService.signAsync(payload, { expiresIn: '15m' }),
+            refresh_token: await this.jwtService.signAsync(payload, { expiresIn: refreshExpiresIn }),
             user: {
                 id: contact.id,
                 name: contact.name,
@@ -110,6 +116,27 @@ let PortalAuthService = PortalAuthService_1 = class PortalAuthService {
                 tenantId: tenant.id,
             }
         };
+    }
+    async refreshTokens(refreshToken) {
+        try {
+            const payload = await this.jwtService.verifyAsync(refreshToken);
+            const tenantSlug = payload.tenantSlug;
+            const tenant = await this.globalPrisma.client.tenant.findUnique({
+                where: { schema: tenantSlug },
+            });
+            if (!tenant)
+                throw new common_1.UnauthorizedException('Tenant inválido');
+            const tenantPrisma = await (0, tenant_module_1.getTenantClient)(tenant.schema);
+            const contact = await tenantPrisma.contact.findUnique({
+                where: { id: payload.sub }
+            });
+            if (!contact || !contact.portalAccess)
+                throw new common_1.UnauthorizedException('Acesso revogado');
+            return this.generateTokens(contact, tenant, payload.kc || false);
+        }
+        catch (e) {
+            throw new common_1.UnauthorizedException('Token de renovação inválido ou expirado');
+        }
     }
     async generateSetupToken(tenantSlug, contactId, email) {
         const tenant = await this.globalPrisma.client.tenant.findUnique({

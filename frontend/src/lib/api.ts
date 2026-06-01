@@ -1,18 +1,25 @@
 export async function apiFetch(endpoint: string, options: RequestInit & { _isRetry?: boolean } = {}) {
   const isClient = typeof window !== 'undefined';
+  const isPortalEndpoint = endpoint.startsWith('/portal');
+
   const defaultHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
   };
 
   if (isClient) {
-    const token = localStorage.getItem('gestao_token') || localStorage.getItem('portal_token');
+    const token = isPortalEndpoint 
+      ? localStorage.getItem('portal_token') 
+      : localStorage.getItem('gestao_token');
+
     if (token) {
       defaultHeaders['Authorization'] = `Bearer ${token}`;
     }
     
-    const tenantId = localStorage.getItem('gestao_tenant_id');
-    if (tenantId) {
-      defaultHeaders['x-tenant-id'] = tenantId;
+    if (!isPortalEndpoint) {
+      const tenantId = localStorage.getItem('gestao_tenant_id');
+      if (tenantId) {
+        defaultHeaders['x-tenant-id'] = tenantId;
+      }
     }
   }
   
@@ -22,11 +29,22 @@ export async function apiFetch(endpoint: string, options: RequestInit & { _isRet
   });
   
   if (!res.ok) {
-    if (res.status === 401 && isClient && !options._isRetry && endpoint !== '/authentication/login' && endpoint !== '/authentication/refresh') {
-      const refreshToken = localStorage.getItem('gestao_refresh_token');
+    if (res.status === 401 && isClient && !options._isRetry && !endpoint.includes('/login') && !endpoint.includes('/refresh') && !endpoint.includes('/request-magic-link')) {
+      const refreshToken = isPortalEndpoint 
+        ? localStorage.getItem('portal_refresh_token') 
+        : localStorage.getItem('gestao_refresh_token');
+
       if (refreshToken) {
         try {
-          const refreshRes = await fetch(`http://localhost:3333/api/authentication/refresh`, {
+          let refreshUrl = `http://localhost:3333/api/authentication/refresh`;
+          if (isPortalEndpoint) {
+             const match = endpoint.match(/^\/portal\/([^/]+)/);
+             if (match) {
+                 refreshUrl = `http://localhost:3333/api/portal/${match[1]}/auth/refresh`;
+             }
+          }
+
+          const refreshRes = await fetch(refreshUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refreshToken }),
@@ -34,8 +52,13 @@ export async function apiFetch(endpoint: string, options: RequestInit & { _isRet
 
           if (refreshRes.ok) {
             const data = await refreshRes.json();
-            localStorage.setItem('gestao_token', data.accessToken);
-            localStorage.setItem('gestao_refresh_token', data.refreshToken);
+            if (isPortalEndpoint) {
+                localStorage.setItem('portal_token', data.access_token);
+                localStorage.setItem('portal_refresh_token', data.refresh_token);
+            } else {
+                localStorage.setItem('gestao_token', data.accessToken);
+                localStorage.setItem('gestao_refresh_token', data.refreshToken);
+            }
             
             // Retry original request
             return apiFetch(endpoint, { ...options, _isRetry: true });
@@ -44,11 +67,24 @@ export async function apiFetch(endpoint: string, options: RequestInit & { _isRet
           // ignore, fall through to logout
         }
       }
+      
       // Se não houver refresh token ou o refresh falhar
-      localStorage.removeItem('gestao_token');
-      localStorage.removeItem('gestao_refresh_token');
-      localStorage.removeItem('gestao_tenant_id');
-      window.location.href = '/login';
+      if (isPortalEndpoint) {
+          localStorage.removeItem('portal_token');
+          localStorage.removeItem('portal_refresh_token');
+          localStorage.removeItem('portal_user');
+          const match = endpoint.match(/^\/portal\/([^/]+)/);
+          if (match) {
+             window.location.href = `/portal/${match[1]}/login`;
+          } else {
+             window.location.href = '/login';
+          }
+      } else {
+          localStorage.removeItem('gestao_token');
+          localStorage.removeItem('gestao_refresh_token');
+          localStorage.removeItem('gestao_tenant_id');
+          window.location.href = '/login';
+      }
     }
 
     const error = await res.json().catch(() => ({}));

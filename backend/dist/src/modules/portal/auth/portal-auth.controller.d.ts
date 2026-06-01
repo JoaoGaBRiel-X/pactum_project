@@ -4,12 +4,26 @@ export declare class PortalAuthController {
     constructor(portalAuthService: PortalAuthService);
     login(tenantSlug: string, body: any): Promise<{
         access_token: string;
+        refresh_token: string;
         user: {
-            id: string;
-            name: string;
-            email: string;
+            id: any;
+            name: any;
+            email: any;
             role: string;
-            tenantId: string;
+            tenantId: any;
+        };
+    }>;
+    refreshTokens(body: {
+        refreshToken: string;
+    }): Promise<{
+        access_token: string;
+        refresh_token: string;
+        user: {
+            id: any;
+            name: any;
+            email: any;
+            role: string;
+            tenantId: any;
         };
     }>;
     setupPassword(body: {
