@@ -41,4 +41,24 @@ export class CorporateGroupController {
   remove(@Param('id') id: string) {
     return this.corporateGroupService.remove(id);
   }
+
+  @Get(':id/financial-summary')
+  @ApiOperation({ summary: 'Buscar resumo financeiro do Grupo Econômico' })
+  getFinancialSummary(@Param('id') id: string) {
+    return this.corporateGroupService.getFinancialSummary(id);
+  }
+
+  @Post(':id/customers')
+  @ApiOperation({ summary: 'Vincular clientes ao Grupo Econômico' })
+  linkCustomers(@Param('id') id: string, @Body() body: { customerIds: string[] }, @Request() req: any) {
+    const userId = req.user.sub;
+    return this.corporateGroupService.linkCustomers(id, body.customerIds, userId);
+  }
+
+  @Delete(':id/customers/:customerId')
+  @ApiOperation({ summary: 'Desvincular cliente do Grupo Econômico' })
+  unlinkCustomer(@Param('id') id: string, @Param('customerId') customerId: string, @Request() req: any) {
+    const userId = req.user.sub;
+    return this.corporateGroupService.unlinkCustomer(id, customerId, userId);
+  }
 }

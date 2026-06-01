@@ -82,6 +82,53 @@ let CorporateGroupService = class CorporateGroupService {
             throw error;
         }
     }
+    async getFinancialSummary(id) {
+        await this.findOne(id);
+        const contracts = await this.prisma.contract.findMany({
+            where: {
+                customer: { corporateGroupId: id },
+                status: 'ACTIVE'
+            },
+            select: { totalValue: true }
+        });
+        const activeContractsCount = contracts.length;
+        const totalActiveContractsValue = contracts.reduce((sum, c) => sum + Number(c.totalValue || 0), 0);
+        const receivables = await this.prisma.receivable.findMany({
+            where: {
+                customer: { corporateGroupId: id },
+                status: { in: ['PENDING', 'OVERDUE'] }
+            },
+            select: { amount: true }
+        });
+        const totalPendingDebt = receivables.reduce((sum, r) => sum + Number(r.amount || 0), 0);
+        return {
+            activeContractsCount,
+            totalActiveContractsValue,
+            totalPendingDebt
+        };
+    }
+    async linkCustomers(id, customerIds, userId) {
+        await this.findOne(id);
+        await this.prisma.customer.updateMany({
+            where: { id: { in: customerIds } },
+            data: {
+                corporateGroupId: id,
+                updatedBy: userId,
+            }
+        });
+        return { message: 'Clientes vinculados com sucesso.' };
+    }
+    async unlinkCustomer(id, customerId, userId) {
+        await this.findOne(id);
+        await this.prisma.customer.update({
+            where: { id: customerId },
+            data: {
+                corporateGroupId: null,
+                updatedBy: userId,
+            }
+        });
+        return { message: 'Cliente desvinculado com sucesso.' };
+    }
 };
 exports.CorporateGroupService = CorporateGroupService;
 exports.CorporateGroupService = CorporateGroupService = __decorate([

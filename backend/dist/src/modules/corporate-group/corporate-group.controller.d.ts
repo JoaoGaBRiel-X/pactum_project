@@ -49,4 +49,17 @@ export declare class CorporateGroupController {
     remove(id: string): Promise<{
         message: string;
     }>;
+    getFinancialSummary(id: string): Promise<{
+        activeContractsCount: number;
+        totalActiveContractsValue: number;
+        totalPendingDebt: number;
+    }>;
+    linkCustomers(id: string, body: {
+        customerIds: string[];
+    }, req: any): Promise<{
+        message: string;
+    }>;
+    unlinkCustomer(id: string, customerId: string, req: any): Promise<{
+        message: string;
+    }>;
 }

@@ -40,6 +40,17 @@ let CorporateGroupController = class CorporateGroupController {
     remove(id) {
         return this.corporateGroupService.remove(id);
     }
+    getFinancialSummary(id) {
+        return this.corporateGroupService.getFinancialSummary(id);
+    }
+    linkCustomers(id, body, req) {
+        const userId = req.user.sub;
+        return this.corporateGroupService.linkCustomers(id, body.customerIds, userId);
+    }
+    unlinkCustomer(id, customerId, req) {
+        const userId = req.user.sub;
+        return this.corporateGroupService.unlinkCustomer(id, customerId, userId);
+    }
 };
 exports.CorporateGroupController = CorporateGroupController;
 __decorate([
@@ -84,6 +95,34 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], CorporateGroupController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Get)(':id/financial-summary'),
+    (0, swagger_1.ApiOperation)({ summary: 'Buscar resumo financeiro do Grupo Econômico' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CorporateGroupController.prototype, "getFinancialSummary", null);
+__decorate([
+    (0, common_1.Post)(':id/customers'),
+    (0, swagger_1.ApiOperation)({ summary: 'Vincular clientes ao Grupo Econômico' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], CorporateGroupController.prototype, "linkCustomers", null);
+__decorate([
+    (0, common_1.Delete)(':id/customers/:customerId'),
+    (0, swagger_1.ApiOperation)({ summary: 'Desvincular cliente do Grupo Econômico' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Param)('customerId')),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", void 0)
+], CorporateGroupController.prototype, "unlinkCustomer", null);
 exports.CorporateGroupController = CorporateGroupController = __decorate([
     (0, swagger_1.ApiTags)('Corporate Groups'),
     (0, swagger_1.ApiBearerAuth)(),
