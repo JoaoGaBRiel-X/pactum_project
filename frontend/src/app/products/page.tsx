@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 
+import { Card } from '@/components/ui/card';
+
 export default function ProductsPage() {
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['products'],
@@ -40,77 +42,89 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 pb-12 text-slate-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-800">Catálogo de Produtos</h1>
-          <p className="text-muted-foreground">Gerencie os softwares e módulos.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Catálogo de Produtos</h1>
+          <p className="text-slate-500 mt-1">Gerencie os softwares e módulos.</p>
         </div>
         <Link href="/products/new">
-          <Button>Novo Produto</Button>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6">Novo Produto</Button>
         </Link>
       </div>
 
-      <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 shadow-sm space-y-4">
-        <div className="flex items-center gap-2 text-blue-800 font-semibold mb-2">
-          <Search size={18} />
-          <h2>Filtros</h2>
+      <Card className="border-blue-200 shadow-sm bg-blue-50/40 overflow-hidden">
+        <div className="bg-blue-100/50 border-b border-blue-200 px-6 py-4">
+          <h2 className="text-base font-semibold flex items-center gap-2 text-blue-900">
+            <Search size={18} className="text-blue-600"/> Filtros
+          </h2>
+          <p className="text-sm text-blue-700/80 mt-1">Refine a listagem do catálogo de produtos.</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">BUSCA (NOME)</label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <Input placeholder="Buscar produto..." className="pl-9 bg-white border-slate-200" />
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 block">Busca (Nome)</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <Input 
+                  placeholder="Buscar produto..." 
+                  className="pl-9 border-slate-200 focus-visible:ring-blue-500" 
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
+      <div className="border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow className="bg-slate-50 hover:bg-slate-50">
-              <TableHead className="font-semibold text-slate-700">Nome do Produto</TableHead>
-              <TableHead className="font-semibold text-slate-700 text-center">Status</TableHead>
-              <TableHead className="font-semibold text-slate-700 text-center">Módulos</TableHead>
-              <TableHead className="text-right font-semibold text-slate-700">Ações</TableHead>
+          <TableHeader className="bg-slate-50 border-b border-slate-200">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-[40%] font-semibold text-slate-700 py-4 px-6">Nome do Produto</TableHead>
+              <TableHead className="font-semibold text-slate-700 py-4 text-center">Status</TableHead>
+              <TableHead className="font-semibold text-slate-700 py-4 text-center">Módulos</TableHead>
+              <TableHead className="text-right font-semibold text-slate-700 py-4 px-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Carregando...</TableCell>
+                <TableCell colSpan={4} className="text-center py-12 text-slate-500 animate-pulse">Carregando...</TableCell>
               </TableRow>
             )}
             {error && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-destructive">
+                <TableCell colSpan={4} className="text-center py-8 text-red-500">
                   Erro ao carregar produtos: {error.message}
                 </TableCell>
               </TableRow>
             )}
-            {products?.length === 0 && (
+            {products?.length === 0 && !isLoading && !error && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Nenhum produto cadastrado.</TableCell>
+                <TableCell colSpan={4} className="text-center py-16 text-slate-500">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Search size={32} className="text-slate-300 mb-2" />
+                    <p className="text-base font-medium text-slate-600">Nenhum produto cadastrado.</p>
+                  </div>
+                </TableCell>
               </TableRow>
             )}
             {products?.map((product: any) => (
-              <TableRow key={product.id} className="hover:bg-slate-50/50 group">
-                <TableCell className="font-medium">
+              <TableRow key={product.id} className="hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0 group">
+                <TableCell className="px-6 py-4">
                   <div className="flex items-center gap-2">
                     <Box size={16} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
-                    <Link href={`/products/${product.id}/edit`} className="text-slate-900 font-semibold group-hover:text-blue-700 transition-colors">
+                    <Link href={`/products/${product.id}/edit`} className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors">
                       {product.name}
                     </Link>
                   </div>
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className="text-center py-4">
                   <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${product.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                     {product.isActive ? 'Ativo' : 'Inativo'}
                   </span>
                 </TableCell>
-                <TableCell className="text-center text-slate-600 font-medium">{product.modules?.length || 0}</TableCell>
+                <TableCell className="text-center text-slate-600 font-medium py-4">{product.modules?.length || 0}</TableCell>
                 <TableCell className="text-right px-6 py-4">
                   <div className="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                     <Link href={`/products/${product.id}/edit`}>

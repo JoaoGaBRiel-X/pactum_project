@@ -15,21 +15,22 @@ export default function TenantsPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 pb-12 text-slate-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <Building className="text-primary w-8 h-8" />
-          <h1 className="text-3xl font-bold tracking-tight text-slate-800">Locatários (Tenants)</h1>
+          <Building className="text-primary w-8 h-8 hidden md:block" />
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Locatários (Tenants)</h1>
+            <p className="text-slate-500 mt-1">Gestão global de instâncias SaaS, clientes e seus schemas isolados.</p>
+          </div>
         </div>
-        <Button onClick={() => router.push('/admin/tenants/new')} className="shadow-lg shadow-primary/30">
+        <Button onClick={() => router.push('/admin/tenants/new')} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6">
           <Plus size={16} className="mr-2" /> Novo Tenant
         </Button>
       </div>
 
-      <p className="text-slate-500">Gestão global de instâncias SaaS, clientes e seus schemas isolados.</p>
-
       {isLoading ? (
-        <div className="p-8 text-center text-slate-500">Carregando tenants...</div>
+        <div className="p-8 text-center text-slate-500 animate-pulse">Carregando tenants...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
           {tenants?.map((tenant: any) => (

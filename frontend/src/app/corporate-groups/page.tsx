@@ -8,6 +8,8 @@ import { Plus, Edit, Trash2, Building2, Search } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 
+import { Card } from '@/components/ui/card';
+
 export default function CorporateGroupsPage() {
   const queryClient = useQueryClient();
 
@@ -22,63 +24,77 @@ export default function CorporateGroupsPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 pb-12 text-slate-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-800">Grupos Econômicos</h1>
-          <p className="text-muted-foreground">Agrupe múltiplas empresas sob um mesmo grupo.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Grupos Econômicos</h1>
+          <p className="text-slate-500 mt-1">Agrupe múltiplas empresas sob um mesmo grupo.</p>
         </div>
         <Link href="/corporate-groups/new">
-          <Button><Plus size={16} className="mr-2" /> Novo Grupo</Button>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6">
+            Novo Grupo
+          </Button>
         </Link>
       </div>
 
-      <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 shadow-sm space-y-4">
-        <div className="flex items-center gap-2 text-blue-800 font-semibold mb-2">
-          <Search size={18} />
-          <h2>Filtros</h2>
+      <Card className="border-blue-200 shadow-sm bg-blue-50/40 overflow-hidden">
+        <div className="bg-blue-100/50 border-b border-blue-200 px-6 py-4">
+          <h2 className="text-base font-semibold flex items-center gap-2 text-blue-900">
+            <Search size={18} className="text-blue-600"/> Filtros
+          </h2>
+          <p className="text-sm text-blue-700/80 mt-1">Refine a listagem de grupos econômicos.</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">BUSCA (NOME)</label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <Input placeholder="Buscar grupo..." className="pl-9 bg-white border-slate-200" />
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 block">Busca (Nome)</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <Input 
+                  placeholder="Buscar grupo..." 
+                  className="pl-9 border-slate-200 focus-visible:ring-blue-500" 
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
+      <div className="border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow className="bg-slate-50 hover:bg-slate-50">
-              <TableHead className="font-semibold text-slate-700">Nome do Grupo</TableHead>
-              <TableHead className="font-semibold text-slate-700 text-center">Empresas Vinculadas</TableHead>
-              <TableHead className="text-right font-semibold text-slate-700">Ações</TableHead>
+          <TableHeader className="bg-slate-50 border-b border-slate-200">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-[50%] font-semibold text-slate-700 py-4 px-6">Nome do Grupo</TableHead>
+              <TableHead className="font-semibold text-slate-700 py-4 text-center">Empresas Vinculadas</TableHead>
+              <TableHead className="text-right font-semibold text-slate-700 py-4 px-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">Carregando...</TableCell>
+                <TableCell colSpan={3} className="text-center py-12 text-slate-500 animate-pulse">Carregando...</TableCell>
               </TableRow>
             ) : groups?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">Nenhum grupo econômico encontrado.</TableCell>
+                <TableCell colSpan={3} className="text-center py-16 text-slate-500">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Search size={32} className="text-slate-300 mb-2" />
+                    <p className="text-base font-medium text-slate-600">Nenhum grupo encontrado</p>
+                  </div>
+                </TableCell>
               </TableRow>
             ) : (
               groups?.map((group: any) => (
-                <TableRow key={group.id} className="hover:bg-slate-50/50 group">
-                  <TableCell className="font-medium">
+                <TableRow key={group.id} className="hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0 group">
+                  <TableCell className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <Building2 size={16} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
-                      <Link href={`/corporate-groups/${group.id}/edit`} className="text-slate-900 font-semibold group-hover:text-blue-700 transition-colors">
+                      <Link href={`/corporate-groups/${group.id}/edit`} className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors">
                         {group.name}
                       </Link>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className="text-center py-4">
                     <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
                       {group._count?.customers || 0}
                     </span>

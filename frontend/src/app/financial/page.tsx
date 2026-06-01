@@ -8,16 +8,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DollarSign, CheckCircle, AlertCircle, FileText, Upload, Search, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
 
 export default function FinancialPage() {
-  const queryClient = useQueryClient();
   const [selectedReceivable, setSelectedReceivable] = useState<any>(null);
-  const [paymentAmount, setPaymentAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('BOLETO');
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
-
+  const [paymentAmount, setPaymentAmount] = useState<string>('');
+  const [paymentDate, setPaymentDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  
   const [selectedForBoleto, setSelectedForBoleto] = useState<any>(null);
   const [boletoFile, setBoletoFile] = useState<File | null>(null);
+
+  const queryClient = useQueryClient();
 
   const { data: receivables, isLoading } = useQuery({
     queryKey: ['receivables'],
@@ -26,54 +27,44 @@ export default function FinancialPage() {
 
   const generateBillingMutation = useMutation({
     mutationFn: () => apiFetch('/financial/generate-billing', { method: 'POST' }),
-    onSuccess: (data: any) => {
-      alert(data.message);
+    onSuccess: () => {
+      alert('Faturamento do mês gerado com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['receivables'] });
     },
     onError: (err: any) => alert(`Erro: ${err.message}`)
   });
 
   const registerPaymentMutation = useMutation({
-    mutationFn: async () => {
-      const formData = new FormData();
-      formData.append('receivableId', selectedReceivable.id);
-      formData.append('amount', paymentAmount);
-      formData.append('method', paymentMethod);
-      if (receiptFile) formData.append('receipt', receiptFile);
-
-      const res = await fetch('http://localhost:3333/api/financial/payments', {
+    mutationFn: (data: { id: string, amount: number, paymentDate: string }) => 
+      apiFetch(`/financial/receivables/${data.id}/pay`, {
         method: 'POST',
-        headers: {
-          'x-tenant-id': 'tenant_1'
-        },
-        body: formData,
-      });
-      if (!res.ok) throw new Error('Falha ao registrar pagamento');
-      return res.json();
-    },
+        body: JSON.stringify({ amount: data.amount, paymentDate: data.paymentDate })
+      }),
     onSuccess: () => {
       alert('Pagamento registrado com sucesso!');
       setSelectedReceivable(null);
-      setReceiptFile(null);
       queryClient.invalidateQueries({ queryKey: ['receivables'] });
     },
     onError: (err: any) => alert(`Erro: ${err.message}`)
   });
 
   const uploadBoletoMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (data: { id: string, file: File }) => {
       const formData = new FormData();
-      if (!boletoFile) throw new Error('Selecione um arquivo primeiro');
-      formData.append('boleto', boletoFile);
+      formData.append('file', data.file);
+      
+      const token = localStorage.getItem('token');
+      const tenantId = localStorage.getItem('tenantId');
 
-      const res = await fetch(`http://localhost:3333/api/financial/${selectedForBoleto.id}/boleto`, {
+      const res = await fetch(`http://localhost:3333/financial/receivables/${data.id}/boleto`, {
         method: 'POST',
         headers: {
-          'x-tenant-id': 'tenant_1'
+          'Authorization': `Bearer ${token}`,
+          'x-tenant-id': tenantId || ''
         },
-        body: formData,
+        body: formData
       });
-      if (!res.ok) throw new Error('Falha ao anexar boleto');
+      if (!res.ok) throw new Error('Falha ao fazer upload do boleto');
       return res.json();
     },
     onSuccess: () => {
@@ -96,13 +87,13 @@ export default function FinancialPage() {
   };
 
   return (
-    <div className="space-y-6 pb-12">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 pb-12 text-slate-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <DollarSign className="text-primary w-8 h-8" />
+          <DollarSign className="text-primary w-8 h-8 hidden md:block" />
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-800">Financeiro</h1>
-            <p className="text-muted-foreground">Gestão de recebíveis, pagamentos e renegociações.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Financeiro</h1>
+            <p className="text-slate-500 mt-1">Gestão de recebíveis, pagamentos e renegociações.</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -112,7 +103,7 @@ export default function FinancialPage() {
             </Button>
           </Link>
           <Button 
-            className="shadow-lg shadow-primary/30" 
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6" 
             onClick={() => generateBillingMutation.mutate()}
             disabled={generateBillingMutation.isPending}
           >
@@ -122,51 +113,63 @@ export default function FinancialPage() {
         </div>
       </div>
 
-      <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 shadow-sm space-y-4">
-        <div className="flex items-center gap-2 text-blue-800 font-semibold mb-2">
-          <Search size={18} />
-          <h2>Filtros</h2>
+      <Card className="border-blue-200 shadow-sm bg-blue-50/40 overflow-hidden">
+        <div className="bg-blue-100/50 border-b border-blue-200 px-6 py-4">
+          <h2 className="text-base font-semibold flex items-center gap-2 text-blue-900">
+            <Search size={18} className="text-blue-600"/> Filtros
+          </h2>
+          <p className="text-sm text-blue-700/80 mt-1">Refine a listagem financeira.</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">BUSCA (CLIENTE/CONTRATO)</label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <Input placeholder="Buscar recebível..." className="pl-9 bg-white border-slate-200" />
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 block">Busca (Cliente/Contrato)</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <Input 
+                  placeholder="Buscar recebível..." 
+                  className="pl-9 border-slate-200 focus-visible:ring-blue-500" 
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+      <div className="border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden">
         <Table>
-          <TableHeader className="bg-slate-50">
-            <TableRow>
-              <TableHead>Vencimento</TableHead>
-              <TableHead>Cliente / Contrato</TableHead>
-              <TableHead>Competência</TableHead>
-              <TableHead>Valor</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Ações</TableHead>
+          <TableHeader className="bg-slate-50 border-b border-slate-200">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="font-semibold text-slate-700 py-4 px-6">Vencimento</TableHead>
+              <TableHead className="w-[30%] font-semibold text-slate-700 py-4">Cliente / Contrato</TableHead>
+              <TableHead className="font-semibold text-slate-700 py-4">Competência</TableHead>
+              <TableHead className="font-semibold text-slate-700 py-4">Valor</TableHead>
+              <TableHead className="font-semibold text-slate-700 py-4">Status</TableHead>
+              <TableHead className="text-right font-semibold text-slate-700 py-4 px-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Carregando...</TableCell>
+                <TableCell colSpan={6} className="text-center py-12 text-slate-500 animate-pulse">Carregando...</TableCell>
               </TableRow>
             )}
-            {receivables?.length === 0 && (
+            {receivables?.length === 0 && !isLoading && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhuma conta a receber encontrada.</TableCell>
+                <TableCell colSpan={6} className="text-center py-16 text-slate-500">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Search size={32} className="text-slate-300 mb-2" />
+                    <p className="text-base font-medium text-slate-600">Nenhuma conta a receber encontrada.</p>
+                  </div>
+                </TableCell>
               </TableRow>
             )}
             {receivables?.map((r: any) => (
-              <TableRow key={r.id} className="hover:bg-slate-50 transition-colors group">
-                <TableCell className="font-medium text-slate-800">
+              <TableRow key={r.id} className="hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0 group">
+                <TableCell className="font-medium text-slate-800 px-6 py-4">
                   {new Date(r.dueDate).toLocaleDateString('pt-BR')}
                 </TableCell>
-                <TableCell>
+                <TableCell className="py-4">
                   <div className="flex items-center gap-2 font-semibold text-slate-800">
                     <Building2 size={14} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
                     <Link href={`/customers/${r.customerId}`} className="hover:text-blue-700 transition-colors">
@@ -181,11 +184,11 @@ export default function FinancialPage() {
                     ) : 'Avulso'}
                   </div>
                 </TableCell>
-                <TableCell>{r.competence || '-'}</TableCell>
-                <TableCell className="font-semibold text-primary">
+                <TableCell className="py-4">{r.competence || '-'}</TableCell>
+                <TableCell className="font-semibold text-primary py-4">
                   R$ {Number(r.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </TableCell>
-                <TableCell>{getStatusBadge(r.status)}</TableCell>
+                <TableCell className="py-4">{getStatusBadge(r.status)}</TableCell>
                 <TableCell className="text-right px-6 py-4">
                   <div className="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                     {r.status !== 'PAID' && r.status !== 'RENEGOTIATED' && (

@@ -8,6 +8,8 @@ import { FileText, Plus, FileSignature, AlertCircle, Pencil, Trash2, Eye, Search
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 
+import { Card } from '@/components/ui/card';
+
 export default function ContractsPage() {
   const { data: contracts, isLoading, error } = useQuery({
     queryKey: ['contracts'],
@@ -35,71 +37,91 @@ export default function ContractsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'DRAFT': return <span className="px-2 py-1 bg-slate-200 text-slate-700 rounded text-xs font-semibold">Rascunho</span>;
-      case 'PENDING_SIGNATURE': return <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-semibold flex items-center gap-1"><FileSignature size={12}/> Pendente</span>;
+      case 'PENDING_SIGNATURE': return <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-semibold flex items-center gap-1 w-fit"><FileSignature size={12}/> Pendente</span>;
       case 'ACTIVE': return <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold">Ativo</span>;
       default: return <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs font-semibold">{status}</span>;
     }
   };
 
-  if (isLoading) return <div className="p-8 text-center text-slate-500">Carregando contratos...</div>;
-  if (error) return <div className="p-8 text-center text-destructive flex items-center justify-center gap-2"><AlertCircle /> Erro ao carregar contratos.</div>;
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 pb-12 text-slate-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <FileText className="text-primary w-8 h-8" />
+          <FileText className="text-primary w-8 h-8 hidden md:block" />
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-800">Contratos</h1>
-            <p className="text-muted-foreground">Gerencie o ciclo de vida dos contratos SaaS.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Contratos</h1>
+            <p className="text-slate-500 mt-1">Gerencie o ciclo de vida dos contratos SaaS.</p>
           </div>
         </div>
         <Link href="/contracts/new">
-          <Button className="shadow-lg shadow-primary/30">
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6">
             <Plus size={16} className="mr-2" /> Novo Contrato
           </Button>
         </Link>
       </div>
 
-      <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 shadow-sm space-y-4">
-        <div className="flex items-center gap-2 text-blue-800 font-semibold mb-2">
-          <Search size={18} />
-          <h2>Filtros</h2>
+      <Card className="border-blue-200 shadow-sm bg-blue-50/40 overflow-hidden">
+        <div className="bg-blue-100/50 border-b border-blue-200 px-6 py-4">
+          <h2 className="text-base font-semibold flex items-center gap-2 text-blue-900">
+            <Search size={18} className="text-blue-600"/> Filtros
+          </h2>
+          <p className="text-sm text-blue-700/80 mt-1">Refine a listagem de contratos.</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">BUSCA (CLIENTE/ID)</label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <Input placeholder="Buscar contrato..." className="pl-9 bg-white border-slate-200" />
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 block">Busca (Cliente/ID)</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <Input 
+                  placeholder="Buscar contrato..." 
+                  className="pl-9 border-slate-200 focus-visible:ring-blue-500" 
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+      <div className="border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden">
         <Table>
-          <TableHeader className="bg-slate-50">
-            <TableRow>
-              <TableHead>ID / Cliente</TableHead>
-              <TableHead>Valor Total</TableHead>
-              <TableHead>Renovação</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Ações</TableHead>
+          <TableHeader className="bg-slate-50 border-b border-slate-200">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-[30%] font-semibold text-slate-700 py-4 px-6">ID / Cliente</TableHead>
+              <TableHead className="font-semibold text-slate-700 py-4">Valor Total</TableHead>
+              <TableHead className="font-semibold text-slate-700 py-4">Renovação</TableHead>
+              <TableHead className="font-semibold text-slate-700 py-4">Status</TableHead>
+              <TableHead className="text-right font-semibold text-slate-700 py-4 px-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {contracts?.length === 0 && (
+            {isLoading && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                  Nenhum contrato cadastrado.
+                <TableCell colSpan={5} className="text-center py-12 text-slate-500 animate-pulse">Carregando contratos...</TableCell>
+              </TableRow>
+            )}
+            {error && (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-red-500 flex flex-col items-center gap-2">
+                  <AlertCircle size={24} />
+                  Erro ao carregar contratos: {error.message}
+                </TableCell>
+              </TableRow>
+            )}
+            {contracts?.length === 0 && !isLoading && !error && (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-16 text-slate-500">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Search size={32} className="text-slate-300 mb-2" />
+                    <p className="text-base font-medium text-slate-600">Nenhum contrato cadastrado.</p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
             {contracts?.map((contract: any) => (
-              <TableRow key={contract.id} className="hover:bg-slate-50 transition-colors group">
-                <TableCell className="font-medium text-slate-800">
-                  <div className="text-xs text-muted-foreground mb-1">{contract.id.split('-')[0]}</div>
+              <TableRow key={contract.id} className="hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0 group">
+                <TableCell className="px-6 py-4 font-medium text-slate-800">
+                  <div className="text-xs text-muted-foreground mb-1 font-mono">{contract.id.split('-')[0]}</div>
                   <div className="flex items-center gap-2">
                     <Building2 size={14} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
                     <Link href={`/contracts/${contract.id}`} className="text-slate-900 font-semibold group-hover:text-blue-700 transition-colors">
@@ -107,13 +129,13 @@ export default function ContractsPage() {
                     </Link>
                   </div>
                 </TableCell>
-                <TableCell className="font-semibold text-primary">
+                <TableCell className="font-semibold text-primary py-4">
                   R$ {Number(contract.totalValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </TableCell>
-                <TableCell>
+                <TableCell className="py-4">
                   {contract.renewalMode === 'AUTOMATIC' ? 'Automática' : 'Manual'}
                 </TableCell>
-                <TableCell>
+                <TableCell className="py-4">
                   {getStatusBadge(contract.status)}
                 </TableCell>
                 <TableCell className="text-right px-6 py-4">
