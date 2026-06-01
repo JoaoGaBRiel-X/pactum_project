@@ -5,7 +5,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   };
 
   if (isClient) {
-    const token = localStorage.getItem('gestao_token');
+    const token = localStorage.getItem('gestao_token') || localStorage.getItem('portal_token');
     if (token) {
       defaultHeaders['Authorization'] = `Bearer ${token}`;
     }

@@ -55,17 +55,13 @@ let EmailProcessor = EmailProcessor_1 = class EmailProcessor {
         this.initMailer();
     }
     async initMailer() {
-        const testAccount = await nodemailer.createTestAccount();
         this.transporter = nodemailer.createTransport({
-            host: testAccount.smtp.host,
-            port: testAccount.smtp.port,
-            secure: testAccount.smtp.secure,
-            auth: {
-                user: testAccount.user,
-                pass: testAccount.pass,
-            },
+            host: process.env.SMTP_HOST || 'localhost',
+            port: Number(process.env.SMTP_PORT) || 1025,
+            secure: false,
+            ignoreTLS: true,
         });
-        this.logger.log(`Ethereal Email worker ready: ${testAccount.user}`);
+        this.logger.log(`Mailpit Email worker ready no host: ${process.env.SMTP_HOST || 'localhost'}`);
     }
     replaceVariables(text, data) {
         if (!text)

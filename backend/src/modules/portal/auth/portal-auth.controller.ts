@@ -16,11 +16,18 @@ export class PortalAuthController {
     return this.portalAuthService.login(tenantSlug, body.email, body.password);
   }
 
-  // Debug route to set password for a contact
   @Public()
-  @Post('set-password')
-  @ApiOperation({ summary: 'Debug: Set password for a contact' })
-  setPassword(@Param('tenantSlug') tenantSlug: string, @Body() body: any) {
-    return this.portalAuthService.setPassword(tenantSlug, body.contactId, body.password);
+  @Post('setup-password')
+  @ApiOperation({ summary: 'Definir nova senha através do Magic Link' })
+  setupPassword(@Body() body: { token: string; password: string }) {
+    return this.portalAuthService.setupPassword(body.token, body.password);
+  }
+
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @Post('request-magic-link')
+  @ApiOperation({ summary: 'Solicitar envio do Magic Link para acesso' })
+  requestMagicLink(@Param('tenantSlug') tenantSlug: string, @Body() body: { email: string }) {
+    return this.portalAuthService.requestMagicLink(tenantSlug, body.email);
   }
 }

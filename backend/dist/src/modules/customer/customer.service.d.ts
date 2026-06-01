@@ -1,16 +1,18 @@
 import { PrismaClient } from '@prisma/client';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
+import { PortalAuthService } from '../portal/auth/portal-auth.service';
 export declare class CustomerService {
     private readonly prisma;
-    constructor(prisma: PrismaClient);
+    private readonly portalAuthService;
+    constructor(prisma: PrismaClient, portalAuthService: PortalAuthService);
     create(createCustomerDto: CreateCustomerDto, userId: string): Promise<{
         contacts: {
             id: string;
-            email: string;
             name: string;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
             role: string | null;
             createdBy: string | null;
             updatedBy: string | null;
@@ -23,24 +25,43 @@ export declare class CustomerService {
         partners: {
             id: string;
             name: string;
+            document: string;
             createdAt: Date;
             updatedAt: Date;
-            document: string;
             createdBy: string | null;
             updatedBy: string | null;
             customerId: string;
             share: import("@prisma/client-runtime-utils").Decimal | null;
+            isLegalRep: boolean;
+        }[];
+        legalRepresentatives: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            email: string | null;
+            createdBy: string | null;
+            updatedBy: string | null;
+            phone: string | null;
+            cpf: string;
+            customerId: string;
         }[];
     } & {
+        number: string | null;
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         document: string;
         tradeName: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;
-        address: string | null;
+        zipCode: string | null;
+        street: string | null;
+        complement: string | null;
+        neighborhood: string | null;
+        city: string | null;
+        state: string | null;
         corporateGroupId: string | null;
         delinquencyScore: number;
     }>;
@@ -55,10 +76,10 @@ export declare class CustomerService {
         } | null;
         contacts: {
             id: string;
-            email: string;
             name: string;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
             role: string | null;
             createdBy: string | null;
             updatedBy: string | null;
@@ -68,16 +89,25 @@ export declare class CustomerService {
             portalAccess: boolean;
             customerId: string;
         }[];
+        contracts: {
+            status: string;
+        }[];
     } & {
+        number: string | null;
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         document: string;
         tradeName: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;
-        address: string | null;
+        zipCode: string | null;
+        street: string | null;
+        complement: string | null;
+        neighborhood: string | null;
+        city: string | null;
+        state: string | null;
         corporateGroupId: string | null;
         delinquencyScore: number;
     })[]>;
@@ -92,10 +122,10 @@ export declare class CustomerService {
         } | null;
         contacts: {
             id: string;
-            email: string;
             name: string;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
             role: string | null;
             createdBy: string | null;
             updatedBy: string | null;
@@ -108,13 +138,26 @@ export declare class CustomerService {
         partners: {
             id: string;
             name: string;
+            document: string;
             createdAt: Date;
             updatedAt: Date;
-            document: string;
             createdBy: string | null;
             updatedBy: string | null;
             customerId: string;
             share: import("@prisma/client-runtime-utils").Decimal | null;
+            isLegalRep: boolean;
+        }[];
+        legalRepresentatives: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            email: string | null;
+            createdBy: string | null;
+            updatedBy: string | null;
+            phone: string | null;
+            cpf: string;
+            customerId: string;
         }[];
         contracts: ({
             product: {
@@ -138,25 +181,31 @@ export declare class CustomerService {
             nextAdjustmentDate: Date | null;
         })[];
     } & {
+        number: string | null;
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         document: string;
         tradeName: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;
-        address: string | null;
+        zipCode: string | null;
+        street: string | null;
+        complement: string | null;
+        neighborhood: string | null;
+        city: string | null;
+        state: string | null;
         corporateGroupId: string | null;
         delinquencyScore: number;
     }>;
-    update(id: string, updateCustomerDto: UpdateCustomerDto, userId: string): Promise<{
+    update(id: string, updateCustomerDto: UpdateCustomerDto, userId: string, tenantSlug?: string): Promise<{
         contacts: {
             id: string;
-            email: string;
             name: string;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
             role: string | null;
             createdBy: string | null;
             updatedBy: string | null;
@@ -169,24 +218,43 @@ export declare class CustomerService {
         partners: {
             id: string;
             name: string;
+            document: string;
             createdAt: Date;
             updatedAt: Date;
-            document: string;
             createdBy: string | null;
             updatedBy: string | null;
             customerId: string;
             share: import("@prisma/client-runtime-utils").Decimal | null;
+            isLegalRep: boolean;
+        }[];
+        legalRepresentatives: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            email: string | null;
+            createdBy: string | null;
+            updatedBy: string | null;
+            phone: string | null;
+            cpf: string;
+            customerId: string;
         }[];
     } & {
+        number: string | null;
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         document: string;
         tradeName: string | null;
+        createdAt: Date;
+        updatedAt: Date;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;
-        address: string | null;
+        zipCode: string | null;
+        street: string | null;
+        complement: string | null;
+        neighborhood: string | null;
+        city: string | null;
+        state: string | null;
         corporateGroupId: string | null;
         delinquencyScore: number;
     }>;

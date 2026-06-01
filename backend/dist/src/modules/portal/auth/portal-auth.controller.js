@@ -25,8 +25,11 @@ let PortalAuthController = class PortalAuthController {
     login(tenantSlug, body) {
         return this.portalAuthService.login(tenantSlug, body.email, body.password);
     }
-    setPassword(tenantSlug, body) {
-        return this.portalAuthService.setPassword(tenantSlug, body.contactId, body.password);
+    setupPassword(body) {
+        return this.portalAuthService.setupPassword(body.token, body.password);
+    }
+    requestMagicLink(tenantSlug, body) {
+        return this.portalAuthService.requestMagicLink(tenantSlug, body.email);
     }
 };
 exports.PortalAuthController = PortalAuthController;
@@ -43,14 +46,24 @@ __decorate([
 ], PortalAuthController.prototype, "login", null);
 __decorate([
     (0, public_decorator_1.Public)(),
-    (0, common_1.Post)('set-password'),
-    (0, swagger_1.ApiOperation)({ summary: 'Debug: Set password for a contact' }),
+    (0, common_1.Post)('setup-password'),
+    (0, swagger_1.ApiOperation)({ summary: 'Definir nova senha através do Magic Link' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], PortalAuthController.prototype, "setupPassword", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, common_1.Post)('request-magic-link'),
+    (0, swagger_1.ApiOperation)({ summary: 'Solicitar envio do Magic Link para acesso' }),
     __param(0, (0, common_1.Param)('tenantSlug')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
-], PortalAuthController.prototype, "setPassword", null);
+], PortalAuthController.prototype, "requestMagicLink", null);
 exports.PortalAuthController = PortalAuthController = __decorate([
     (0, swagger_1.ApiTags)('Portal Authentication'),
     (0, common_1.Controller)('portal/:tenantSlug/auth'),

@@ -34,7 +34,8 @@ let CustomerController = class CustomerController {
     }
     update(id, updateCustomerDto, req) {
         const userId = req.user?.id || 'system-user';
-        return this.customerService.update(id, updateCustomerDto, userId);
+        const tenantSlug = req.tenantContext?.schema || req.headers['x-tenant-id'];
+        return this.customerService.update(id, updateCustomerDto, userId, tenantSlug);
     }
     remove(id) {
         return this.customerService.remove(id);

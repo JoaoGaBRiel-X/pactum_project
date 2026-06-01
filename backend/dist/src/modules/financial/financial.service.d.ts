@@ -69,10 +69,10 @@ export declare class FinancialService {
         customer: {
             contacts: {
                 id: string;
-                email: string;
                 name: string;
                 createdAt: Date;
                 updatedAt: Date;
+                email: string;
                 role: string | null;
                 createdBy: string | null;
                 updatedBy: string | null;
@@ -83,15 +83,21 @@ export declare class FinancialService {
                 customerId: string;
             }[];
         } & {
+            number: string | null;
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             document: string;
             tradeName: string | null;
+            createdAt: Date;
+            updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
             corporateName: string;
-            address: string | null;
+            zipCode: string | null;
+            street: string | null;
+            complement: string | null;
+            neighborhood: string | null;
+            city: string | null;
+            state: string | null;
             corporateGroupId: string | null;
             delinquencyScore: number;
         };

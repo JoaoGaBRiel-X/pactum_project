@@ -16,7 +16,7 @@ export class TenantSettingsService {
   async getSettings(tenantId: string) {
     const publicTenant = await this.prismaService.client.tenant.findUnique({
       where: { id: tenantId },
-      select: { name: true, tradeName: true, document: true, legalRepName: true, legalRepCpf: true }
+      select: { name: true, tradeName: true, document: true, legalRepName: true, legalRepCpf: true, slug: true }
     });
 
     let settings = await this.tenantClient.tenantSetting.findFirst();
@@ -33,15 +33,25 @@ export class TenantSettingsService {
   }
 
   async updateSettings(tenantId: string, dto: UpdateTenantSettingsDto) {
-    const { name, tradeName, document, legalRepName, legalRepCpf, ...settingsData } = dto;
+    const { name, tradeName, document, legalRepName, legalRepCpf, slug, ...settingsData } = dto;
 
-    if (name || tradeName || document || legalRepName !== undefined || legalRepCpf !== undefined) {
+    if (slug) {
+      const existing = await this.prismaService.client.tenant.findUnique({
+        where: { slug }
+      });
+      if (existing && existing.id !== tenantId) {
+        throw new Error('Este domínio já está em uso por outra empresa. Tente outro nome de domínio.');
+      }
+    }
+
+    if (name || tradeName || document || slug !== undefined || legalRepName !== undefined || legalRepCpf !== undefined) {
       await this.prismaService.client.tenant.update({
         where: { id: tenantId },
         data: {
           ...(name && { name }),
           ...(tradeName && { tradeName }),
           ...(document && { document }),
+          ...(slug !== undefined && { slug }),
           ...(legalRepName !== undefined && { legalRepName }),
           ...(legalRepCpf !== undefined && { legalRepCpf })
         }
@@ -63,7 +73,7 @@ export class TenantSettingsService {
 
     const updatedPublicTenant = await this.prismaService.client.tenant.findUnique({
       where: { id: tenantId },
-      select: { name: true, tradeName: true, document: true, legalRepName: true, legalRepCpf: true }
+      select: { name: true, tradeName: true, document: true, legalRepName: true, legalRepCpf: true, slug: true }
     });
 
     return { ...settings, ...updatedPublicTenant };

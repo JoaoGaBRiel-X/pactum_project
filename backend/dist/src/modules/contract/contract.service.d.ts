@@ -65,15 +65,21 @@ export declare class ContractService {
     })[]>;
     findOne(id: string): Promise<({
         customer: {
+            number: string | null;
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             document: string;
             tradeName: string | null;
+            createdAt: Date;
+            updatedAt: Date;
             createdBy: string | null;
             updatedBy: string | null;
             corporateName: string;
-            address: string | null;
+            zipCode: string | null;
+            street: string | null;
+            complement: string | null;
+            neighborhood: string | null;
+            city: string | null;
+            state: string | null;
             corporateGroupId: string | null;
             delinquencyScore: number;
         };
@@ -109,13 +115,13 @@ export declare class ContractService {
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
         }[];
         documents: {
+            path: string;
             id: string;
             createdAt: Date;
             createdBy: string | null;
             status: string;
             contractId: string;
             type: string;
-            path: string;
             clicksignKey: string | null;
         }[];
         history: {

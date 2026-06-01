@@ -10,4 +10,5 @@ export declare class UpdateTenantSettingsDto {
     document?: string;
     legalRepName?: string;
     legalRepCpf?: string;
+    slug?: string;
 }

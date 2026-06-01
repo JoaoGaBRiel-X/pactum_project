@@ -152,25 +152,53 @@ BEGIN
 
       -- tenant_settings
       EXECUTE format('
-        CREATE TABLE IF NOT EXISTS %I.tenant_settings (
-          id TEXT NOT NULL,
-          logo_url TEXT,
-          primary_color TEXT,
-          secondary_color TEXT,
-          support_email TEXT,
-          support_phone TEXT,
-          company_document TEXT,
-          gateway_token TEXT,
-          clicksign_token TEXT,
-          created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          created_by TEXT,
-          updated_by TEXT,
-          CONSTRAINT tenant_settings_pkey PRIMARY KEY (id)
+        CREATE TABLE IF NOT EXISTS %I."tenant_settings" (
+            "id" TEXT NOT NULL,
+            "logo_url" TEXT,
+            "primary_color" TEXT,
+            "secondary_color" TEXT,
+            "support_email" TEXT,
+            "support_phone" TEXT,
+            "company_document" TEXT,
+            "gateway_token" TEXT,
+            "clicksign_token" TEXT,
+            "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updated_at" TIMESTAMP(3) NOT NULL,
+            "created_by" TEXT,
+            "updated_by" TEXT,
+
+            CONSTRAINT "tenant_settings_pkey" PRIMARY KEY ("id")
         );
       ', schema_name);
+      
+      -- Adicionar novas colunas em customers (Endereço completo)
+      BEGIN
+        EXECUTE format('ALTER TABLE %I."customers" ADD COLUMN "zip_code" TEXT', schema_name);
+      EXCEPTION WHEN duplicate_column THEN END;
+      
+      BEGIN
+        EXECUTE format('ALTER TABLE %I."customers" ADD COLUMN "street" TEXT', schema_name);
+      EXCEPTION WHEN duplicate_column THEN END;
+      
+      BEGIN
+        EXECUTE format('ALTER TABLE %I."customers" ADD COLUMN "number" TEXT', schema_name);
+      EXCEPTION WHEN duplicate_column THEN END;
 
+      BEGIN
+        EXECUTE format('ALTER TABLE %I."customers" ADD COLUMN "complement" TEXT', schema_name);
+      EXCEPTION WHEN duplicate_column THEN END;
 
+      BEGIN
+        EXECUTE format('ALTER TABLE %I."customers" ADD COLUMN "neighborhood" TEXT', schema_name);
+      EXCEPTION WHEN duplicate_column THEN END;
+
+      BEGIN
+        EXECUTE format('ALTER TABLE %I."customers" ADD COLUMN "city" TEXT', schema_name);
+      EXCEPTION WHEN duplicate_column THEN END;
+
+      BEGIN
+        EXECUTE format('ALTER TABLE %I."customers" ADD COLUMN "state" TEXT', schema_name);
+      EXCEPTION WHEN duplicate_column THEN END;
 
       -- adjustment_rates
       EXECUTE format('

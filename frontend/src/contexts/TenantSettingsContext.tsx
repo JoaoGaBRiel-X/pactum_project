@@ -20,8 +20,12 @@ export function TenantSettingsProvider({ children }: { children: React.ReactNode
   const pathname = usePathname();
 
   useEffect(() => {
-    // Não carregar na página de login ou nas de setup público
-    if (pathname === '/login' || pathname === '/admin/tenants/new') {
+    // Não carregar em rotas públicas (login, setup, portal do cliente)
+    if (
+      pathname === '/login' ||
+      pathname === '/admin/tenants/new' ||
+      pathname.startsWith('/portal/')
+    ) {
       setLoading(false);
       return;
     }

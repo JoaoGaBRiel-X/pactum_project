@@ -7,7 +7,11 @@ import { Header } from './Header';
 export function MainLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  if (pathname === '/login' || pathname === '/admin/tenants/new') {
+  if (
+    pathname === '/login' || 
+    pathname === '/admin/tenants/new' || 
+    pathname.startsWith('/portal/')
+  ) {
     return <main className="min-h-screen">{children}</main>;
   }
 

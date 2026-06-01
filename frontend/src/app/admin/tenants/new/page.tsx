@@ -104,7 +104,7 @@ export default function NewTenantPage() {
         <ShieldCheck size={14} className="text-blue-400" /> LEFER - ÁREA INTERNA (BACKOFFICE)
       </div>
 
-      <div className="max-w-3xl mx-auto space-y-6 py-12 px-4">
+      <div className="max-w-7xl mx-auto space-y-6 py-12 px-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={() => router.push('/admin/tenants')} className="text-slate-500 hover:bg-slate-200">
             <ArrowLeft size={18} />

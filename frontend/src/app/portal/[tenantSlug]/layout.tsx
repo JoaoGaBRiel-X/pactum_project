@@ -16,8 +16,8 @@ export default function PortalLayout({
   const resolvedParams = use(params);
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user');
+    localStorage.removeItem('portal_token');
+    localStorage.removeItem('portal_user');
     router.push(`/portal/${resolvedParams.tenantSlug}/login`);
   };
 

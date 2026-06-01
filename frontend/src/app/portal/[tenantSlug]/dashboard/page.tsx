@@ -5,24 +5,26 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, DollarSign } from 'lucide-react';
 import Link from 'next/link';
+import { use } from 'react';
 
-export default function PortalDashboard({ params }: { params: { tenantSlug: string } }) {
+export default function PortalDashboard({ params }: { params: Promise<{ tenantSlug: string }> }) {
   const router = useRouter();
+  const { tenantSlug } = use(params);
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
+    const userData = localStorage.getItem('portal_user');
     if (!userData) {
-      router.push(`/portal/${params.tenantSlug}/login`);
+      router.push(`/portal/${tenantSlug}/login`);
       return;
     }
     const parsedUser = JSON.parse(userData);
     if (parsedUser.role !== 'CUSTOMER') {
-      router.push(`/portal/${params.tenantSlug}/login`);
+      router.push(`/portal/${tenantSlug}/login`);
       return;
     }
     setUser(parsedUser);
-  }, [params.tenantSlug, router]);
+  }, [tenantSlug, router]);
 
   if (!user) return null;
 
@@ -33,7 +35,7 @@ export default function PortalDashboard({ params }: { params: { tenantSlug: stri
       </h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Link href={`/portal/${params.tenantSlug}/contracts`}>
+        <Link href={`/portal/${tenantSlug}/contracts`}>
           <Card className="hover:border-blue-300 transition-colors cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-lg font-medium text-slate-700">Meus Contratos</CardTitle>
@@ -45,7 +47,7 @@ export default function PortalDashboard({ params }: { params: { tenantSlug: stri
           </Card>
         </Link>
 
-        <Link href={`/portal/${params.tenantSlug}/financial`}>
+        <Link href={`/portal/${tenantSlug}/financial`}>
           <Card className="hover:border-green-300 transition-colors cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-lg font-medium text-slate-700">Financeiro</CardTitle>

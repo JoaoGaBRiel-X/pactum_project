@@ -16,6 +16,7 @@ exports.TenantSettingsController = void 0;
 const common_1 = require("@nestjs/common");
 const tenant_settings_service_1 = require("./tenant-settings.service");
 const update_tenant_settings_dto_1 = require("./dto/update-tenant-settings.dto");
+const public_decorator_1 = require("../../iam/decorators/public.decorator");
 let TenantSettingsController = class TenantSettingsController {
     tenantSettingsService;
     constructor(tenantSettingsService) {
@@ -23,6 +24,8 @@ let TenantSettingsController = class TenantSettingsController {
     }
     async getSettings(req) {
         const tenantId = req.tenantContext?.tenantId || req.headers['x-tenant-id'];
+        if (!tenantId)
+            return {};
         return this.tenantSettingsService.getSettings(tenantId);
     }
     async updateSettings(req, dto) {
@@ -32,6 +35,7 @@ let TenantSettingsController = class TenantSettingsController {
 };
 exports.TenantSettingsController = TenantSettingsController;
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),

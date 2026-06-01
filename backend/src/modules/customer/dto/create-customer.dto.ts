@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsArray, ValidateNested, IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional, IsArray, ValidateNested, IsNotEmpty, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -27,6 +27,11 @@ class CreateContactDto {
   @IsString()
   @IsOptional()
   role?: string;
+
+  @ApiPropertyOptional()
+  @IsBoolean()
+  @IsOptional()
+  portalAccess?: boolean;
 }
 
 class CreatePartnerDto {
@@ -43,6 +48,33 @@ class CreatePartnerDto {
   @ApiPropertyOptional()
   @IsOptional()
   share?: number;
+
+  @ApiPropertyOptional()
+  @IsBoolean()
+  @IsOptional()
+  isLegalRep?: boolean;
+}
+
+export class CreateLegalRepresentativeDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  cpf: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  email?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  phone?: string;
 }
 
 export class CreateCustomerDto {
@@ -84,4 +116,11 @@ export class CreateCustomerDto {
   @Type(() => CreatePartnerDto)
   @IsOptional()
   partners?: CreatePartnerDto[];
+
+  @ApiPropertyOptional({ type: [CreateLegalRepresentativeDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateLegalRepresentativeDto)
+  @IsOptional()
+  legalRepresentatives?: CreateLegalRepresentativeDto[];
 }

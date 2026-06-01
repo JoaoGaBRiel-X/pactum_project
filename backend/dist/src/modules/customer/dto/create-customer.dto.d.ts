@@ -4,11 +4,19 @@ declare class CreateContactDto {
     phone?: string;
     cpf?: string;
     role?: string;
+    portalAccess?: boolean;
 }
 declare class CreatePartnerDto {
     name: string;
     document: string;
     share?: number;
+    isLegalRep?: boolean;
+}
+export declare class CreateLegalRepresentativeDto {
+    name: string;
+    cpf: string;
+    email?: string;
+    phone?: string;
 }
 export declare class CreateCustomerDto {
     document: string;
@@ -18,5 +26,6 @@ export declare class CreateCustomerDto {
     corporateGroupId?: string;
     contacts?: CreateContactDto[];
     partners?: CreatePartnerDto[];
+    legalRepresentatives?: CreateLegalRepresentativeDto[];
 }
 export {};

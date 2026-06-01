@@ -32,7 +32,8 @@ export class CustomerController {
   @ApiOperation({ summary: 'Atualizar um cliente' })
   update(@Param('id') id: string, @Body() updateCustomerDto: any, @Req() req: any) {
     const userId = req.user?.id || 'system-user';
-    return this.customerService.update(id, updateCustomerDto, userId);
+    const tenantSlug = req.tenantContext?.schema || req.headers['x-tenant-id'];
+    return this.customerService.update(id, updateCustomerDto, userId, tenantSlug);
   }
 
   @Delete(':id')

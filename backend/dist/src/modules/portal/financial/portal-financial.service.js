@@ -20,7 +20,7 @@ let PortalFinancialService = class PortalFinancialService {
     }
     async findAll(tenantSlug, customerId) {
         const tenant = await this.globalPrisma.client.tenant.findUnique({
-            where: { schema: tenantSlug },
+            where: { slug: tenantSlug },
         });
         if (!tenant || !tenant.schema) {
             throw new common_1.NotFoundException('Empresa não encontrada');

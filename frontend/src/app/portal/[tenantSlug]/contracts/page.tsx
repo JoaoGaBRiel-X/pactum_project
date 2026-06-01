@@ -2,15 +2,17 @@
 
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { use } from 'react';
 
-export default function PortalContractsPage({ params }: { params: { tenantSlug: string } }) {
+export default function PortalContractsPage({ params }: { params: Promise<{ tenantSlug: string }> }) {
+  const { tenantSlug } = use(params);
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight text-slate-800">
           Meus Contratos
         </h1>
-        <Link href={`/portal/${params.tenantSlug}/dashboard`}>
+        <Link href={`/portal/${tenantSlug}/dashboard`}>
           <Button variant="outline">Voltar ao Início</Button>
         </Link>
       </div>

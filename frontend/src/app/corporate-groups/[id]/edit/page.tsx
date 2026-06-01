@@ -60,7 +60,7 @@ export default function EditCorporateGroupPage({ params }: { params: Promise<{ i
   if (isLoading) return <div className="p-8 text-center text-muted-foreground">Carregando grupo...</div>;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex items-center gap-2">
         <Building2 className="text-primary w-8 h-8" />
         <div>

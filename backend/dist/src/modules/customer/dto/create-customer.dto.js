@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateCustomerDto = void 0;
+exports.CreateCustomerDto = exports.CreateLegalRepresentativeDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
@@ -19,6 +19,7 @@ class CreateContactDto {
     phone;
     cpf;
     role;
+    portalAccess;
 }
 __decorate([
     (0, swagger_1.ApiProperty)(),
@@ -50,10 +51,17 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreateContactDto.prototype, "role", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Boolean)
+], CreateContactDto.prototype, "portalAccess", void 0);
 class CreatePartnerDto {
     name;
     document;
     share;
+    isLegalRep;
 }
 __decorate([
     (0, swagger_1.ApiProperty)(),
@@ -72,6 +80,43 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], CreatePartnerDto.prototype, "share", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Boolean)
+], CreatePartnerDto.prototype, "isLegalRep", void 0);
+class CreateLegalRepresentativeDto {
+    name;
+    cpf;
+    email;
+    phone;
+}
+exports.CreateLegalRepresentativeDto = CreateLegalRepresentativeDto;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateLegalRepresentativeDto.prototype, "name", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateLegalRepresentativeDto.prototype, "cpf", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateLegalRepresentativeDto.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateLegalRepresentativeDto.prototype, "phone", void 0);
 class CreateCustomerDto {
     document;
     corporateName;
@@ -80,6 +125,7 @@ class CreateCustomerDto {
     corporateGroupId;
     contacts;
     partners;
+    legalRepresentatives;
 }
 exports.CreateCustomerDto = CreateCustomerDto;
 __decorate([
@@ -128,4 +174,12 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Array)
 ], CreateCustomerDto.prototype, "partners", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: [CreateLegalRepresentativeDto] }),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => CreateLegalRepresentativeDto),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Array)
+], CreateCustomerDto.prototype, "legalRepresentatives", void 0);
 //# sourceMappingURL=create-customer.dto.js.map

@@ -1,19 +1,30 @@
-import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { getTenantClient } from '../../../tenant/tenant.module';
 import { JwtService } from '@nestjs/jwt';
+import * as argon2 from 'argon2';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class PortalAuthService {
+  private readonly logger = new Logger(PortalAuthService.name);
+  private transporter: nodemailer.Transporter;
+
   constructor(
     private readonly globalPrisma: PrismaService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) {
+    this.transporter = nodemailer.createTransport({
+      host: 'localhost',
+      port: 1025,
+      ignoreTLS: true,
+    });
+  }
 
   async login(tenantSlug: string, email: string, passwordString: string) {
     // 1. Encontrar o tenant pelo slug
     const tenant = await this.globalPrisma.client.tenant.findUnique({
-      where: { schema: tenantSlug },
+      where: { slug: tenantSlug },
     });
 
     if (!tenant) {
@@ -28,21 +39,27 @@ export class PortalAuthService {
     const tenantPrisma = await getTenantClient(tenant.schema);
 
     // 3. Procurar o contato e verificar a senha
-    const contact = await tenantPrisma.contact.findFirst({
+    const contacts = await tenantPrisma.contact.findMany({
       where: { email },
     });
 
-    if (!contact) {
+    if (contacts.length === 0) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    if (!contact.portalAccess) {
+    const contact = contacts.find(c => c.portalAccess);
+
+    if (!contact) {
       throw new UnauthorizedException('Este contato não possui acesso ao portal. Fale com seu gestor.');
     }
 
-    // Em uma app real, compararíamos hashes (ex: bcrypt).
-    // Como simplificação, comparando direto ou hash fake caso usemos algo basico no debug
-    if (contact.passwordHash !== passwordString) {
+    if (!contact.passwordHash) {
+      throw new UnauthorizedException('Credenciais inválidas');
+    }
+
+    // Comparação do Hash usando Argon2
+    const isValid = await argon2.verify(contact.passwordHash, passwordString).catch(() => false);
+    if (!isValid) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
@@ -68,24 +85,90 @@ export class PortalAuthService {
     };
   }
 
-  // Debug utility to set password during development
-  async setPassword(tenantSlug: string, contactId: string, passwordString: string) {
+  // Método para gerar o Magic Link e disparar o e-mail
+  async generateSetupToken(tenantSlug: string, contactId: string, email: string) {
     const tenant = await this.globalPrisma.client.tenant.findUnique({
-      where: { schema: tenantSlug },
+      where: { slug: tenantSlug },
     });
 
     if (!tenant) throw new NotFoundException('Empresa não encontrada');
-    
-    const tenantPrisma = await getTenantClient(tenant.schema!);
 
-    const contact = await tenantPrisma.contact.update({
-      where: { id: contactId },
-      data: {
-        passwordHash: passwordString, // Should be bcrypt hash
-        portalAccess: true,
-      }
+    // Token expira em 24h - usa o schema interno no payload para uso do getTenantClient
+    const token = this.jwtService.sign({ sub: contactId, email, tenantSlug: tenant.schema, setup: true }, { expiresIn: '24h' });
+    const setupLink = `http://localhost:3000/portal/${tenantSlug}/setup-password?token=${token}`;
+
+    try {
+      await this.transporter.sendMail({
+        from: '"Portal do Cliente" <no-reply@gestaocontratos.local>',
+        to: email,
+        subject: 'Crie sua senha de acesso ao Portal',
+        html: `
+          <h2>Bem-vindo ao Portal do Cliente!</h2>
+          <p>Você recebeu acesso ao portal de contratos e faturas. Para começar, por favor defina sua senha clicando no link abaixo:</p>
+          <p><a href="${setupLink}" style="display:inline-block;padding:10px 20px;background:#1E40AF;color:#fff;text-decoration:none;border-radius:5px;">Configurar Minha Senha</a></p>
+          <p>Se você não solicitou este acesso, apenas ignore este e-mail.</p>
+          <p><em>Este link é válido por 24 horas.</em></p>
+        `,
+      });
+      this.logger.log(`Magic Link enviado para ${email}`);
+    } catch (error) {
+      this.logger.error(`Erro ao enviar Magic Link para ${email}: ${error.message}`);
+      throw new BadRequestException('Não foi possível enviar o e-mail de configuração de senha.');
+    }
+
+    return { message: 'E-mail enviado com sucesso.' };
+  }
+
+  async requestMagicLink(tenantSlug: string, email: string) {
+    const tenant = await this.globalPrisma.client.tenant.findUnique({
+      where: { slug: tenantSlug },
     });
 
-    return { message: 'Senha definida com sucesso', contactId: contact.id };
+    if (!tenant) throw new NotFoundException('Empresa não encontrada');
+
+    const tenantClient = await getTenantClient(tenant.schema);
+    const contact = await tenantClient.contact.findFirst({
+      where: { email, portalAccess: true },
+    });
+
+    if (!contact) {
+      this.logger.warn(`Tentativa de magic link para email não autorizado/inexistente no portal: ${email}`);
+      return { message: 'Se o e-mail estiver cadastrado e possuir acesso ao portal, você receberá um link em breve.' };
+    }
+
+    await this.generateSetupToken(tenantSlug, contact.id, contact.email as string);
+    
+    return { message: 'Se o e-mail estiver cadastrado e possuir acesso ao portal, você receberá um link em breve.' };
+  }
+
+  // Método consumido pela tela pública de Setup de Senha
+  async setupPassword(token: string, passwordString: string) {
+    try {
+      // Valida o JWT
+      const payload = this.jwtService.verify(token);
+      
+      if (!payload.setup) {
+        throw new BadRequestException('Token inválido para esta operação.');
+      }
+
+      const { sub: contactId, tenantSlug } = payload;
+
+      const tenantPrisma = await getTenantClient(tenantSlug);
+      
+      // Gera o hash com Argon2
+      const hashedPassword = await argon2.hash(passwordString);
+
+      await tenantPrisma.contact.update({
+        where: { id: contactId },
+        data: {
+          passwordHash: hashedPassword,
+          portalAccess: true,
+        }
+      });
+
+      return { message: 'Senha definida com sucesso.' };
+    } catch (error) {
+      throw new UnauthorizedException('Token inválido ou expirado.');
+    }
   }
 }

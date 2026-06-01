@@ -3,6 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 export declare class PortalAuthService {
     private readonly globalPrisma;
     private readonly jwtService;
+    private readonly logger;
+    private transporter;
     constructor(globalPrisma: PrismaService, jwtService: JwtService);
     login(tenantSlug: string, email: string, passwordString: string): Promise<{
         access_token: string;
@@ -14,8 +16,13 @@ export declare class PortalAuthService {
             tenantId: string;
         };
     }>;
-    setPassword(tenantSlug: string, contactId: string, passwordString: string): Promise<{
+    generateSetupToken(tenantSlug: string, contactId: string, email: string): Promise<{
         message: string;
-        contactId: string;
+    }>;
+    requestMagicLink(tenantSlug: string, email: string): Promise<{
+        message: string;
+    }>;
+    setupPassword(token: string, passwordString: string): Promise<{
+        message: string;
     }>;
 }

@@ -38,7 +38,7 @@ export default function NewNotificationTemplatePage() {
   };
 
   return (
-    <div className="space-y-6 pb-12 max-w-4xl">
+    <div className="space-y-6 pb-12 max-w-7xl">
       <div className="flex items-center gap-4">
         <Link href="/admin/notifications">
           <Button variant="outline" size="icon"><ArrowLeft size={16} /></Button>

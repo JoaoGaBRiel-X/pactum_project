@@ -8,7 +8,7 @@ export class PortalFinancialService {
 
   async findAll(tenantSlug: string, customerId: string) {
     const tenant = await this.globalPrisma.client.tenant.findUnique({
-      where: { schema: tenantSlug },
+      where: { slug: tenantSlug },
     });
 
     if (!tenant || !tenant.schema) {

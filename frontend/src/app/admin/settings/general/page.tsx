@@ -24,9 +24,10 @@ const settingsSchema = z.object({
   secondaryColor: z.string().regex(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i, "Cor inválida").optional().or(z.literal("")),
   supportEmail: z.string().email("E-mail inválido").optional().or(z.literal("")),
   supportPhone: z.string().optional(),
-  companyDocument: z.string().optional(), // Pode ser mantido por compatibilidade
+  companyDocument: z.string().optional(),
   name: z.string().min(3, "Razão social é obrigatória"),
   tradeName: z.string().optional(),
+  slug: z.string().regex(/^[a-z0-9-]+$/, "Domínio deve conter apenas letras minúsculas, números e hifens").optional().or(z.literal("")),
   document: z.string().min(11, "Documento inválido"),
   legalRepName: z.string().optional(),
   legalRepCpf: z.string().optional(),
@@ -48,6 +49,7 @@ export default function GeneralSettingsPage() {
       companyDocument: "",
       name: "",
       tradeName: "",
+      slug: "",
       document: "",
       legalRepName: "",
       legalRepCpf: "",
@@ -67,6 +69,7 @@ export default function GeneralSettingsPage() {
           companyDocument: data.companyDocument || "",
           name: data.name || "",
           tradeName: data.tradeName || "",
+          slug: data.slug || "",
           document: data.document || "",
           legalRepName: data.legalRepName || "",
           legalRepCpf: data.legalRepCpf || "",
@@ -93,7 +96,7 @@ export default function GeneralSettingsPage() {
   if (loading) return <div className="p-8">Carregando...</div>;
 
   return (
-    <div className="p-8 space-y-6 max-w-4xl mx-auto">
+    <div className="p-8 space-y-6 max-w-7xl mx-auto">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Configurações Globais</h2>
         <p className="text-muted-foreground">Gerencie a identidade visual e os dados da sua empresa.</p>
@@ -196,6 +199,24 @@ export default function GeneralSettingsPage() {
                         <FormLabel>Nome Fantasia</FormLabel>
                         <FormControl>
                           <Input placeholder="Nome Fantasia" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="slug"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Domínio do Portal (Ex: minha-empresa)</FormLabel>
+                        <FormControl>
+                          <div className="flex items-center">
+                            <span className="bg-slate-100 border border-r-0 border-slate-300 rounded-l-md px-3 py-2 text-sm text-slate-500">
+                              /portal/
+                            </span>
+                            <Input className="rounded-l-none" placeholder="sua-empresa" {...field} />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>

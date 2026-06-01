@@ -10,11 +10,13 @@ exports.CustomerModule = void 0;
 const common_1 = require("@nestjs/common");
 const customer_controller_1 = require("./customer.controller");
 const customer_service_1 = require("./customer.service");
+const portal_auth_module_1 = require("../portal/auth/portal-auth.module");
 let CustomerModule = class CustomerModule {
 };
 exports.CustomerModule = CustomerModule;
 exports.CustomerModule = CustomerModule = __decorate([
     (0, common_1.Module)({
+        imports: [portal_auth_module_1.PortalAuthModule],
         controllers: [customer_controller_1.CustomerController],
         providers: [customer_service_1.CustomerService]
     })

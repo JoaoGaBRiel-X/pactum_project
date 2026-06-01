@@ -16,6 +16,7 @@ model Tenant {
   document String @unique // CNPJ
   schema   String @unique // The schema name for this tenant (e.g. "tenant_123")
   tradeName String? @map("trade_name")
+  slug      String? @unique
 
   legalRepName String? @map("legal_rep_name")
   legalRepCpf  String? @map("legal_rep_cpf")
@@ -102,12 +103,19 @@ model Customer {
   document         String                 @unique // CNPJ
   corporateName    String                 @map("corporate_name")
   tradeName        String?                @map("trade_name")
-  address          String?
+  zipCode          String?                @map("zip_code")
+  street           String?
+  number           String?
+  complement       String?
+  neighborhood     String?
+  city             String?
+  state            String?
   corporateGroupId String?                @map("corporate_group_id")
   corporateGroup   CorporateGroup?        @relation(fields: [corporateGroupId], references: [id])
-  contacts         Contact[]
-  partners         Partner[]
-  contracts        Contract[]
+  contacts             Contact[]
+  partners             Partner[]
+  legalRepresentatives LegalRepresentative[]
+  contracts            Contract[]
   receivables      Receivable[]
   renegotiations   DebtRenegotiation[]
   communications   CommunicationHistory[]
@@ -152,12 +160,31 @@ model Partner {
   customerId String   @map("customer_id")
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
+  isLegalRep Boolean @default(false) @map("is_legal_rep")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   createdBy String?  @map("created_by")
   updatedBy String?  @map("updated_by")
 
   @@map("partners")
+}
+
+model LegalRepresentative {
+  id         String   @id @default(uuid())
+  name       String
+  cpf        String
+  email      String?
+  phone      String?
+  customerId String   @map("customer_id")
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
+  @@map("legal_representatives")
 }
 
 // --- Product Catalog ---

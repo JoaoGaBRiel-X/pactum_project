@@ -10,9 +10,14 @@ export declare class TenantSettingsService {
         name?: string | undefined;
         document?: string | undefined;
         tradeName?: string | null | undefined;
+        slug?: string | null | undefined;
         legalRepName?: string | null | undefined;
         legalRepCpf?: string | null | undefined;
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        createdBy: string | null;
+        updatedBy: string | null;
         logoUrl: string | null;
         primaryColor: string | null;
         secondaryColor: string | null;
@@ -21,18 +26,19 @@ export declare class TenantSettingsService {
         companyDocument: string | null;
         gatewayToken: string | null;
         clicksignToken: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-        createdBy: string | null;
-        updatedBy: string | null;
     }>;
     updateSettings(tenantId: string, dto: UpdateTenantSettingsDto): Promise<{
         name?: string | undefined;
         document?: string | undefined;
         tradeName?: string | null | undefined;
+        slug?: string | null | undefined;
         legalRepName?: string | null | undefined;
         legalRepCpf?: string | null | undefined;
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        createdBy: string | null;
+        updatedBy: string | null;
         logoUrl: string | null;
         primaryColor: string | null;
         secondaryColor: string | null;
@@ -41,9 +47,5 @@ export declare class TenantSettingsService {
         companyDocument: string | null;
         gatewayToken: string | null;
         clicksignToken: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-        createdBy: string | null;
-        updatedBy: string | null;
     }>;
 }

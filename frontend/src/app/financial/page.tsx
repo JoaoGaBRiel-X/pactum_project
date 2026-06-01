@@ -5,8 +5,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DollarSign, CheckCircle, AlertCircle, FileText, Upload } from 'lucide-react';
+import { DollarSign, CheckCircle, AlertCircle, FileText, Upload, Search, Building2 } from 'lucide-react';
 import Link from 'next/link';
+import { Input } from '@/components/ui/input';
 
 export default function FinancialPage() {
   const queryClient = useQueryClient();
@@ -121,6 +122,22 @@ export default function FinancialPage() {
         </div>
       </div>
 
+      <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 shadow-sm space-y-4">
+        <div className="flex items-center gap-2 text-blue-800 font-semibold mb-2">
+          <Search size={18} />
+          <h2>Filtros</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">BUSCA (CLIENTE/CONTRATO)</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <Input placeholder="Buscar recebível..." className="pl-9 bg-white border-slate-200" />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
         <Table>
           <TableHeader className="bg-slate-50">
@@ -145,38 +162,49 @@ export default function FinancialPage() {
               </TableRow>
             )}
             {receivables?.map((r: any) => (
-              <TableRow key={r.id} className="hover:bg-slate-50 transition-colors">
+              <TableRow key={r.id} className="hover:bg-slate-50 transition-colors group">
                 <TableCell className="font-medium text-slate-800">
                   {new Date(r.dueDate).toLocaleDateString('pt-BR')}
                 </TableCell>
                 <TableCell>
-                  <div className="font-semibold text-slate-800">{r.customer.corporateName}</div>
-                  <div className="text-xs text-muted-foreground">Contrato: {r.contract?.id.split('-')[0] || 'Avulso'}</div>
+                  <div className="flex items-center gap-2 font-semibold text-slate-800">
+                    <Building2 size={14} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
+                    <Link href={`/customers/${r.customerId}`} className="hover:text-blue-700 transition-colors">
+                      {r.customer.corporateName}
+                    </Link>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5 ml-6">
+                    {r.contract ? (
+                      <Link href={`/contracts/${r.contractId}`} className="hover:text-blue-600 hover:underline">
+                        Contrato: {r.contract.id.split('-')[0]}
+                      </Link>
+                    ) : 'Avulso'}
+                  </div>
                 </TableCell>
                 <TableCell>{r.competence || '-'}</TableCell>
                 <TableCell className="font-semibold text-primary">
                   R$ {Number(r.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </TableCell>
                 <TableCell>{getStatusBadge(r.status)}</TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
+                <TableCell className="text-right px-6 py-4">
+                  <div className="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                     {r.status !== 'PAID' && r.status !== 'RENEGOTIATED' && (
-                      <Button variant="outline" size="sm" onClick={() => {
+                      <Button variant="ghost" size="sm" className="h-9 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 bg-white border border-slate-200 shadow-sm font-medium" onClick={() => {
                         setSelectedReceivable(r);
                         setPaymentAmount(r.amount);
                       }}>
-                        <CheckCircle size={14} className="mr-1 text-green-600" /> Liquidar
+                        <CheckCircle size={16} className="mr-1.5" /> Liquidar
                       </Button>
                     )}
                     {r.status !== 'PAID' && r.status !== 'RENEGOTIATED' && !r.boletoUrl && (
-                      <Button variant="secondary" size="sm" onClick={() => setSelectedForBoleto(r)}>
-                        <Upload size={14} className="mr-1" /> Anexar Boleto
+                      <Button variant="ghost" size="sm" className="h-9 text-slate-600 hover:text-slate-900 hover:bg-slate-100 bg-white border border-slate-200 shadow-sm font-medium" onClick={() => setSelectedForBoleto(r)}>
+                        <Upload size={16} className="mr-1.5" /> Anexar
                       </Button>
                     )}
                     {r.boletoUrl && (
                       <a href={`http://localhost:3333${r.boletoUrl}`} target="_blank" rel="noreferrer">
-                        <Button variant="ghost" size="sm" className="text-blue-600">
-                          <FileText size={14} className="mr-1" /> Ver Boleto
+                        <Button variant="ghost" size="sm" className="h-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50 bg-white border border-slate-200 shadow-sm font-medium">
+                          <FileText size={16} className="mr-1.5" /> Boleto
                         </Button>
                       </a>
                     )}

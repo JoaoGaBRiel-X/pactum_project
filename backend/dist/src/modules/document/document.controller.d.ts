@@ -3,6 +3,7 @@ export declare class DocumentController {
     private readonly documentService;
     constructor(documentService: DocumentService);
     uploadTemplate(file: Express.Multer.File, name: string, description: string, req: any): Promise<{
+        path: string;
         id: string;
         name: string;
         createdAt: Date;
@@ -11,9 +12,9 @@ export declare class DocumentController {
         updatedBy: string | null;
         description: string | null;
         isActive: boolean;
-        path: string;
     }>;
     getTemplates(): Promise<{
+        path: string;
         id: string;
         name: string;
         createdAt: Date;
@@ -22,26 +23,25 @@ export declare class DocumentController {
         updatedBy: string | null;
         description: string | null;
         isActive: boolean;
-        path: string;
     }[]>;
     generateContract(contractId: string, templateId: string, req: any): Promise<{
+        path: string;
         id: string;
         createdAt: Date;
         createdBy: string | null;
         status: string;
         contractId: string;
         type: string;
-        path: string;
         clicksignKey: string | null;
     }>;
     manualSign(documentId: string, req: any): Promise<{
+        path: string;
         id: string;
         createdAt: Date;
         createdBy: string | null;
         status: string;
         contractId: string;
         type: string;
-        path: string;
         clicksignKey: string | null;
     }>;
 }

@@ -14,18 +14,14 @@ export class EmailProcessor {
   }
 
   private async initMailer() {
-    // Ethereal Email para testes
-    const testAccount = await nodemailer.createTestAccount();
+    // Mailpit para testes locais (via docker-compose)
     this.transporter = nodemailer.createTransport({
-      host: testAccount.smtp.host,
-      port: testAccount.smtp.port,
-      secure: testAccount.smtp.secure,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
+      host: process.env.SMTP_HOST || 'localhost',
+      port: Number(process.env.SMTP_PORT) || 1025,
+      secure: false,
+      ignoreTLS: true,
     });
-    this.logger.log(`Ethereal Email worker ready: ${testAccount.user}`);
+    this.logger.log(`Mailpit Email worker ready no host: ${process.env.SMTP_HOST || 'localhost'}`);
   }
 
   private replaceVariables(text: string, data: Record<string, any>): string {

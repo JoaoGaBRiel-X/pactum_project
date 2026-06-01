@@ -12,8 +12,15 @@ export declare class PortalAuthController {
             tenantId: string;
         };
     }>;
-    setPassword(tenantSlug: string, body: any): Promise<{
+    setupPassword(body: {
+        token: string;
+        password: string;
+    }): Promise<{
         message: string;
-        contactId: string;
+    }>;
+    requestMagicLink(tenantSlug: string, body: {
+        email: string;
+    }): Promise<{
+        message: string;
     }>;
 }

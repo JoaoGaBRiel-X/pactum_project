@@ -83,7 +83,9 @@ export class DocumentService {
         corporateName: contract.customer.corporateName,
         tradeName: contract.customer.tradeName || contract.customer.corporateName,
         document: contract.customer.document,
-        address: contract.customer.address || 'Endereço não informado',
+        address: contract.customer.street 
+          ? `${contract.customer.street}, ${contract.customer.number || 'S/N'} - ${contract.customer.neighborhood} - ${contract.customer.city}/${contract.customer.state}` 
+          : 'Endereço não informado',
         contactName: contract.customer.contacts?.[0]?.name || 'Representante não informado',
         contactCpf: (contract.customer.contacts?.[0] as any)?.cpf || 'CPF não informado',
       },

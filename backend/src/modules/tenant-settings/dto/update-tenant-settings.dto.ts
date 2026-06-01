@@ -46,4 +46,9 @@ export class UpdateTenantSettingsDto {
   @IsOptional()
   @IsString()
   legalRepCpf?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^[a-z0-9-]+$/, { message: 'Domínio deve conter apenas letras minúsculas, números e hifens' })
+  slug?: string;
 }

@@ -23,6 +23,7 @@ class UpdateTenantSettingsDto {
     document;
     legalRepName;
     legalRepCpf;
+    slug;
 }
 exports.UpdateTenantSettingsDto = UpdateTenantSettingsDto;
 __decorate([
@@ -82,4 +83,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateTenantSettingsDto.prototype, "legalRepCpf", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Matches)(/^[a-z0-9-]+$/, { message: 'Domínio deve conter apenas letras minúsculas, números e hifens' }),
+    __metadata("design:type", String)
+], UpdateTenantSettingsDto.prototype, "slug", void 0);
 //# sourceMappingURL=update-tenant-settings.dto.js.map

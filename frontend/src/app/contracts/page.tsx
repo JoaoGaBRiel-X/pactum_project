@@ -4,8 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FileText, Plus, FileSignature, AlertCircle, Pencil, Trash2, Eye } from 'lucide-react';
+import { FileText, Plus, FileSignature, AlertCircle, Pencil, Trash2, Eye, Search, Building2 } from 'lucide-react';
 import Link from 'next/link';
+import { Input } from '@/components/ui/input';
 
 export default function ContractsPage() {
   const { data: contracts, isLoading, error } = useQuery({
@@ -60,6 +61,22 @@ export default function ContractsPage() {
         </Link>
       </div>
 
+      <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 shadow-sm space-y-4">
+        <div className="flex items-center gap-2 text-blue-800 font-semibold mb-2">
+          <Search size={18} />
+          <h2>Filtros</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">BUSCA (CLIENTE/ID)</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <Input placeholder="Buscar contrato..." className="pl-9 bg-white border-slate-200" />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
         <Table>
           <TableHeader className="bg-slate-50">
@@ -80,10 +97,15 @@ export default function ContractsPage() {
               </TableRow>
             )}
             {contracts?.map((contract: any) => (
-              <TableRow key={contract.id} className="hover:bg-slate-50 transition-colors">
+              <TableRow key={contract.id} className="hover:bg-slate-50 transition-colors group">
                 <TableCell className="font-medium text-slate-800">
-                  <div className="text-xs text-muted-foreground">{contract.id.split('-')[0]}</div>
-                  Cliente: {contract.customer?.corporateName || contract.customerId.split('-')[0]}
+                  <div className="text-xs text-muted-foreground mb-1">{contract.id.split('-')[0]}</div>
+                  <div className="flex items-center gap-2">
+                    <Building2 size={14} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
+                    <Link href={`/contracts/${contract.id}`} className="text-slate-900 font-semibold group-hover:text-blue-700 transition-colors">
+                      {contract.customer?.corporateName || contract.customerId.split('-')[0]}
+                    </Link>
+                  </div>
                 </TableCell>
                 <TableCell className="font-semibold text-primary">
                   R$ {Number(contract.totalValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -94,24 +116,26 @@ export default function ContractsPage() {
                 <TableCell>
                   {getStatusBadge(contract.status)}
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-right px-6 py-4">
                   {contract.status === 'DRAFT' ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                       <Link href={`/contracts/${contract.id}/edit`}>
-                        <Button variant="outline" size="sm" title="Editar Rascunho">
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-600 hover:text-slate-900 hover:bg-slate-100 bg-white border border-slate-200 shadow-sm" title="Editar Rascunho">
                           <Pencil size={16} />
                         </Button>
                       </Link>
-                      <Button variant="destructive" size="sm" title="Excluir Rascunho" onClick={() => handleDelete(contract.id)}>
+                      <Button variant="ghost" size="icon" className="h-9 w-9 text-red-600 hover:text-red-700 hover:bg-red-50 bg-white border border-slate-200 shadow-sm" title="Excluir Rascunho" onClick={() => handleDelete(contract.id)}>
                         <Trash2 size={16} />
                       </Button>
                     </div>
                   ) : (
-                    <Link href={`/contracts/${contract.id}`}>
-                      <Button variant="outline" size="sm" title="Ver Detalhes">
-                        <Eye size={16} className="mr-1" /> Detalhes
-                      </Button>
-                    </Link>
+                    <div className="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                      <Link href={`/contracts/${contract.id}`}>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50 bg-white border border-slate-200 shadow-sm" title="Ver Detalhes">
+                          <Eye size={16} />
+                        </Button>
+                      </Link>
+                    </div>
                   )}
                 </TableCell>
               </TableRow>

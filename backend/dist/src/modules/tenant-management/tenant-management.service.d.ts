@@ -9,12 +9,13 @@ export declare class TenantManagementService {
             schema: string;
             id: string;
             name: string;
-            createdAt: Date;
-            updatedAt: Date;
             document: string;
             tradeName: string | null;
+            slug: string | null;
             legalRepName: string | null;
             legalRepCpf: string | null;
+            createdAt: Date;
+            updatedAt: Date;
         };
         temporaryPassword: string;
     }>;
@@ -26,19 +27,20 @@ export declare class TenantManagementService {
         schema: string;
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         document: string;
         tradeName: string | null;
+        slug: string | null;
         legalRepName: string | null;
         legalRepCpf: string | null;
+        createdAt: Date;
+        updatedAt: Date;
     })[]>;
     getTenant(id: string): Promise<({
         userLinks: ({
             user: {
                 id: string;
-                email: string;
                 name: string;
+                email: string;
             };
         } & {
             userId: string;
@@ -49,22 +51,24 @@ export declare class TenantManagementService {
         schema: string;
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         document: string;
         tradeName: string | null;
+        slug: string | null;
         legalRepName: string | null;
         legalRepCpf: string | null;
+        createdAt: Date;
+        updatedAt: Date;
     }) | null>;
     updateTenant(id: string, dto: any): Promise<{
         schema: string;
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         document: string;
         tradeName: string | null;
+        slug: string | null;
         legalRepName: string | null;
         legalRepCpf: string | null;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
 }

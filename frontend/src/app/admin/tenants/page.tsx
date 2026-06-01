@@ -15,7 +15,7 @@ export default function TenantsPage() {
   });
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Building className="text-primary w-8 h-8" />

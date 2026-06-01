@@ -115,7 +115,7 @@ export default function ContractDetailsPage({ params }: { params: Promise<{ id: 
   const previewTotal = manualRate !== '' ? currentTotal * (1 + (Number(manualRate) / 100)) : currentTotal;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-12">
+    <div className="max-w-7xl mx-auto space-y-6 pb-12">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={() => router.push('/contracts')} className="text-slate-500">

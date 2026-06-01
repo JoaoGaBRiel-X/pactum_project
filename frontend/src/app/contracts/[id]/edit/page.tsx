@@ -132,7 +132,7 @@ export default function EditContractPage({ params }: { params: Promise<{ id: str
   if (isLoadingContract) return <div className="p-8 text-center">Carregando contrato...</div>;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-12">
+    <div className="max-w-7xl mx-auto space-y-6 pb-12">
       <div className="flex items-center gap-2">
         <FileText className="text-primary w-8 h-8" />
         <div>

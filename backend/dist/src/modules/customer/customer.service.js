@@ -16,13 +16,16 @@ exports.CustomerService = void 0;
 const client_1 = require("@prisma/client");
 const common_1 = require("@nestjs/common");
 const tenant_module_1 = require("../../tenant/tenant.module");
+const portal_auth_service_1 = require("../portal/auth/portal-auth.service");
 let CustomerService = class CustomerService {
     prisma;
-    constructor(prisma) {
+    portalAuthService;
+    constructor(prisma, portalAuthService) {
         this.prisma = prisma;
+        this.portalAuthService = portalAuthService;
     }
     async create(createCustomerDto, userId) {
-        const { contacts = [], partners, ...dtoRest } = createCustomerDto;
+        const { contacts = [], partners, legalRepresentatives, ...dtoRest } = createCustomerDto;
         const { email, phone, ...customerData } = dtoRest;
         if (email || phone) {
             contacts.push({
@@ -47,10 +50,14 @@ let CustomerService = class CustomerService {
                     partners: partners && partners.length > 0 ? {
                         create: partners.map(p => ({ ...p, createdBy: userId }))
                     } : undefined,
+                    legalRepresentatives: legalRepresentatives && legalRepresentatives.length > 0 ? {
+                        create: legalRepresentatives.map(lr => ({ ...lr, createdBy: userId }))
+                    } : undefined,
                 },
                 include: {
                     contacts: true,
                     partners: true,
+                    legalRepresentatives: true,
                 }
             });
             return customer;
@@ -67,6 +74,11 @@ let CustomerService = class CustomerService {
             include: {
                 contacts: true,
                 corporateGroup: true,
+                contracts: {
+                    select: {
+                        status: true
+                    }
+                }
             }
         });
     }
@@ -76,6 +88,7 @@ let CustomerService = class CustomerService {
             include: {
                 contacts: true,
                 partners: true,
+                legalRepresentatives: true,
                 corporateGroup: true,
                 contracts: {
                     include: {
@@ -90,9 +103,14 @@ let CustomerService = class CustomerService {
         }
         return customer;
     }
-    async update(id, updateCustomerDto, userId) {
-        await this.findOne(id);
-        const { contacts, partners, ...dtoRest } = updateCustomerDto;
+    async update(id, updateCustomerDto, userId, tenantSlug) {
+        const existingCustomer = await this.findOne(id);
+        if (updateCustomerDto.document && updateCustomerDto.document !== existingCustomer.document) {
+            if (existingCustomer.contracts && existingCustomer.contracts.length > 0) {
+                throw new common_1.BadRequestException('Não é permitido alterar o CNPJ de um cliente que já possui contratos vinculados, pois isso descaracteriza o cliente.');
+            }
+        }
+        const { contacts, partners, legalRepresentatives, ...dtoRest } = updateCustomerDto;
         const { email, phone, ...customerData } = dtoRest;
         const finalContacts = contacts || [];
         if (email || phone) {
@@ -121,12 +139,30 @@ let CustomerService = class CustomerService {
                         deleteMany: {},
                         create: partners.map(p => ({ ...p, createdBy: userId, updatedBy: userId }))
                     } : undefined,
+                    legalRepresentatives: legalRepresentatives !== undefined ? {
+                        deleteMany: {},
+                        create: legalRepresentatives.map(lr => ({ ...lr, createdBy: userId, updatedBy: userId }))
+                    } : undefined,
                 },
                 include: {
                     contacts: true,
                     partners: true,
+                    legalRepresentatives: true,
                 }
             });
+            if (tenantSlug && contacts && contacts.length > 0) {
+                for (const c of customer.contacts) {
+                    const oldContact = existingCustomer.contacts.find((oc) => oc.email === c.email);
+                    if (c.portalAccess && (!oldContact || !oldContact.portalAccess)) {
+                        try {
+                            await this.portalAuthService.generateSetupToken(tenantSlug, c.id, c.email);
+                        }
+                        catch (e) {
+                            console.error(`Falha ao disparar magic link para ${c.email}:`, e.message);
+                        }
+                    }
+                }
+            }
             return customer;
         }
         catch (error) {
@@ -156,6 +192,7 @@ exports.CustomerService = CustomerService;
 exports.CustomerService = CustomerService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(tenant_module_1.TENANT_PRISMA_SERVICE)),
-    __metadata("design:paramtypes", [client_1.PrismaClient])
+    __metadata("design:paramtypes", [client_1.PrismaClient,
+        portal_auth_service_1.PortalAuthService])
 ], CustomerService);
 //# sourceMappingURL=customer.service.js.map

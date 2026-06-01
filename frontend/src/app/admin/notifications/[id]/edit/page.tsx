@@ -74,7 +74,7 @@ export default function EditNotificationTemplatePage({ params }: { params: { id:
   if (isLoading) return <div className="p-8">Carregando...</div>;
 
   return (
-    <div className="space-y-6 pb-12 max-w-4xl">
+    <div className="space-y-6 pb-12 max-w-7xl">
       <div className="flex items-center gap-4 justify-between">
         <div className="flex items-center gap-4">
           <Link href="/admin/notifications">

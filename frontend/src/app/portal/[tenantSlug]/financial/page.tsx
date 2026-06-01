@@ -7,20 +7,22 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { use } from 'react';
 
-export default function PortalFinancialPage({ params }: { params: { tenantSlug: string } }) {
+export default function PortalFinancialPage({ params }: { params: Promise<{ tenantSlug: string }> }) {
   const router = useRouter();
+  const { tenantSlug } = use(params);
   
   useEffect(() => {
-    const userData = localStorage.getItem('user');
+    const userData = localStorage.getItem('portal_user');
     if (!userData) {
-      router.push(`/portal/${params.tenantSlug}/login`);
+      router.push(`/portal/${tenantSlug}/login`);
     }
-  }, [params.tenantSlug, router]);
+  }, [tenantSlug, router]);
 
   const { data: receivables, isLoading } = useQuery({
-    queryKey: ['portal-financial', params.tenantSlug],
-    queryFn: () => apiFetch(`/portal/${params.tenantSlug}/financial`),
+    queryKey: ['portal-financial', tenantSlug],
+    queryFn: () => apiFetch(`/portal/${tenantSlug}/financial`),
   });
 
   if (isLoading) return <div>Carregando histórico...</div>;
@@ -31,7 +33,7 @@ export default function PortalFinancialPage({ params }: { params: { tenantSlug: 
         <h1 className="text-3xl font-bold tracking-tight text-slate-800">
           Financeiro
         </h1>
-        <Link href={`/portal/${params.tenantSlug}/dashboard`}>
+        <Link href={`/portal/${tenantSlug}/dashboard`}>
           <Button variant="outline">Voltar ao Início</Button>
         </Link>
       </div>

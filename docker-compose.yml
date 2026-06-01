@@ -79,6 +79,18 @@ services:
       - app_network
     restart: unless-stopped
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: gestao_contratos_mailpit
+    environment:
+      MP_MAX_MESSAGES: 500
+    ports:
+      - '1025:1025' # Porta SMTP
+      - '8025:8025' # Web UI
+    networks:
+      - app_network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   minio_data:

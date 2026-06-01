@@ -61,7 +61,7 @@ export default function NewProductPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-12">
+    <div className="max-w-7xl mx-auto space-y-6 pb-12">
       <div className="flex items-center gap-2">
         <Package className="text-primary w-8 h-8" />
         <div>
@@ -75,7 +75,7 @@ export default function NewProductPage() {
         {/* Dados do Produto */}
         <div className="bg-white p-6 rounded-xl border border-border shadow-sm space-y-6">
           <h2 className="text-lg font-semibold flex items-center gap-2 border-b pb-2"><Package size={20} /> Detalhes do Produto</h2>
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nome do Produto *</Label>
               <Input id="name" {...register("name")} placeholder="Ex: ERP Completo" />
