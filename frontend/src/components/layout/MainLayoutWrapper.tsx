@@ -15,7 +15,7 @@ export function MainLayoutWrapper({ children }: { children: React.ReactNode }) {
     <>
       <Sidebar />
       <Header />
-      <main className="ml-64 p-8 min-h-screen">
+      <main className="md:ml-64 p-4 sm:p-6 md:p-8 min-h-screen transition-all">
         {children}
       </main>
     </>
