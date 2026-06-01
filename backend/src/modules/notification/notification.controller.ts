@@ -38,4 +38,10 @@ export class NotificationController {
   remove(@Param('id') id: string) {
     return this.notificationService.remove(id);
   }
+
+  @Get('history/customer/:customerId')
+  @ApiOperation({ summary: 'Get communication history for a customer' })
+  findHistoryByCustomer(@Param('customerId') customerId: string) {
+    return this.notificationService.findHistoryByCustomer(customerId);
+  }
 }

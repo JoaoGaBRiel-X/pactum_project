@@ -35,6 +35,7 @@ export default function NotificationTemplatesPage() {
           <TableHeader className="bg-slate-50">
             <TableRow>
               <TableHead>Nome</TableHead>
+              <TableHead>Categoria</TableHead>
               <TableHead>Assunto</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="w-[100px]">Ações</TableHead>
@@ -43,17 +44,20 @@ export default function NotificationTemplatesPage() {
           <TableBody>
             {isLoading && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Carregando...</TableCell>
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Carregando...</TableCell>
               </TableRow>
             )}
             {templates?.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Nenhum template encontrado.</TableCell>
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhum template encontrado.</TableCell>
               </TableRow>
             )}
             {templates?.map((t: any) => (
               <TableRow key={t.id} className="hover:bg-slate-50 transition-colors">
                 <TableCell className="font-semibold text-slate-800">{t.name}</TableCell>
+                <TableCell>
+                  <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs font-semibold">{t.category || 'COMMERCIAL'}</span>
+                </TableCell>
                 <TableCell>{t.subject}</TableCell>
                 <TableCell>
                   {t.isActive ? (

@@ -1,34 +1,23 @@
-import { Injectable, Inject, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, Logger, Optional } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { TENANT_PRISMA_SERVICE } from '../../tenant/tenant.module';
-import * as nodemailer from 'nodemailer';
+import { PrismaService } from '../../prisma/prisma.service';
+import type { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
 export class NotificationService {
-  private transporter: nodemailer.Transporter;
   private readonly logger = new Logger(NotificationService.name);
 
   constructor(
     @Inject(TENANT_PRISMA_SERVICE)
     private readonly prisma: PrismaClient,
-  ) {
-    this.initMailer();
-  }
-
-  private async initMailer() {
-    // Para desenvolvimento: usando Ethereal Email (fake SMTP)
-    const testAccount = await nodemailer.createTestAccount();
-    this.transporter = nodemailer.createTransport({
-      host: testAccount.smtp.host,
-      port: testAccount.smtp.port,
-      secure: testAccount.smtp.secure,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
-    });
-    this.logger.log(`Ethereal Email account created: ${testAccount.user}`);
-  }
+    private readonly publicPrisma: PrismaService,
+    @InjectQueue('email') private emailQueue: Queue,
+    @Optional() @Inject(REQUEST) private readonly request?: Request,
+  ) {}
 
   async findAll() {
     return this.prisma.notificationTemplate.findMany({
@@ -46,6 +35,7 @@ export class NotificationService {
     return this.prisma.notificationTemplate.create({
       data: {
         name: data.name,
+        category: data.category || 'COMMERCIAL',
         subject: data.subject,
         content: data.content,
         isActive: data.isActive !== undefined ? data.isActive : true,
@@ -59,6 +49,7 @@ export class NotificationService {
       where: { id },
       data: {
         name: data.name,
+        category: data.category,
         subject: data.subject,
         content: data.content,
         isActive: data.isActive,
@@ -71,45 +62,54 @@ export class NotificationService {
     return this.prisma.notificationTemplate.delete({ where: { id } });
   }
 
-  private replaceVariables(text: string, data: Record<string, any>): string {
-    return text.replace(/\{\{([\w.]+)\}\}/g, (match, path) => {
-      // path can be 'customer.name'
-      const keys = path.split('.');
-      let current = data;
-      for (const key of keys) {
-        if (current === undefined || current === null) return match;
-        current = current[key];
-      }
-      return current !== undefined ? String(current) : match;
+  // Novo: Buscar histórico de comunicações de um cliente
+  async findHistoryByCustomer(customerId: string) {
+    return this.prisma.communicationHistory.findMany({
+      where: { customerId },
+      orderBy: { sentAt: 'desc' },
     });
   }
 
-  async sendNotification(templateName: string, toEmail: string, data: Record<string, any>) {
+  // Push to BullMQ queue
+  async sendNotification(templateName: string, toEmail: string, data: Record<string, any>, customerId?: string, userId?: string) {
     try {
+      // Validate template exists before queueing
       const template = await this.prisma.notificationTemplate.findUnique({
         where: { name: templateName },
       });
 
       if (!template || !template.isActive) {
-        this.logger.warn(`Template ${templateName} not found or inactive. Skipping email.`);
+        this.logger.warn(`Template ${templateName} not found or inactive. Skip queue.`);
         return null;
       }
 
-      const subject = this.replaceVariables(template.subject, data);
-      const content = this.replaceVariables(template.content, data);
+      // Resolve tenant schema from request header to pass to the async processor
+      let tenantSchema: string | null = null;
+      const tenantId = (this.request as any)?.headers?.['x-tenant-id'] as string;
+      if (tenantId) {
+        const tenant = await this.publicPrisma.client.tenant.findUnique({
+          where: { id: tenantId },
+          select: { schema: true },
+        });
+        tenantSchema = tenant?.schema ?? null;
+      }
 
-      const info = await this.transporter.sendMail({
-        from: '"Gestão de Contratos" <no-reply@gestaocontratos.local>',
-        to: toEmail,
-        subject: subject,
-        html: content,
+      await this.emailQueue.add('send-notification', {
+        templateName,
+        toEmail,
+        data,
+        customerId,
+        userId,
+        tenantSchema,
+      }, {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 2000 }
       });
 
-      this.logger.log(`Message sent: ${info.messageId}`);
-      this.logger.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
-      return info;
+      this.logger.log(`Job queued for template ${templateName} to ${toEmail} (schema: ${tenantSchema})`);
+      return { success: true, message: 'Enfileirado com sucesso' };
     } catch (error) {
-      this.logger.error(`Error sending notification: ${error.message}`);
+      this.logger.error(`Error queuing notification: ${error.message}`);
     }
   }
 }

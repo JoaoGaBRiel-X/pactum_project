@@ -12,6 +12,7 @@ export declare class TenantManagementController {
             createdAt: Date;
             updatedAt: Date;
             document: string;
+            tradeName: string | null;
             legalRepName: string | null;
             legalRepCpf: string | null;
         };
@@ -28,6 +29,7 @@ export declare class TenantManagementController {
         createdAt: Date;
         updatedAt: Date;
         document: string;
+        tradeName: string | null;
         legalRepName: string | null;
         legalRepCpf: string | null;
     })[]>;
@@ -50,6 +52,7 @@ export declare class TenantManagementController {
         createdAt: Date;
         updatedAt: Date;
         document: string;
+        tradeName: string | null;
         legalRepName: string | null;
         legalRepCpf: string | null;
     }) | null>;
@@ -60,6 +63,7 @@ export declare class TenantManagementController {
         createdAt: Date;
         updatedAt: Date;
         document: string;
+        tradeName: string | null;
         legalRepName: string | null;
         legalRepCpf: string | null;
     }>;

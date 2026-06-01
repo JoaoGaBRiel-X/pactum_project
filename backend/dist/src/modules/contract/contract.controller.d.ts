@@ -73,10 +73,10 @@ export declare class ContractController {
             createdAt: Date;
             updatedAt: Date;
             document: string;
+            tradeName: string | null;
             createdBy: string | null;
             updatedBy: string | null;
             corporateName: string;
-            tradeName: string | null;
             address: string | null;
             corporateGroupId: string | null;
             delinquencyScore: number;
@@ -113,13 +113,13 @@ export declare class ContractController {
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
         }[];
         documents: {
-            path: string;
             id: string;
             createdAt: Date;
             createdBy: string | null;
             status: string;
             contractId: string;
             type: string;
+            path: string;
             clicksignKey: string | null;
         }[];
         history: {

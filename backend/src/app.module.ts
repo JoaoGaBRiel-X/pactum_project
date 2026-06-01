@@ -18,10 +18,21 @@ import { CorporateGroupModule } from './modules/corporate-group/corporate-group.
 import { NotificationModule } from './modules/notification/notification.module';
 import { PortalAuthModule } from './modules/portal/auth/portal-auth.module';
 import { PortalFinancialModule } from './modules/portal/financial/portal-financial.module';
+import { PublicApiModule } from './modules/public-api/public-api.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { BullModule } from '@nestjs/bull';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { TenantSettingsModule } from './modules/tenant-settings/tenant-settings.module';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
+    BullModule.forRoot({
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      },
+    }),
     TenantModule, 
     IamModule, 
     CustomerModule, 
@@ -35,7 +46,14 @@ import { PortalFinancialModule } from './modules/portal/financial/portal-financi
     CorporateGroupModule,
     NotificationModule,
     PortalAuthModule,
-    PortalFinancialModule
+    PortalFinancialModule,
+    PublicApiModule,
+    DashboardModule,
+    TenantSettingsModule,
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 60,
+    }]),
   ],
   controllers: [AppController],
   providers: [

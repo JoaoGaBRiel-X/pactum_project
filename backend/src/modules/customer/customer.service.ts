@@ -73,6 +73,12 @@ export class CustomerService {
         contacts: true,
         partners: true,
         corporateGroup: true,
+        contracts: {
+          include: {
+            product: { select: { name: true } }
+          },
+          orderBy: { createdAt: 'desc' }
+        }
       }
     });
 

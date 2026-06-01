@@ -6,11 +6,14 @@ import { UpdateContractStatusDto, ContractStatus } from './dto/update-contract-s
 import { PrismaService } from '../../prisma/prisma.service';
 import { TENANT_PRISMA_SERVICE } from '../../tenant/tenant.module';
 
+import { NotificationService } from '../notification/notification.service';
+
 @Injectable()
 export class ContractService {
   constructor(
     @Inject(TENANT_PRISMA_SERVICE)
     private readonly prisma: PrismaClient,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(createDto: CreateContractDto, userId: string) {
@@ -271,7 +274,7 @@ export class ContractService {
       endDate.setFullYear(endDate.getFullYear() + 1);
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const updatedContract = await tx.contract.update({
         where: { id },
         data: {
@@ -307,6 +310,23 @@ export class ContractService {
 
       return updatedContract;
     });
+
+    // Fora da transação (after commit)
+    if (status === 'ACTIVE' && currentStatus !== 'ACTIVE') {
+      const customer = await this.prisma.customer.findUnique({
+        where: { id: contract.customerId },
+        include: { contacts: true },
+      });
+      const toEmail = customer?.contacts?.[0]?.email;
+      if (toEmail) {
+        await this.notificationService.sendNotification('CONTRACT_ACTIVATED', toEmail, {
+          customer,
+          contract: result,
+        }, customer.id, userId);
+      }
+    }
+
+    return result;
   }
 
   async remove(id: string) {

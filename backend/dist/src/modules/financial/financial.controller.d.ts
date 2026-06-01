@@ -85,10 +85,10 @@ export declare class FinancialController {
             createdAt: Date;
             updatedAt: Date;
             document: string;
+            tradeName: string | null;
             createdBy: string | null;
             updatedBy: string | null;
             corporateName: string;
-            tradeName: string | null;
             address: string | null;
             corporateGroupId: string | null;
             delinquencyScore: number;

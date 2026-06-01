@@ -27,6 +27,11 @@ const corporate_group_module_1 = require("./modules/corporate-group/corporate-gr
 const notification_module_1 = require("./modules/notification/notification.module");
 const portal_auth_module_1 = require("./modules/portal/auth/portal-auth.module");
 const portal_financial_module_1 = require("./modules/portal/financial/portal-financial.module");
+const public_api_module_1 = require("./modules/public-api/public-api.module");
+const dashboard_module_1 = require("./modules/dashboard/dashboard.module");
+const bull_1 = require("@nestjs/bull");
+const throttler_1 = require("@nestjs/throttler");
+const tenant_settings_module_1 = require("./modules/tenant-settings/tenant-settings.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -34,6 +39,12 @@ exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
             schedule_1.ScheduleModule.forRoot(),
+            bull_1.BullModule.forRoot({
+                redis: {
+                    host: process.env.REDIS_HOST || 'localhost',
+                    port: parseInt(process.env.REDIS_PORT || '6379', 10),
+                },
+            }),
             tenant_module_1.TenantModule,
             iam_module_1.IamModule,
             customer_module_1.CustomerModule,
@@ -47,7 +58,14 @@ exports.AppModule = AppModule = __decorate([
             corporate_group_module_1.CorporateGroupModule,
             notification_module_1.NotificationModule,
             portal_auth_module_1.PortalAuthModule,
-            portal_financial_module_1.PortalFinancialModule
+            portal_financial_module_1.PortalFinancialModule,
+            public_api_module_1.PublicApiModule,
+            dashboard_module_1.DashboardModule,
+            tenant_settings_module_1.TenantSettingsModule,
+            throttler_1.ThrottlerModule.forRoot([{
+                    ttl: 60000,
+                    limit: 60,
+                }]),
         ],
         controllers: [app_controller_1.AppController],
         providers: [

@@ -2,9 +2,11 @@ import { PrismaClient } from '@prisma/client';
 import { CreateContractDto } from './dto/create-contract.dto';
 import { UpdateContractDto } from './dto/update-contract.dto';
 import { UpdateContractStatusDto } from './dto/update-contract-status.dto';
+import { NotificationService } from '../notification/notification.service';
 export declare class ContractService {
     private readonly prisma;
-    constructor(prisma: PrismaClient);
+    private readonly notificationService;
+    constructor(prisma: PrismaClient, notificationService: NotificationService);
     create(createDto: CreateContractDto, userId: string): Promise<{
         items: {
             id: string;
@@ -67,10 +69,10 @@ export declare class ContractService {
             createdAt: Date;
             updatedAt: Date;
             document: string;
+            tradeName: string | null;
             createdBy: string | null;
             updatedBy: string | null;
             corporateName: string;
-            tradeName: string | null;
             address: string | null;
             corporateGroupId: string | null;
             delinquencyScore: number;
@@ -107,13 +109,13 @@ export declare class ContractService {
             unitPrice: import("@prisma/client-runtime-utils").Decimal;
         }[];
         documents: {
-            path: string;
             id: string;
             createdAt: Date;
             createdBy: string | null;
             status: string;
             contractId: string;
             type: string;
+            path: string;
             clicksignKey: string | null;
         }[];
         history: {

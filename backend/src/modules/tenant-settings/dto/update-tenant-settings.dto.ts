@@ -1,0 +1,49 @@
+import { IsString, IsOptional, Matches } from 'class-validator';
+
+export class UpdateTenantSettingsDto {
+  @IsOptional()
+  @IsString()
+  logoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i, { message: 'Primary color must be a valid HEX color' })
+  primaryColor?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i, { message: 'Secondary color must be a valid HEX color' })
+  secondaryColor?: string;
+
+  @IsOptional()
+  @IsString()
+  supportEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  supportPhone?: string;
+
+  @IsOptional()
+  @IsString()
+  companyDocument?: string;
+
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  tradeName?: string;
+
+  @IsOptional()
+  @IsString()
+  document?: string;
+
+  @IsOptional()
+  @IsString()
+  legalRepName?: string;
+
+  @IsOptional()
+  @IsString()
+  legalRepCpf?: string;
+}

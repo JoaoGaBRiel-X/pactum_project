@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { LogOut } from 'lucide-react';
@@ -10,14 +10,15 @@ export default function PortalLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { tenantSlug: string };
+  params: Promise<{ tenantSlug: string }>;
 }) {
   const router = useRouter();
+  const resolvedParams = use(params);
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('user');
-    router.push(`/portal/${params.tenantSlug}/login`);
+    router.push(`/portal/${resolvedParams.tenantSlug}/login`);
   };
 
   return (

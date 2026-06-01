@@ -11,34 +11,51 @@ datasource db {
 // ==========================================
 
 model Tenant {
-  id        String   @id @default(uuid())
-  name      String
-  document  String   @unique // CNPJ
-  schema    String   @unique // The schema name for this tenant (e.g. "tenant_123")
-  
-  legalRepName String?   @map("legal_rep_name")
-  legalRepCpf  String?   @map("legal_rep_cpf")
+  id       String @id @default(uuid())
+  name     String
+  document String @unique // CNPJ
+  schema   String @unique // The schema name for this tenant (e.g. "tenant_123")
+  tradeName String? @map("trade_name")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime     @updatedAt @map("updated_at")
-  userLinks UserTenant[]
+  legalRepName String? @map("legal_rep_name")
+  legalRepCpf  String? @map("legal_rep_cpf")
+
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+  userLinks  UserTenant[]
+  apiClients ApiClient[]
 
   @@map("tenants")
 }
 
+model ApiClient {
+  id               String @id @default(uuid())
+  name             String // Ex: "Integração ERP SAP"
+  clientId         String @unique
+  clientSecretHash String @map("client_secret_hash")
+  tenantId         String @map("tenant_id")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("api_clients")
+}
+
 model User {
-  id          String       @id @default(uuid())
-  email       String       @unique
-  password    String
-  name        String
-  isSuperAdmin Boolean     @default(false) @map("is_superadmin")
-  mfaEnabled  Boolean      @default(false) @map("mfa_enabled")
-  mfaSecret   String?      @map("mfa_secret")
-  
+  id           String  @id @default(uuid())
+  email        String  @unique
+  password     String
+  name         String
+  isSuperAdmin Boolean @default(false) @map("is_superadmin")
+  mfaEnabled   Boolean @default(false) @map("mfa_enabled")
+  mfaSecret    String? @map("mfa_secret")
+
   tenantLinks UserTenant[]
-  
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("users")
 }
@@ -48,8 +65,8 @@ model UserTenant {
   tenantId String @map("tenant_id")
   role     Role   @default(USER)
 
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@id([userId, tenantId])
   @@map("user_tenants")
@@ -81,48 +98,48 @@ model CorporateGroup {
 }
 
 model Customer {
-  id               String          @id @default(uuid())
-  document         String          @unique // CNPJ
-  corporateName    String          @map("corporate_name")
-  tradeName        String?         @map("trade_name")
+  id               String                 @id @default(uuid())
+  document         String                 @unique // CNPJ
+  corporateName    String                 @map("corporate_name")
+  tradeName        String?                @map("trade_name")
   address          String?
-  corporateGroupId String?         @map("corporate_group_id")
-  corporateGroup   CorporateGroup? @relation(fields: [corporateGroupId], references: [id])
+  corporateGroupId String?                @map("corporate_group_id")
+  corporateGroup   CorporateGroup?        @relation(fields: [corporateGroupId], references: [id])
   contacts         Contact[]
   partners         Partner[]
   contracts        Contract[]
   receivables      Receivable[]
   renegotiations   DebtRenegotiation[]
-  delinquencyScore Int             @default(1000) @map("delinquency_score")
+  communications   CommunicationHistory[]
+  delinquencyScore Int                    @default(1000) @map("delinquency_score")
 
-  
-  createdAt        DateTime        @default(now()) @map("created_at")
-  updatedAt        DateTime        @updatedAt @map("updated_at")
-  createdBy        String?         @map("created_by")
-  updatedBy        String?         @map("updated_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
 
   @@map("customers")
 }
 
 model Contact {
-  id         String   @id @default(uuid())
-  name       String
-  email        String
-  phone        String?
-  cpf          String?
-  role         String?
-  
+  id    String  @id @default(uuid())
+  name  String
+  email String
+  phone String?
+  cpf   String?
+  role  String?
+
   // Portal Access (Phase 6)
-  passwordHash String?  @map("password_hash")
-  portalAccess Boolean  @default(false) @map("portal_access")
-  
-  customerId   String   @map("customer_id")
-  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-  createdBy  String?  @map("created_by")
-  updatedBy  String?  @map("updated_by")
+  passwordHash String? @map("password_hash")
+  portalAccess Boolean @default(false) @map("portal_access")
+
+  customerId String   @map("customer_id")
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
 
   @@map("contacts")
 }
@@ -130,15 +147,15 @@ model Contact {
 model Partner {
   id         String   @id @default(uuid())
   name       String
-  document   String   // CPF/CNPJ do sócio
+  document   String // CPF/CNPJ do sócio
   share      Decimal? // % de participação
   customerId String   @map("customer_id")
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-  createdBy  String?  @map("created_by")
-  updatedBy  String?  @map("updated_by")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
 
   @@map("partners")
 }
@@ -152,11 +169,11 @@ model SoftwareProduct {
   isActive    Boolean          @default(true) @map("is_active")
   modules     SoftwareModule[]
   contracts   Contract[]
-  
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
-  createdBy   String?          @map("created_by")
-  updatedBy   String?          @map("updated_by")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
 
   @@map("software_products")
 }
@@ -169,41 +186,61 @@ model SoftwareModule {
   isActive    Boolean         @default(true) @map("is_active")
   productId   String          @map("product_id")
   product     SoftwareProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime        @default(now()) @map("created_at")
-  updatedAt   DateTime        @updatedAt @map("updated_at")
-  createdBy   String?         @map("created_by")
-  updatedBy   String?         @map("updated_by")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
 
   @@map("software_modules")
 }
 
-// --- Audit & LGPD ---
+// --- Tenant Settings ---
+
+model TenantSetting {
+  id              String  @id @default(uuid())
+  logoUrl         String? @map("logo_url")
+  primaryColor    String? @map("primary_color")
+  secondaryColor  String? @map("secondary_color")
+  supportEmail    String? @map("support_email")
+  supportPhone    String? @map("support_phone")
+  companyDocument String? @map("company_document")
+
+  gatewayToken   String? @map("gateway_token")
+  clicksignToken String? @map("clicksign_token")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
+  @@map("tenant_settings")
+}
 
 model ConsentRecord {
-  id            String   @id @default(uuid())
-  documentRef   String   @map("document_ref") // Referência ao termo aceito
-  ipAddress     String?  @map("ip_address")
-  userAgent     String?  @map("user_agent")
-  acceptedAt    DateTime @default(now()) @map("accepted_at")
-  customerId    String   @map("customer_id")
-  
-  createdAt     DateTime @default(now()) @map("created_at")
-  createdBy     String?  @map("created_by")
+  id          String   @id @default(uuid())
+  documentRef String   @map("document_ref") // Referência ao termo aceito
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  acceptedAt  DateTime @default(now()) @map("accepted_at")
+  customerId  String   @map("customer_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String?  @map("created_by")
 
   @@map("consent_records")
 }
 
 model AuditLog {
-  id         String   @id @default(uuid())
-  action     String   // CREATE, UPDATE, DELETE
-  tableName  String   @map("table_name")
-  recordId   String   @map("record_id")
-  oldPayload Json?    @map("old_payload")
-  newPayload Json?    @map("new_payload")
-  userId     String?  @map("user_id")
-  
-  createdAt  DateTime @default(now()) @map("created_at")
+  id         String  @id @default(uuid())
+  action     String // CREATE, UPDATE, DELETE
+  tableName  String  @map("table_name")
+  recordId   String  @map("record_id")
+  oldPayload Json?   @map("old_payload")
+  newPayload Json?   @map("new_payload")
+  userId     String? @map("user_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("audit_logs")
 }
@@ -211,48 +248,48 @@ model AuditLog {
 // --- Contract Management (Foundation for Phase 3) ---
 
 model Contract {
-  id             String            @id @default(uuid())
-  customerId     String            @map("customer_id")
-  customer       Customer          @relation(fields: [customerId], references: [id])
-  productId      String            @map("product_id")
-  product        SoftwareProduct   @relation(fields: [productId], references: [id])
-  status         String            @default("DRAFT")
-  startDate      DateTime?         @map("start_date")
-  endDate        DateTime?         @map("end_date")
-  totalValue     Decimal           @default(0.0) @map("total_value")
-  globalDiscount Decimal           @default(0.0) @map("global_discount")
-  renewalMode    String            @default("AUTOMATIC") @map("renewal_mode")
-  
-  items          ContractItem[]
-  documents      ContractDocument[]
-  history        ContractHistory[]
-  receivables    Receivable[]
-  adjustments    ContractAdjustment[]
+  id             String          @id @default(uuid())
+  customerId     String          @map("customer_id")
+  customer       Customer        @relation(fields: [customerId], references: [id])
+  productId      String          @map("product_id")
+  product        SoftwareProduct @relation(fields: [productId], references: [id])
+  status         String          @default("DRAFT")
+  startDate      DateTime?       @map("start_date")
+  endDate        DateTime?       @map("end_date")
+  totalValue     Decimal         @default(0.0) @map("total_value")
+  globalDiscount Decimal         @default(0.0) @map("global_discount")
+  renewalMode    String          @default("AUTOMATIC") @map("renewal_mode")
 
-  adjustmentIndexId String?          @map("adjustment_index_id")
-  adjustmentIndex   AdjustmentIndex? @relation(fields: [adjustmentIndexId], references: [id])
-  nextAdjustmentDate DateTime?       @map("next_adjustment_date")
-  createdAt      DateTime          @default(now()) @map("created_at")
-  updatedAt      DateTime          @updatedAt @map("updated_at")
-  createdBy      String?           @map("created_by")
-  updatedBy      String?           @map("updated_by")
+  items       ContractItem[]
+  documents   ContractDocument[]
+  history     ContractHistory[]
+  receivables Receivable[]
+  adjustments ContractAdjustment[]
+
+  adjustmentIndexId  String?          @map("adjustment_index_id")
+  adjustmentIndex    AdjustmentIndex? @relation(fields: [adjustmentIndexId], references: [id])
+  nextAdjustmentDate DateTime?        @map("next_adjustment_date")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+  createdBy          String?          @map("created_by")
+  updatedBy          String?          @map("updated_by")
 
   @@map("contracts")
 }
 
 model ContractHistory {
-  id             String   @id @default(uuid())
-  contractId     String   @map("contract_id")
-  contract       Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  
+  id         String   @id @default(uuid())
+  contractId String   @map("contract_id")
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
   // Snapshot dos detalhes do contrato no momento
   status         String
-  totalValue     Decimal  @map("total_value")
-  modulesPayload Json     @map("modules_payload") // Guarda modulos e quantidades no momento
-  
-  changedAt      DateTime @default(now()) @map("changed_at")
-  changedBy      String?  @map("changed_by")
-  reason         String?
+  totalValue     Decimal @map("total_value")
+  modulesPayload Json    @map("modules_payload") // Guarda modulos e quantidades no momento
+
+  changedAt DateTime @default(now()) @map("changed_at")
+  changedBy String?  @map("changed_by")
+  reason    String?
 
   @@map("contract_history")
 }
@@ -261,42 +298,42 @@ model ContractItem {
   id         String   @id @default(uuid())
   contractId String   @map("contract_id")
   contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  
-  moduleId   String   @map("module_id") // ID do SoftwareModule
-  quantity   Int      @default(1)
-  unitPrice  Decimal  @map("unit_price") // Preço salvo na hora do contrato
-  discount   Decimal  @default(0.0)
-  
+
+  moduleId  String  @map("module_id") // ID do SoftwareModule
+  quantity  Int     @default(1)
+  unitPrice Decimal @map("unit_price") // Preço salvo na hora do contrato
+  discount  Decimal @default(0.0)
+
   @@map("contract_items")
 }
 
 model ContractDocument {
-  id            String   @id @default(uuid())
-  contractId    String   @map("contract_id")
-  contract      Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  
-  type          String   // DOCX, PDF
-  path          String   // Caminho do S3/MinIO
-  clicksignKey  String?  @map("clicksign_key")
-  status        String   @default("GENERATED")
-  
-  createdAt     DateTime @default(now()) @map("created_at")
-  createdBy     String?  @map("created_by")
+  id         String   @id @default(uuid())
+  contractId String   @map("contract_id")
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  type         String // DOCX, PDF
+  path         String // Caminho do S3/MinIO
+  clicksignKey String? @map("clicksign_key")
+  status       String  @default("GENERATED")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String?  @map("created_by")
 
   @@map("contract_documents")
 }
 
 model DocumentTemplate {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   description String?
-  path        String   // Caminho no disco ou MinIO onde o .docx reside
-  isActive    Boolean  @default(true) @map("is_active")
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  createdBy   String?  @map("created_by")
-  updatedBy   String?  @map("updated_by")
+  path        String // Caminho no disco ou MinIO onde o .docx reside
+  isActive    Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
 
   @@map("document_templates")
 }
@@ -306,68 +343,68 @@ model DocumentTemplate {
 // ==========================================
 
 model Receivable {
-  id              String    @id @default(uuid())
-  contractId      String?   @map("contract_id")
-  contract        Contract? @relation(fields: [contractId], references: [id])
-  customerId      String    @map("customer_id")
-  customer        Customer  @relation(fields: [customerId], references: [id])
-  
-  description     String
-  type            String    @default("RECURRING") // RECURRING, SETUP_FEE, ONE_TIME, RENEGOTIATION
-  amount          Decimal
-  dueDate         DateTime  @map("due_date")
-  status          String    @default("PENDING") // PENDING, PAID, OVERDUE, CANCELED, RENEGOTIATED
-  
-  competence      String?   // ex: 2023-10
-  
+  id         String    @id @default(uuid())
+  contractId String?   @map("contract_id")
+  contract   Contract? @relation(fields: [contractId], references: [id])
+  customerId String    @map("customer_id")
+  customer   Customer  @relation(fields: [customerId], references: [id])
+
+  description String
+  type        String   @default("RECURRING") // RECURRING, SETUP_FEE, ONE_TIME, RENEGOTIATION
+  amount      Decimal
+  dueDate     DateTime @map("due_date")
+  status      String   @default("PENDING") // PENDING, PAID, OVERDUE, CANCELED, RENEGOTIATED
+
+  competence String? // ex: 2023-10
+
   payments        Payment[]
   renegotiationId String?   @map("renegotiation_id")
   boletoUrl       String?   @map("boleto_url")
 
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  createdBy       String?   @map("created_by")
-  updatedBy       String?   @map("updated_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
 
   @@map("receivables")
 }
 
 model Payment {
-  id              String     @id @default(uuid())
-  receivableId    String     @map("receivable_id")
-  receivable      Receivable @relation(fields: [receivableId], references: [id])
-  
-  amount          Decimal
-  paymentDate     DateTime   @map("payment_date")
-  method          String     // MANUAL, BOLETO, PIX, CREDIT_CARD
-  status          String     @default("CONFIRMED") // PENDING, CONFIRMED, FAILED
-  receiptUrl      String?    @map("receipt_url")
-  
-  createdAt       DateTime   @default(now()) @map("created_at")
-  createdBy       String?    @map("created_by")
+  id           String     @id @default(uuid())
+  receivableId String     @map("receivable_id")
+  receivable   Receivable @relation(fields: [receivableId], references: [id])
+
+  amount      Decimal
+  paymentDate DateTime @map("payment_date")
+  method      String // MANUAL, BOLETO, PIX, CREDIT_CARD
+  status      String   @default("CONFIRMED") // PENDING, CONFIRMED, FAILED
+  receiptUrl  String?  @map("receipt_url")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String?  @map("created_by")
 
   @@map("payments")
 }
 
 model DebtRenegotiation {
-  id              String   @id @default(uuid())
-  customerId      String   @map("customer_id")
-  customer        Customer @relation(fields: [customerId], references: [id])
-  
-  originalDebt    Decimal  @map("original_debt")
-  interestApplied Decimal  @default(0) @map("interest_applied")
-  penaltyApplied  Decimal  @default(0) @map("penalty_applied")
-  discount        Decimal  @default(0)
-  finalAmount     Decimal  @map("final_amount")
-  
-  status          String   @default("PENDING") // PENDING, APPROVED, CANCELED
-  
+  id         String   @id @default(uuid())
+  customerId String   @map("customer_id")
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  originalDebt    Decimal @map("original_debt")
+  interestApplied Decimal @default(0) @map("interest_applied")
+  penaltyApplied  Decimal @default(0) @map("penalty_applied")
+  discount        Decimal @default(0)
+  finalAmount     Decimal @map("final_amount")
+
+  status String @default("PENDING") // PENDING, APPROVED, CANCELED
+
   consolidatedReceivableIds Json @map("consolidated_receivable_ids")
 
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
-  createdBy       String?  @map("created_by")
-  updatedBy       String?  @map("updated_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
 
   @@map("debt_renegotiations")
 }
@@ -377,45 +414,45 @@ model DebtRenegotiation {
 // ==========================================
 
 model AdjustmentIndex {
-  id          String   @id @default(uuid())
-  name        String   @unique // ex: IGPM, IPCA
+  id          String           @id @default(uuid())
+  name        String           @unique // ex: IGPM, IPCA
   description String?
   rates       AdjustmentRate[]
   contracts   Contract[]
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  createdBy   String?  @map("created_by")
-  updatedBy   String?  @map("updated_by")
-  
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
   @@map("adjustment_indexes")
 }
 
 model AdjustmentRate {
-  id               String          @id @default(uuid())
-  indexId          String          @map("index_id")
-  index            AdjustmentIndex @relation(fields: [indexId], references: [id], onDelete: Cascade)
-  competence       String          // YYYY-MM
-  accumulatedRate  Decimal         @map("accumulated_rate") // Ex: 4.5 (%)
-  
+  id              String          @id @default(uuid())
+  indexId         String          @map("index_id")
+  index           AdjustmentIndex @relation(fields: [indexId], references: [id], onDelete: Cascade)
+  competence      String // YYYY-MM
+  accumulatedRate Decimal         @map("accumulated_rate") // Ex: 4.5 (%)
+
   @@unique([indexId, competence])
   @@map("adjustment_rates")
 }
 
 model ContractAdjustment {
-  id            String   @id @default(uuid())
-  contractId    String   @map("contract_id")
-  contract      Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  
-  previousValue Decimal  @map("previous_value")
-  newValue      Decimal  @map("new_value")
-  appliedRate   Decimal  @map("applied_rate")
-  type          String   // AUTOMATIC, MANUAL
+  id         String   @id @default(uuid())
+  contractId String   @map("contract_id")
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  previousValue Decimal @map("previous_value")
+  newValue      Decimal @map("new_value")
+  appliedRate   Decimal @map("applied_rate")
+  type          String // AUTOMATIC, MANUAL
   reason        String?
-  
-  appliedAt     DateTime @default(now()) @map("applied_at")
-  appliedBy     String?  @map("applied_by")
-  
+
+  appliedAt DateTime @default(now()) @map("applied_at")
+  appliedBy String?  @map("applied_by")
+
   @@map("contract_adjustments")
 }
 
@@ -424,16 +461,35 @@ model ContractAdjustment {
 // ==========================================
 
 model NotificationTemplate {
-  id        String   @id @default(uuid())
-  name      String   @unique // Ex: 'NEW_BOLETO'
-  subject   String
-  content   String   @db.Text
-  isActive  Boolean  @default(true) @map("is_active")
-  
+  id       String  @id @default(uuid())
+  name     String  @unique // Ex: 'NEW_BOLETO'
+  category String  @default("COMMERCIAL") // FINANCIAL, CONTRACT, RENEWAL, COMMERCIAL
+  subject  String
+  content  String  @db.Text
+  isActive Boolean @default(true) @map("is_active")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   createdBy String?  @map("created_by")
   updatedBy String?  @map("updated_by")
 
   @@map("notification_templates")
+}
+
+model CommunicationHistory {
+  id         String   @id @default(uuid())
+  customerId String   @map("customer_id")
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  templateName String? @map("template_name")
+  subject      String
+  content      String  @db.Text
+  recipient    String
+  status       String  @default("SENT") // PENDING, SENT, FAILED
+  errorMessage String? @map("error_message")
+
+  sentAt    DateTime @default(now()) @map("sent_at")
+  createdBy String?  @map("created_by")
+
+  @@map("communication_history")
 }

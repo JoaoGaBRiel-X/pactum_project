@@ -36,10 +36,10 @@ export declare class CustomerService {
         createdAt: Date;
         updatedAt: Date;
         document: string;
+        tradeName: string | null;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;
-        tradeName: string | null;
         address: string | null;
         corporateGroupId: string | null;
         delinquencyScore: number;
@@ -73,10 +73,10 @@ export declare class CustomerService {
         createdAt: Date;
         updatedAt: Date;
         document: string;
+        tradeName: string | null;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;
-        tradeName: string | null;
         address: string | null;
         corporateGroupId: string | null;
         delinquencyScore: number;
@@ -116,15 +116,36 @@ export declare class CustomerService {
             customerId: string;
             share: import("@prisma/client-runtime-utils").Decimal | null;
         }[];
+        contracts: ({
+            product: {
+                name: string;
+            };
+        } & {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            createdBy: string | null;
+            updatedBy: string | null;
+            customerId: string;
+            productId: string;
+            status: string;
+            startDate: Date | null;
+            endDate: Date | null;
+            totalValue: import("@prisma/client-runtime-utils").Decimal;
+            globalDiscount: import("@prisma/client-runtime-utils").Decimal;
+            renewalMode: string;
+            adjustmentIndexId: string | null;
+            nextAdjustmentDate: Date | null;
+        })[];
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
         document: string;
+        tradeName: string | null;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;
-        tradeName: string | null;
         address: string | null;
         corporateGroupId: string | null;
         delinquencyScore: number;
@@ -161,10 +182,10 @@ export declare class CustomerService {
         createdAt: Date;
         updatedAt: Date;
         document: string;
+        tradeName: string | null;
         createdBy: string | null;
         updatedBy: string | null;
         corporateName: string;
-        tradeName: string | null;
         address: string | null;
         corporateGroupId: string | null;
         delinquencyScore: number;

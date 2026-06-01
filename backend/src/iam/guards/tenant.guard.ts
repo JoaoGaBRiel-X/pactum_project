@@ -40,8 +40,19 @@ export class TenantGuard implements CanActivate {
       return true; 
     }
 
+    if (user?.role === 'API_CLIENT') {
+      if (!tenantId || tenantId !== user.tenantId) {
+        throw new ForbiddenException('Acesso negado para este locatário (API_CLIENT)');
+      }
+      request.tenantContext = {
+        tenantId: user.tenantId,
+        role: 'API_CLIENT'
+      };
+      return true;
+    }
+
     const globalUser = await this.prisma.client.user.findUnique({
-      where: { id: user.userId },
+      where: { id: user.userId || user.sub },
       select: { isSuperAdmin: true }
     });
 

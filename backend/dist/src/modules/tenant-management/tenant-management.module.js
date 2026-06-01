@@ -10,13 +10,15 @@ exports.TenantManagementModule = void 0;
 const common_1 = require("@nestjs/common");
 const tenant_management_controller_1 = require("./tenant-management.controller");
 const tenant_management_service_1 = require("./tenant-management.service");
+const api_keys_controller_1 = require("./api-keys.controller");
+const prisma_service_1 = require("../../prisma/prisma.service");
 let TenantManagementModule = class TenantManagementModule {
 };
 exports.TenantManagementModule = TenantManagementModule;
 exports.TenantManagementModule = TenantManagementModule = __decorate([
     (0, common_1.Module)({
-        controllers: [tenant_management_controller_1.TenantManagementController],
-        providers: [tenant_management_service_1.TenantManagementService],
+        controllers: [tenant_management_controller_1.TenantManagementController, api_keys_controller_1.ApiKeysController],
+        providers: [tenant_management_service_1.TenantManagementService, prisma_service_1.PrismaService],
     })
 ], TenantManagementModule);
 //# sourceMappingURL=tenant-management.module.js.map

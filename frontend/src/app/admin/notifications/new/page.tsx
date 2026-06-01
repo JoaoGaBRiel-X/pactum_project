@@ -14,6 +14,7 @@ export default function NewNotificationTemplatePage() {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     name: '',
+    category: 'COMMERCIAL',
     subject: '',
     content: '',
     isActive: true,
@@ -71,6 +72,19 @@ export default function NewNotificationTemplatePage() {
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value.toUpperCase()})}
             />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700">Categoria</label>
+            <select
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={formData.category}
+              onChange={(e) => setFormData({...formData, category: e.target.value})}
+            >
+              <option value="COMMERCIAL">Comercial</option>
+              <option value="FINANCIAL">Financeiro</option>
+              <option value="CONTRACT">Contratos</option>
+              <option value="RENEWAL">Renovação</option>
+            </select>
           </div>
           <div className="space-y-2 flex flex-col justify-end">
             <label className="flex items-center gap-2 text-sm font-medium text-slate-700 h-10">

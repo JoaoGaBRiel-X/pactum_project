@@ -38,6 +38,9 @@ let NotificationController = class NotificationController {
     remove(id) {
         return this.notificationService.remove(id);
     }
+    findHistoryByCustomer(customerId) {
+        return this.notificationService.findHistoryByCustomer(customerId);
+    }
 };
 exports.NotificationController = NotificationController;
 __decorate([
@@ -82,6 +85,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], NotificationController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Get)('history/customer/:customerId'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get communication history for a customer' }),
+    __param(0, (0, common_1.Param)('customerId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], NotificationController.prototype, "findHistoryByCustomer", null);
 exports.NotificationController = NotificationController = __decorate([
     (0, swagger_1.ApiTags)('Notification Templates'),
     (0, common_1.Controller)('notification-templates'),

@@ -16,10 +16,13 @@ exports.ContractService = void 0;
 const client_1 = require("@prisma/client");
 const common_1 = require("@nestjs/common");
 const tenant_module_1 = require("../../tenant/tenant.module");
+const notification_service_1 = require("../notification/notification.service");
 let ContractService = class ContractService {
     prisma;
-    constructor(prisma) {
+    notificationService;
+    constructor(prisma, notificationService) {
         this.prisma = prisma;
+        this.notificationService = notificationService;
     }
     async create(createDto, userId) {
         const { customerId, productId, items, globalDiscount = 0, renewalMode = 'AUTOMATIC' } = createDto;
@@ -234,7 +237,7 @@ let ContractService = class ContractService {
             endDate = new Date();
             endDate.setFullYear(endDate.getFullYear() + 1);
         }
-        return this.prisma.$transaction(async (tx) => {
+        const result = await this.prisma.$transaction(async (tx) => {
             const updatedContract = await tx.contract.update({
                 where: { id },
                 data: {
@@ -266,6 +269,20 @@ let ContractService = class ContractService {
             });
             return updatedContract;
         });
+        if (status === 'ACTIVE' && currentStatus !== 'ACTIVE') {
+            const customer = await this.prisma.customer.findUnique({
+                where: { id: contract.customerId },
+                include: { contacts: true },
+            });
+            const toEmail = customer?.contacts?.[0]?.email;
+            if (toEmail) {
+                await this.notificationService.sendNotification('CONTRACT_ACTIVATED', toEmail, {
+                    customer,
+                    contract: result,
+                }, customer.id, userId);
+            }
+        }
+        return result;
     }
     async remove(id) {
         const contract = await this.prisma.contract.findUnique({
@@ -288,6 +305,7 @@ exports.ContractService = ContractService;
 exports.ContractService = ContractService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(tenant_module_1.TENANT_PRISMA_SERVICE)),
-    __metadata("design:paramtypes", [client_1.PrismaClient])
+    __metadata("design:paramtypes", [client_1.PrismaClient,
+        notification_service_1.NotificationService])
 ], ContractService);
 //# sourceMappingURL=contract.service.js.map
