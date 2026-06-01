@@ -89,7 +89,7 @@ export default function CorporateGroupsPage() {
                   <TableCell className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <Building2 size={16} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
-                      <Link href={`/corporate-groups/${group.id}/edit`} className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors">
+                      <Link href={`/corporate-groups/${group.id}`} className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors">
                         {group.name}
                       </Link>
                     </div>
@@ -101,6 +101,11 @@ export default function CorporateGroupsPage() {
                   </TableCell>
                   <TableCell className="text-right px-6 py-4">
                     <div className="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                      <Link href={`/corporate-groups/${group.id}`}>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50 bg-white border border-slate-200 shadow-sm" title="Ver Grupo">
+                          <Search size={16} />
+                        </Button>
+                      </Link>
                       <Link href={`/corporate-groups/${group.id}/edit`}>
                         <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-600 hover:text-slate-900 hover:bg-slate-100 bg-white border border-slate-200 shadow-sm" title="Editar Grupo">
                           <Edit size={16} />
