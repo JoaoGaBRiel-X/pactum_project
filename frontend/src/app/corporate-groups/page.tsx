@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import Link from 'next/link';
@@ -7,11 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Plus, Edit, Trash2, Building2, Search } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { Card } from '@/components/ui/card';
 
 export default function CorporateGroupsPage() {
   const queryClient = useQueryClient();
+  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [hasCompaniesFilter, setHasCompaniesFilter] = useState('all');
 
   const { data: groups, isLoading } = useQuery({
     queryKey: ['corporate-groups'],
@@ -21,6 +26,22 @@ export default function CorporateGroupsPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiFetch(`/corporate-groups/${id}`, { method: 'DELETE' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['corporate-groups'] }),
+  });
+
+  const filteredGroups = groups?.filter((group: any) => {
+    // Busca por nome
+    if (searchTerm && !group.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+
+    // Filtro por quantidade de empresas
+    if (hasCompaniesFilter !== 'all') {
+      const count = group._count?.customers || 0;
+      if (hasCompaniesFilter === 'with' && count === 0) return false;
+      if (hasCompaniesFilter === 'without' && count > 0) return false;
+    }
+
+    return true;
   });
 
   return (
@@ -45,16 +66,32 @@ export default function CorporateGroupsPage() {
           <p className="text-sm text-blue-700/80 mt-1">Refine a listagem de grupos econômicos.</p>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 block">Busca (Nome)</label>
               <div className="relative">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                 <Input 
                   placeholder="Buscar grupo..." 
-                  className="pl-9 border-slate-200 focus-visible:ring-blue-500" 
+                  className="pl-9 border-slate-200 focus-visible:ring-blue-500 bg-white" 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+            </div>
+            
+            <div>
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 block">Empresas Vinculadas</label>
+              <Select value={hasCompaniesFilter} onValueChange={setHasCompaniesFilter}>
+                <SelectTrigger className="w-full bg-white border-slate-200 focus:ring-blue-500">
+                  <SelectValue placeholder="Selecione o filtro" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os grupos</SelectItem>
+                  <SelectItem value="with">Com empresas (ativos)</SelectItem>
+                  <SelectItem value="without">Sem empresas (vazios)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -74,7 +111,7 @@ export default function CorporateGroupsPage() {
               <TableRow>
                 <TableCell colSpan={3} className="text-center py-12 text-slate-500 animate-pulse">Carregando...</TableCell>
               </TableRow>
-            ) : groups?.length === 0 ? (
+            ) : filteredGroups?.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={3} className="text-center py-16 text-slate-500">
                   <div className="flex flex-col items-center justify-center gap-2">
@@ -84,7 +121,7 @@ export default function CorporateGroupsPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              groups?.map((group: any) => (
+              filteredGroups?.map((group: any) => (
                 <TableRow key={group.id} className="hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0 group">
                   <TableCell className="px-6 py-4">
                     <div className="flex items-center gap-2">

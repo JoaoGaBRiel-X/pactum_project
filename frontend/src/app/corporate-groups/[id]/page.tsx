@@ -346,7 +346,9 @@ export default function CorporateGroupDetailsPage() {
                     group.customers?.map((customer: any) => (
                       <TableRow key={customer.id} className="hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0 group-row">
                         <TableCell className="px-6 py-4">
-                          <div className="font-semibold text-slate-800">{customer.corporateName}</div>
+                          <Link href={`/customers/${customer.id}`} className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors">
+                            {customer.corporateName}
+                          </Link>
                           <div className="text-sm text-slate-500 font-mono mt-0.5">{customer.document}</div>
                         </TableCell>
                         <TableCell className="text-right px-6 py-4">
