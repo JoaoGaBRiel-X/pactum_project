@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Building2, Mail, Phone, MapPin, FileText, Plus, UserCircle, Briefcase, Activity, Users, FileSignature, CheckCircle2 } from 'lucide-react';
+import { Building2, Mail, Phone, MapPin, FileText, Plus, UserCircle, Briefcase, Activity, Users, FileSignature, CheckCircle2, ArrowLeft, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { CommunicationHistoryList } from '@/components/customers/CommunicationHistoryList';
 import { Badge } from '@/components/ui/badge';
@@ -58,8 +58,11 @@ export default function CustomerDetailsPage() {
           </div>
         </div>
         <div className="flex gap-3">
+          <Button variant="outline" className="border-slate-200 hover:bg-slate-50 text-slate-700 shadow-sm" onClick={() => router.push('/customers')}>
+            <ArrowLeft size={16} className="mr-2" /> Voltar
+          </Button>
           <Button variant="outline" className="border-slate-200 hover:bg-slate-50 text-slate-700 shadow-sm" onClick={() => router.push(`/customers/${id}/edit`)}>
-            Editar Cliente
+            <Edit size={16} className="mr-2" /> Editar Cliente
           </Button>
           <Link href="/contracts/new">
             <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-200">
