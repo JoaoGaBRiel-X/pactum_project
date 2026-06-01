@@ -165,6 +165,15 @@ let AuthenticationService = class AuthenticationService {
             role: ut.role,
         }));
     }
+    async refreshTokens(refreshToken) {
+        try {
+            const payload = await this.jwtService.verifyAsync(refreshToken);
+            return this.generateTokens(payload.sub);
+        }
+        catch (e) {
+            throw new common_1.UnauthorizedException('Token de renovação inválido ou expirado');
+        }
+    }
 };
 exports.AuthenticationService = AuthenticationService;
 exports.AuthenticationService = AuthenticationService = __decorate([

@@ -25,6 +25,14 @@ export class AuthenticationController {
     return this.authService.verifyMfa(dto);
   }
 
+  @Public()
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Renova os tokens usando o Refresh Token' })
+  refreshTokens(@Body() body: { refreshToken: string }) {
+    return this.authService.refreshTokens(body.refreshToken);
+  }
+
   // To do: setup mfa routes would need a valid JWT token to know WHICH user to setup.
   // We will need a JwtGuard first.
 

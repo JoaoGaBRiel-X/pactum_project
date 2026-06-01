@@ -15,6 +15,12 @@ export declare class AuthenticationController {
         accessToken: string;
         refreshToken: string;
     }>;
+    refreshTokens(body: {
+        refreshToken: string;
+    }): Promise<{
+        accessToken: string;
+        refreshToken: string;
+    }>;
     getMyTenants(req: any): Promise<{
         tenantId: string;
         name: string;

@@ -29,6 +29,9 @@ let AuthenticationController = class AuthenticationController {
     verifyMfa(dto) {
         return this.authService.verifyMfa(dto);
     }
+    refreshTokens(body) {
+        return this.authService.refreshTokens(body.refreshToken);
+    }
     getMyTenants(req) {
         return this.authService.getUserTenants(req.user.userId);
     }
@@ -54,6 +57,16 @@ __decorate([
     __metadata("design:paramtypes", [login_dto_1.MfaVerifyDto]),
     __metadata("design:returntype", void 0)
 ], AuthenticationController.prototype, "verifyMfa", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Post)('refresh'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Renova os tokens usando o Refresh Token' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AuthenticationController.prototype, "refreshTokens", null);
 __decorate([
     (0, common_1.Get)('me/tenants'),
     (0, swagger_1.ApiOperation)({ summary: 'Retorna a lista de locatários aos quais o usuário tem acesso' }),

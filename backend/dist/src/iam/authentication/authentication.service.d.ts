@@ -31,4 +31,8 @@ export declare class AuthenticationService {
         document: string;
         role: string;
     }[]>;
+    refreshTokens(refreshToken: string): Promise<{
+        accessToken: string;
+        refreshToken: string;
+    }>;
 }

@@ -159,4 +159,13 @@ export class AuthenticationService {
       role: ut.role,
     }));
   }
+
+  async refreshTokens(refreshToken: string) {
+    try {
+      const payload = await this.jwtService.verifyAsync(refreshToken);
+      return this.generateTokens(payload.sub);
+    } catch (e) {
+      throw new UnauthorizedException('Token de renovação inválido ou expirado');
+    }
+  }
 }

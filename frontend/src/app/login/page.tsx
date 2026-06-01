@@ -42,6 +42,7 @@ export default function LoginPage() {
         setError('MFA requerido, favor entrar em contato.');
       } else {
         localStorage.setItem('gestao_token', response.accessToken);
+        localStorage.setItem('gestao_refresh_token', response.refreshToken);
         
         // Fetch user tenants para definir o tenant_id ativo
         const tenants = await apiFetch('/authentication/me/tenants');
