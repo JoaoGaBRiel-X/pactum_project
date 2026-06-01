@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 const loginSchema = z.object({
   email: z.string().email('E-mail inválido'),
   password: z.string().min(1, 'A senha é obrigatória'),
+  keepConnected: z.boolean().optional(),
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
@@ -25,7 +26,7 @@ export default function LoginPage() {
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: { email: '', password: '', keepConnected: false },
   });
 
   const onSubmit = async (data: LoginValues) => {
@@ -93,6 +94,18 @@ export default function LoginPage() {
               {form.formState.errors.password && (
                 <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
               )}
+            </div>
+            
+            <div className="flex items-center gap-2 mt-2">
+              <input
+                type="checkbox"
+                id="keepConnected"
+                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600 cursor-pointer"
+                {...form.register('keepConnected')}
+              />
+              <Label htmlFor="keepConnected" className="cursor-pointer text-sm font-medium text-slate-700">
+                Mantenha-me conectado
+              </Label>
             </div>
             
             {error && (

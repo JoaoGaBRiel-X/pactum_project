@@ -73,7 +73,7 @@ let AuthenticationService = class AuthenticationService {
                 message: 'Autenticação de 2 fatores necessária.',
             };
         }
-        return this.generateTokens(user.id);
+        return this.generateTokens(user.id, dto.keepConnected || false);
     }
     async verifyMfa(dto) {
         const user = await this.prisma.client.user.findUnique({
@@ -89,7 +89,7 @@ let AuthenticationService = class AuthenticationService {
         if (!isValid) {
             throw new common_1.UnauthorizedException('Código MFA inválido');
         }
-        return this.generateTokens(user.id);
+        return this.generateTokens(user.id, dto.keepConnected || false);
     }
     async setupMfa(userId) {
         const secret = otplib_1.authenticator.generateSecret();
@@ -127,14 +127,15 @@ let AuthenticationService = class AuthenticationService {
         });
         return { message: 'MFA habilitado com sucesso' };
     }
-    async generateTokens(userId) {
-        const payload = { sub: userId };
+    async generateTokens(userId, keepConnected) {
+        const payload = { sub: userId, kc: keepConnected };
+        const refreshExpiresIn = keepConnected ? '4h' : '15m';
         return {
             accessToken: await this.jwtService.signAsync(payload, {
                 expiresIn: '15m',
             }),
             refreshToken: await this.jwtService.signAsync(payload, {
-                expiresIn: '7d',
+                expiresIn: refreshExpiresIn,
             }),
         };
     }
@@ -168,7 +169,7 @@ let AuthenticationService = class AuthenticationService {
     async refreshTokens(refreshToken) {
         try {
             const payload = await this.jwtService.verifyAsync(refreshToken);
-            return this.generateTokens(payload.sub);
+            return this.generateTokens(payload.sub, payload.kc || false);
         }
         catch (e) {
             throw new common_1.UnauthorizedException('Token de renovação inválido ou expirado');

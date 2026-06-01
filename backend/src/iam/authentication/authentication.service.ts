@@ -40,7 +40,7 @@ export class AuthenticationService {
       };
     }
 
-    return this.generateTokens(user.id);
+    return this.generateTokens(user.id, dto.keepConnected || false);
   }
 
   async verifyMfa(dto: MfaVerifyDto) {
@@ -63,7 +63,7 @@ export class AuthenticationService {
       throw new UnauthorizedException('Código MFA inválido');
     }
 
-    return this.generateTokens(user.id);
+    return this.generateTokens(user.id, dto.keepConnected || false);
   }
 
   async setupMfa(userId: string) {
@@ -116,15 +116,16 @@ export class AuthenticationService {
     return { message: 'MFA habilitado com sucesso' };
   }
 
-  private async generateTokens(userId: string) {
-    const payload = { sub: userId };
+  private async generateTokens(userId: string, keepConnected: boolean) {
+    const payload = { sub: userId, kc: keepConnected };
+    const refreshExpiresIn = keepConnected ? '4h' : '15m';
 
     return {
       accessToken: await this.jwtService.signAsync(payload, {
         expiresIn: '15m',
       }),
       refreshToken: await this.jwtService.signAsync(payload, {
-        expiresIn: '7d',
+        expiresIn: refreshExpiresIn,
       }),
     };
   }
@@ -163,7 +164,7 @@ export class AuthenticationService {
   async refreshTokens(refreshToken: string) {
     try {
       const payload = await this.jwtService.verifyAsync(refreshToken);
-      return this.generateTokens(payload.sub);
+      return this.generateTokens(payload.sub, payload.kc || false);
     } catch (e) {
       throw new UnauthorizedException('Token de renovação inválido ou expirado');
     }
