@@ -1,7 +1,0 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-async function main() { const index = await prisma.adjustmentIndex.create({ data: { name: 'IGPM', description: 'Test', createdBy: 'test' } }); await prisma.adjustmentRate.create({ data: { indexId: index.id, competence: '2026-05', accumulatedRate: 5 } }); console.log(index.id); }
-main();
-//# sourceMappingURL=script.js.map
