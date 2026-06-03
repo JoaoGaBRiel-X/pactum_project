@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Mail, Plus, Edit } from 'lucide-react';
+import { Mail, Plus, Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function NotificationTemplatesPage() {
@@ -12,6 +12,10 @@ export default function NotificationTemplatesPage() {
     queryKey: ['notification-templates'],
     queryFn: () => apiFetch('/notification-templates'),
   });
+
+  const handleDelete = (id: string) => {
+    // TODO: implement delete
+  };
 
   return (
     <div className="space-y-6 pb-12 text-slate-800">

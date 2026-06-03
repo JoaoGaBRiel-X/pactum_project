@@ -8,8 +8,8 @@ test.describe('Complete Flow: Login, Template, Customer, Contract, Document, Sig
 
     // 1. Login
     await page.goto('http://localhost:3000/login');
-    await page.fill('input[type="email"]', 'joaogabriel.mc@hotmail.com');
-    await page.fill('input[type="password"]', 'gp7eog38A@1');
+    await page.fill('input[type="email"]', 'e2e-test@lefer.com.br');
+    await page.fill('input[type="password"]', 'PasswordE2E@123');
     await page.click('button[type="submit"]');
 
     // Verify successful login
@@ -50,15 +50,15 @@ test.describe('Complete Flow: Login, Template, Customer, Contract, Document, Sig
     // 4. Create Contract
     await page.goto('http://localhost:3000/contracts/new');
     // Select the first customer
-    await page.locator('select#customerSelect').selectOption({ index: 1 });
+    await page.locator('select[name="customerId"]').selectOption({ index: 1 });
     // Select the first product
-    await page.locator('select#productSelect').selectOption({ index: 1 });
+    await page.locator('select[name="productId"]').selectOption({ index: 1 });
 
     // Add module
     await page.getByRole('button', { name: /Adicionar Módulo/i }).click();
     await page.locator('select[name="items.0.moduleId"]').selectOption({ index: 1 });
 
-    await page.getByRole('button', { name: /Salvar Rascunho/i }).click();
+    await page.getByRole('button', { name: /Gerar Contrato/i }).click();
     await expect(page.url()).toContain('/contracts/');
 
     // Wait for contract page to load

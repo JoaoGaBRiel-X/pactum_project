@@ -23,6 +23,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { BullModule } from '@nestjs/bull';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TenantSettingsModule } from './modules/tenant-settings/tenant-settings.module';
+import { ProductGroupModule } from './modules/product-group/product-group.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { TenantSettingsModule } from './modules/tenant-settings/tenant-settings.
     IamModule, 
     CustomerModule, 
     ProductModule, 
+    ProductGroupModule,
     AuditModule, 
     ContractModule,
     FinancialModule,

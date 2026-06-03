@@ -59,8 +59,8 @@ async function getPrismaClient(schema = 'public') {
 async function main() {
     console.log('🌱 Iniciando seed de desenvolvimento...');
     const schemaName = 'tenant_empresaautomacao';
-    const adminEmail = 'admin@lefer.com.br';
-    const adminPassword = 'admin123';
+    const adminEmail = 'e2e-test@lefer.com.br';
+    const adminPassword = 'PasswordE2E@123';
     const hashedPassword = await bcrypt.hash(adminPassword, 10);
     const { prisma: publicPrisma, pool: publicPool } = await getPrismaClient('public');
     try {
@@ -74,7 +74,7 @@ async function main() {
             cwd: process.cwd(),
         });
         console.log(`✅ Tabelas provisionadas no schema "${schemaName}"`);
-        const existingTenant = await publicPrisma.tenant.findFirst({ where: { slug: 'empresaautomacao' } });
+        const existingTenant = await publicPrisma.tenant.findFirst({ where: { document: '12345678000100' } });
         let tenant;
         if (existingTenant) {
             tenant = existingTenant;
@@ -120,6 +120,42 @@ async function main() {
         }
         else {
             console.log(`⚠️  Usuário já está vinculado ao tenant`);
+        }
+        const { prisma: tenantPrisma, pool: tenantPool } = await getPrismaClient(schemaName);
+        try {
+            const existingProduct = await tenantPrisma.softwareProduct.findUnique({ where: { id: 'prod1' } });
+            if (!existingProduct) {
+                const product = await tenantPrisma.softwareProduct.create({
+                    data: {
+                        id: 'prod1',
+                        name: 'Gestão de Estoque Pro',
+                        description: 'Produto para automação E2E',
+                        isActive: true,
+                    }
+                });
+                await tenantPrisma.softwareModule.createMany({
+                    data: [
+                        { id: 'mod1', productId: product.id, name: 'Módulo Base', price: 500.0, isBaseOffer: true, isActive: true },
+                        { id: 'mod2', productId: product.id, name: 'Módulo Fiscal', price: 800.0, isBaseOffer: false, isActive: true }
+                    ]
+                });
+                console.log(`✅ Produto e Módulos de Teste criados no tenant`);
+            }
+            const existingCustomer = await tenantPrisma.customer.findUnique({ where: { id: 'cust1' } });
+            if (!existingCustomer) {
+                await tenantPrisma.customer.create({
+                    data: {
+                        id: 'cust1',
+                        document: '99999999000199',
+                        corporateName: 'Cliente Base E2E',
+                    }
+                });
+                console.log(`✅ Cliente de Teste E2E criado no tenant`);
+            }
+        }
+        finally {
+            await tenantPrisma.$disconnect();
+            await tenantPool.end();
         }
         console.log('\n🎉 Seed concluído com sucesso!');
         console.log(`   Portal ERP: http://localhost:3000/login`);

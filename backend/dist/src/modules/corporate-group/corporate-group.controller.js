@@ -24,7 +24,7 @@ let CorporateGroupController = class CorporateGroupController {
         this.corporateGroupService = corporateGroupService;
     }
     create(createCorporateGroupDto, req) {
-        const userId = req.user.sub;
+        const userId = req.user?.sub || 'system-user';
         return this.corporateGroupService.create(createCorporateGroupDto, userId);
     }
     findAll() {
@@ -34,7 +34,7 @@ let CorporateGroupController = class CorporateGroupController {
         return this.corporateGroupService.findOne(id);
     }
     update(id, updateCorporateGroupDto, req) {
-        const userId = req.user.sub;
+        const userId = req.user?.sub || 'system-user';
         return this.corporateGroupService.update(id, updateCorporateGroupDto, userId);
     }
     remove(id) {
@@ -44,11 +44,11 @@ let CorporateGroupController = class CorporateGroupController {
         return this.corporateGroupService.getFinancialSummary(id);
     }
     linkCustomers(id, body, req) {
-        const userId = req.user.sub;
+        const userId = req.user?.sub || 'system-user';
         return this.corporateGroupService.linkCustomers(id, body.customerIds, userId);
     }
     unlinkCustomer(id, customerId, req) {
-        const userId = req.user.sub;
+        const userId = req.user?.sub || 'system-user';
         return this.corporateGroupService.unlinkCustomer(id, customerId, userId);
     }
 };

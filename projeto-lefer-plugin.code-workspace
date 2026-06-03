@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "projeto-lefer-plugin",
+			"path": "../../../../.gemini/config/plugins/projeto-lefer-plugin"
+		},
+		{
+			"name": "Gestao_Contratos",
+			"path": "."
+		}
+	],
+	"settings": {}
+}

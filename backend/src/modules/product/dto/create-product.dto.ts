@@ -20,6 +20,16 @@ class CreateSoftwareModuleDto {
   @ApiProperty()
   @IsNumber()
   price: number;
+
+  @ApiPropertyOptional()
+  @IsBoolean()
+  @IsOptional()
+  isBaseOffer?: boolean;
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  maxQuantity?: number;
 }
 
 export class CreateSoftwareProductDto {
@@ -37,10 +47,14 @@ export class CreateSoftwareProductDto {
   @IsOptional()
   isActive?: boolean;
 
-  @ApiPropertyOptional({ type: [CreateSoftwareModuleDto] })
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  productGroupId?: string;
+
+  @ApiProperty({ type: [CreateSoftwareModuleDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateSoftwareModuleDto)
-  @IsOptional()
-  modules?: CreateSoftwareModuleDto[];
+  modules: CreateSoftwareModuleDto[];
 }

@@ -14,6 +14,8 @@ export default function FinancialPage() {
   const [selectedReceivable, setSelectedReceivable] = useState<any>(null);
   const [paymentAmount, setPaymentAmount] = useState<string>('');
   const [paymentDate, setPaymentDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [paymentMethod, setPaymentMethod] = useState<string>('BOLETO');
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
   
   const [selectedForBoleto, setSelectedForBoleto] = useState<any>(null);
   const [boletoFile, setBoletoFile] = useState<File | null>(null);
@@ -269,7 +271,7 @@ export default function FinancialPage() {
             </div>
             <div className="p-4 border-t bg-slate-50 flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setSelectedReceivable(null)}>Cancelar</Button>
-              <Button onClick={() => registerPaymentMutation.mutate()} disabled={registerPaymentMutation.isPending}>
+              <Button onClick={() => registerPaymentMutation.mutate({ id: selectedReceivable.id, amount: Number(paymentAmount), paymentDate })} disabled={registerPaymentMutation.isPending}>
                 {registerPaymentMutation.isPending ? 'Salvando...' : 'Confirmar Baixa'}
               </Button>
             </div>
@@ -303,7 +305,7 @@ export default function FinancialPage() {
             </div>
             <div className="p-4 border-t bg-slate-50 flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setSelectedForBoleto(null)}>Cancelar</Button>
-              <Button onClick={() => uploadBoletoMutation.mutate()} disabled={uploadBoletoMutation.isPending || !boletoFile}>
+              <Button onClick={() => boletoFile && uploadBoletoMutation.mutate({ id: selectedForBoleto.id, file: boletoFile })} disabled={uploadBoletoMutation.isPending || !boletoFile}>
                 {uploadBoletoMutation.isPending ? 'Enviando...' : 'Confirmar Upload'}
               </Button>
             </div>

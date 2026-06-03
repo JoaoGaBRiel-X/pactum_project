@@ -18,6 +18,8 @@ class CreateSoftwareModuleDto {
     name;
     description;
     price;
+    isBaseOffer;
+    maxQuantity;
 }
 __decorate([
     (0, swagger_1.ApiPropertyOptional)(),
@@ -41,10 +43,23 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateSoftwareModuleDto.prototype, "price", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Boolean)
+], CreateSoftwareModuleDto.prototype, "isBaseOffer", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], CreateSoftwareModuleDto.prototype, "maxQuantity", void 0);
 class CreateSoftwareProductDto {
     name;
     description;
     isActive;
+    productGroupId;
     modules;
 }
 exports.CreateSoftwareProductDto = CreateSoftwareProductDto;
@@ -66,11 +81,16 @@ __decorate([
     __metadata("design:type", Boolean)
 ], CreateSoftwareProductDto.prototype, "isActive", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ type: [CreateSoftwareModuleDto] }),
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateSoftwareProductDto.prototype, "productGroupId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: [CreateSoftwareModuleDto] }),
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.ValidateNested)({ each: true }),
     (0, class_transformer_1.Type)(() => CreateSoftwareModuleDto),
-    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Array)
 ], CreateSoftwareProductDto.prototype, "modules", void 0);
 //# sourceMappingURL=create-product.dto.js.map

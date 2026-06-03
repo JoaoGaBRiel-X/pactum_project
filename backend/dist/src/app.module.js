@@ -32,6 +32,7 @@ const dashboard_module_1 = require("./modules/dashboard/dashboard.module");
 const bull_1 = require("@nestjs/bull");
 const throttler_1 = require("@nestjs/throttler");
 const tenant_settings_module_1 = require("./modules/tenant-settings/tenant-settings.module");
+const product_group_module_1 = require("./modules/product-group/product-group.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -49,6 +50,7 @@ exports.AppModule = AppModule = __decorate([
             iam_module_1.IamModule,
             customer_module_1.CustomerModule,
             product_module_1.ProductModule,
+            product_group_module_1.ProductGroupModule,
             audit_module_1.AuditModule,
             contract_module_1.ContractModule,
             financial_module_1.FinancialModule,

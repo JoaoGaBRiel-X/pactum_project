@@ -13,7 +13,7 @@ export class CorporateGroupController {
   @Post()
   @ApiOperation({ summary: 'Criar um novo Grupo Econômico' })
   create(@Body() createCorporateGroupDto: CreateCorporateGroupDto, @Request() req: any) {
-    const userId = req.user.sub;
+    const userId = req.user?.sub || 'system-user';
     return this.corporateGroupService.create(createCorporateGroupDto, userId);
   }
 
@@ -32,7 +32,7 @@ export class CorporateGroupController {
   @Patch(':id')
   @ApiOperation({ summary: 'Atualizar um Grupo Econômico' })
   update(@Param('id') id: string, @Body() updateCorporateGroupDto: UpdateCorporateGroupDto, @Request() req: any) {
-    const userId = req.user.sub;
+    const userId = req.user?.sub || 'system-user';
     return this.corporateGroupService.update(id, updateCorporateGroupDto, userId);
   }
 
@@ -51,14 +51,14 @@ export class CorporateGroupController {
   @Post(':id/customers')
   @ApiOperation({ summary: 'Vincular clientes ao Grupo Econômico' })
   linkCustomers(@Param('id') id: string, @Body() body: { customerIds: string[] }, @Request() req: any) {
-    const userId = req.user.sub;
+    const userId = req.user?.sub || 'system-user';
     return this.corporateGroupService.linkCustomers(id, body.customerIds, userId);
   }
 
   @Delete(':id/customers/:customerId')
   @ApiOperation({ summary: 'Desvincular cliente do Grupo Econômico' })
   unlinkCustomer(@Param('id') id: string, @Param('customerId') customerId: string, @Request() req: any) {
-    const userId = req.user.sub;
+    const userId = req.user?.sub || 'system-user';
     return this.corporateGroupService.unlinkCustomer(id, customerId, userId);
   }
 }

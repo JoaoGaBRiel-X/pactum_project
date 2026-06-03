@@ -18,12 +18,23 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function CustomersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [stateFilter, setStateFilter] = useState('all');
   const [groupFilter, setGroupFilter] = useState('all');
   const [contractFilter, setContractFilter] = useState('all');
+  const [customerToDelete, setCustomerToDelete] = useState<any>(null);
   
   const { data: customers, isLoading, error } = useQuery({
     queryKey: ['customers'],
@@ -43,9 +54,9 @@ export default function CustomersPage() {
   });
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este cliente? Se houver contratos vinculados a ação falhará.')) {
-      deleteMutation.mutate(id);
-    }
+    // Agora usado apenas via modal
+    deleteMutation.mutate(id);
+    setCustomerToDelete(null);
   };
 
   // Derive unique states and corporate groups for the filters
@@ -286,7 +297,13 @@ export default function CustomersPage() {
                           <Pencil size={16} />
                         </Button>
                       </Link>
-                      <Button variant="ghost" size="icon" className="h-9 w-9 text-red-600 hover:text-red-700 hover:bg-red-50 bg-white border border-slate-200 shadow-sm" title="Excluir" onClick={() => handleDelete(customer.id)}>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-9 w-9 text-red-600 hover:text-red-700 hover:bg-red-50 bg-white border border-slate-200 shadow-sm" 
+                        title="Excluir Cliente"
+                        onClick={() => setCustomerToDelete(customer)}
+                      >
                         <Trash2 size={16} />
                       </Button>
                     </div>
@@ -297,6 +314,43 @@ export default function CustomersPage() {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!customerToDelete} onOpenChange={(open) => !open && setCustomerToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {customerToDelete?.contracts?.length > 0 ? 'Exclusão Bloqueada' : 'Excluir Cliente?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {customerToDelete?.contracts?.length > 0 ? (
+                <>
+                  Este cliente não pode ser excluído pois possui <strong>{customerToDelete.contracts.length}</strong> contrato(s) vinculado(s). 
+                  Você precisa cancelar ou remover os contratos antes de excluí-lo.
+                </>
+              ) : (
+                `Tem certeza que deseja excluir o cliente "${customerToDelete?.corporateName}"? Esta ação é irreversível e apagará todos os contatos associados.`
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {customerToDelete?.contracts?.length > 0 ? (
+              <AlertDialogAction onClick={() => setCustomerToDelete(null)}>Entendi</AlertDialogAction>
+            ) : (
+              <>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={() => {
+                    if (customerToDelete) handleDelete(customerToDelete.id);
+                  }} 
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Excluir
+                </AlertDialogAction>
+              </>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

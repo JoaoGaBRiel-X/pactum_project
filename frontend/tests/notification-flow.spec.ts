@@ -5,8 +5,8 @@ test('Notification Flow Integration', async ({ page }) => {
 
   // 1. Login
   await page.goto('http://localhost:3000/login');
-  await page.fill('#email', 'admin@lefer.com.br');
-  await page.fill('#password', 'admin123');
+  await page.fill('#email', 'e2e-test@lefer.com.br');
+  await page.fill('#password', 'PasswordE2E@123');
   await page.click('button[type="submit"]');
   await page.waitForURL('http://localhost:3000/');
 
@@ -16,7 +16,7 @@ test('Notification Flow Integration', async ({ page }) => {
   await page.fill('input[placeholder="Ex: NEW_BOLETO"]', uniqueTemplateName);
   await page.fill('input[placeholder="Ex: Novo boleto disponível para {{customer.corporateName}}"]', 'Seu contrato com a Lefer foi ativado!');
   await page.fill('textarea', 'Olá {{customer.corporateName}}, seu contrato #{contract.id} foi ativado com sucesso!');
-  await page.selectOption('select', { value: 'CONTRACT' }); // Categoria
+  await page.locator('form select').selectOption({ value: 'CONTRACT' }); // Categoria
   await page.click('button[type="submit"]');
   // It might fail if already exists, but we can just continue
   await page.waitForTimeout(2000); // give it time to save

@@ -23,8 +23,8 @@ export class PortalAuthService {
 
   async login(tenantSlug: string, email: string, passwordString: string, keepConnected: boolean = false) {
     // 1. Procurar o Tenant
-    const tenant = await this.globalPrisma.client.tenant.findUnique({
-      where: { schema: tenantSlug },
+    const tenant = await this.globalPrisma.client.tenant.findFirst({
+      where: { OR: [{ schema: tenantSlug }, { slug: tenantSlug }] },
     });
 
     if (!tenant) {
@@ -98,8 +98,8 @@ export class PortalAuthService {
       const payload = await this.jwtService.verifyAsync(refreshToken);
       const tenantSlug = payload.tenantSlug;
       
-      const tenant = await this.globalPrisma.client.tenant.findUnique({
-        where: { schema: tenantSlug },
+      const tenant = await this.globalPrisma.client.tenant.findFirst({
+        where: { OR: [{ schema: tenantSlug }, { slug: tenantSlug }] },
       });
       if (!tenant) throw new UnauthorizedException('Tenant inválido');
       
@@ -118,8 +118,8 @@ export class PortalAuthService {
 
   // Método para gerar o Magic Link e disparar o e-mail
   async generateSetupToken(tenantSlug: string, contactId: string, email: string) {
-    const tenant = await this.globalPrisma.client.tenant.findUnique({
-      where: { slug: tenantSlug },
+    const tenant = await this.globalPrisma.client.tenant.findFirst({
+      where: { OR: [{ schema: tenantSlug }, { slug: tenantSlug }] },
     });
 
     if (!tenant) throw new NotFoundException('Empresa não encontrada');
@@ -151,8 +151,8 @@ export class PortalAuthService {
   }
 
   async requestMagicLink(tenantSlug: string, email: string) {
-    const tenant = await this.globalPrisma.client.tenant.findUnique({
-      where: { slug: tenantSlug },
+    const tenant = await this.globalPrisma.client.tenant.findFirst({
+      where: { OR: [{ schema: tenantSlug }, { slug: tenantSlug }] },
     });
 
     if (!tenant) throw new NotFoundException('Empresa não encontrada');

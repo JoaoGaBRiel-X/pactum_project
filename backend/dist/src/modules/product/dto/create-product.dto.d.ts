@@ -3,11 +3,14 @@ declare class CreateSoftwareModuleDto {
     name: string;
     description?: string;
     price: number;
+    isBaseOffer?: boolean;
+    maxQuantity?: number;
 }
 export declare class CreateSoftwareProductDto {
     name: string;
     description?: string;
     isActive?: boolean;
-    modules?: CreateSoftwareModuleDto[];
+    productGroupId?: string;
+    modules: CreateSoftwareModuleDto[];
 }
 export {};

@@ -4,6 +4,13 @@ import * as path from 'path';
 test.describe('Document Generation and Signature Flow', () => {
   
   test('Should upload a template, generate document and manually sign', async ({ page }) => {
+    // 0. Login
+    await page.goto('http://localhost:3000/login');
+    await page.fill('input[type="email"]', 'e2e-test@lefer.com.br');
+    await page.fill('input[type="password"]', 'PasswordE2E@123');
+    await page.click('button[type="submit"]');
+    await expect(page).toHaveURL('http://localhost:3000/');
+
     // 1. Go to Templates page
     await page.goto('http://localhost:3000/templates');
     

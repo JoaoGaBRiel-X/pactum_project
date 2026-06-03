@@ -3,6 +3,13 @@ import { test, expect } from '@playwright/test';
 test.describe('Layout Responsive Navigation', () => {
   // Configuração inicial para ignorar erros de API em testes estáticos de layout e fazer login
   test.beforeEach(async ({ page }) => {
+    await page.route('**/api/authentication/me', async route => {
+      await route.fulfill({ status: 200, json: { id: '1', name: 'Mock User', role: 'ADMIN' } });
+    });
+    await page.route('**/api/authentication/me/tenants', async route => {
+      await route.fulfill({ status: 200, json: [{ tenantId: 'fake-tenant-id', name: 'Tenant Mock' }] });
+    });
+
     // Definir localStorage diretamente simulando login
     await page.goto('http://localhost:3000/login');
     await page.evaluate(() => {

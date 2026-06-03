@@ -9,14 +9,24 @@ import { Plus, Edit, Trash2, Building2, Search } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
 import { Card } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function CorporateGroupsPage() {
   const queryClient = useQueryClient();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [hasCompaniesFilter, setHasCompaniesFilter] = useState('all');
+  const [groupToDelete, setGroupToDelete] = useState<any>(null);
 
   const { data: groups, isLoading } = useQuery({
     queryKey: ['corporate-groups'],
@@ -153,9 +163,7 @@ export default function CorporateGroupsPage() {
                         size="icon" 
                         className="h-9 w-9 text-red-600 hover:text-red-700 hover:bg-red-50 bg-white border border-slate-200 shadow-sm"
                         title="Excluir Grupo"
-                        onClick={() => {
-                          if(confirm('Deseja realmente excluir este grupo?')) deleteMutation.mutate(group.id);
-                        }}
+                        onClick={() => setGroupToDelete(group)}
                       >
                         <Trash2 size={16} />
                       </Button>
@@ -167,6 +175,46 @@ export default function CorporateGroupsPage() {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!groupToDelete} onOpenChange={(open) => !open && setGroupToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {groupToDelete?._count?.customers > 0 ? 'Exclusão Bloqueada' : 'Excluir Grupo Econômico?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {groupToDelete?._count?.customers > 0 ? (
+                <>
+                  Este grupo não pode ser excluído pois existem <strong>{groupToDelete._count.customers}</strong> empresas vinculadas a ele. 
+                  Remova os vínculos antes de prosseguir.
+                </>
+              ) : (
+                `Deseja realmente excluir o grupo "${groupToDelete?.name}"? Esta ação não pode ser desfeita.`
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {groupToDelete?._count?.customers > 0 ? (
+              <AlertDialogAction onClick={() => setGroupToDelete(null)}>Entendi</AlertDialogAction>
+            ) : (
+              <>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={() => {
+                    if (groupToDelete) {
+                      deleteMutation.mutate(groupToDelete.id);
+                      setGroupToDelete(null);
+                    }
+                  }} 
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Excluir
+                </AlertDialogAction>
+              </>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

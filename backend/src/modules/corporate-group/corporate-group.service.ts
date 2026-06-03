@@ -67,15 +67,20 @@ export class CorporateGroupService {
   async remove(id: string) {
     await this.findOne(id);
 
+    const customersCount = await this.prisma.customer.count({
+      where: { corporateGroupId: id }
+    });
+
+    if (customersCount > 0) {
+      throw new BadRequestException('Não é possível excluir este grupo, pois existem clientes vinculados a ele.');
+    }
+
     try {
       await this.prisma.corporateGroup.delete({
         where: { id }
       });
       return { message: 'Grupo Econômico excluído com sucesso.' };
     } catch (error: any) {
-      if (error.code === 'P2003') {
-        throw new BadRequestException('Não é possível excluir este grupo, pois existem clientes vinculados a ele.');
-      }
       throw error;
     }
   }

@@ -95,6 +95,8 @@ export declare class ContractService {
                 description: string | null;
                 isActive: boolean;
                 price: import("@prisma/client-runtime-utils").Decimal;
+                isBaseOffer: boolean;
+                maxQuantity: number | null;
             }[];
         } & {
             id: string;
@@ -105,6 +107,7 @@ export declare class ContractService {
             updatedBy: string | null;
             description: string | null;
             isActive: boolean;
+            productGroupId: string | null;
         };
         items: {
             id: string;

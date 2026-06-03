@@ -33,6 +33,7 @@ let ProductService = class ProductService {
             },
             include: {
                 modules: true,
+                productGroup: true,
             }
         });
     }
@@ -40,6 +41,10 @@ let ProductService = class ProductService {
         return this.prisma.softwareProduct.findMany({
             include: {
                 modules: true,
+                productGroup: true,
+                _count: {
+                    select: { contracts: true }
+                }
             }
         });
     }
@@ -48,6 +53,7 @@ let ProductService = class ProductService {
             where: { id },
             include: {
                 modules: true,
+                productGroup: true,
             }
         });
         if (!product) {
@@ -75,6 +81,8 @@ let ProductService = class ProductService {
                             name: m.name,
                             description: m.description,
                             price: m.price,
+                            isBaseOffer: m.isBaseOffer,
+                            maxQuantity: m.maxQuantity,
                             createdBy: userId,
                             updatedBy: userId,
                         })),
@@ -84,6 +92,8 @@ let ProductService = class ProductService {
                                 name: m.name,
                                 description: m.description,
                                 price: m.price,
+                                isBaseOffer: m.isBaseOffer,
+                                maxQuantity: m.maxQuantity,
                                 isActive: true,
                                 updatedBy: userId,
                             }
@@ -96,6 +106,7 @@ let ProductService = class ProductService {
                 },
                 include: {
                     modules: true,
+                    productGroup: true,
                 }
             });
         }
@@ -107,6 +118,7 @@ let ProductService = class ProductService {
             },
             include: {
                 modules: true,
+                productGroup: true,
             }
         });
     }

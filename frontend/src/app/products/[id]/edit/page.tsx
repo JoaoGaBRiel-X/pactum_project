@@ -17,11 +17,14 @@ const moduleSchema = z.object({
   name: z.string().min(2, 'Nome é obrigatório'),
   price: z.coerce.number().min(0, 'Preço inválido'),
   isActive: z.boolean().default(true),
+  isBaseOffer: z.boolean().default(false),
+  maxQuantity: z.coerce.number().optional().nullable(),
 });
 
 const productSchema = z.object({
   name: z.string().min(2, 'Nome é obrigatório'),
   description: z.string().optional(),
+  productGroupId: z.string().optional().nullable(),
   isActive: z.boolean().default(true),
   modules: z.array(moduleSchema).min(1, 'Adicione pelo menos um módulo'),
 });
@@ -38,6 +41,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     queryFn: () => apiFetch(`/products/${id}`),
   });
 
+  const { data: groups } = useQuery({
+    queryKey: ['product-groups'],
+    queryFn: () => apiFetch('/product-groups'),
+  });
+
   const { register, control, handleSubmit, reset, formState: { errors } } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema) as any,
     defaultValues: {
@@ -51,6 +59,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       reset({
         name: product.name,
         description: product.description || '',
+        productGroupId: product.productGroupId || '',
         isActive: product.isActive,
         // Somente exibe módulos que estão ativos para o usuário editar (os inativos ficam ocultos)
         modules: product.modules?.filter((m: any) => m.isActive).map((m: any) => ({
@@ -58,6 +67,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           name: m.name,
           price: m.price,
           isActive: m.isActive,
+          isBaseOffer: m.isBaseOffer || false,
+          maxQuantity: m.maxQuantity || null,
         })) || [],
       });
     }
@@ -101,11 +112,35 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         {/* Dados do Produto */}
         <div className="bg-white p-6 rounded-xl border border-border shadow-sm space-y-6">
           <h2 className="text-lg font-semibold flex items-center gap-2 border-b pb-2"><Package size={20} /> Detalhes do Produto</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nome do Produto *</Label>
               <Input id="name" {...register("name")} placeholder="Ex: ERP Completo" />
               {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="productGroupId">Grupo de Produtos</Label>
+              <select 
+                id="productGroupId" 
+                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                {...register("productGroupId")}
+              >
+                <option value="">Sem grupo</option>
+                {groups?.map((group: any) => (
+                  <option key={group.id} value={group.id}>{group.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="isActive">Status</Label>
+              <select 
+                id="isActive" 
+                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                {...register("isActive", { setValueAs: (v) => String(v) === 'true' })}
+              >
+                <option value="true">Ativo</option>
+                <option value="false">Inativo</option>
+              </select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Descrição</Label>
@@ -118,7 +153,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         <div className="bg-white p-6 rounded-xl border border-border shadow-sm space-y-6">
           <div className="flex justify-between items-center border-b pb-2">
             <h2 className="text-lg font-semibold flex items-center gap-2"><Box size={20} /> Módulos Comercializáveis</h2>
-            <Button type="button" variant="outline" size="sm" onClick={() => append({ name: '', price: 0, isActive: true })}>
+            <Button type="button" variant="outline" size="sm" onClick={() => append({ name: '', price: 0, isActive: true, isBaseOffer: false, maxQuantity: null })}>
               <Plus size={16} className="mr-2" /> Adicionar Módulo
             </Button>
           </div>
@@ -128,21 +163,37 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
           <div className="space-y-4">
             {fields.map((field, index) => (
-              <div key={field.id} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end bg-slate-50 p-4 rounded-lg border border-border">
+              <div key={field.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-slate-50 p-4 rounded-lg border border-border">
                 <input type="hidden" {...register(`modules.${index}.id`)} />
-                <div className="space-y-2 col-span-2">
+                <div className="space-y-2 col-span-4">
                   <Label>Nome do Módulo *</Label>
                   <Input {...register(`modules.${index}.name`)} placeholder="Ex: Financeiro, PDV" />
                   {errors.modules?.[index]?.name && <p className="text-destructive text-xs">{errors.modules[index]?.name?.message}</p>}
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 col-span-2">
                   <Label>Preço Base (R$)</Label>
                   <Input type="number" step="0.01" {...register(`modules.${index}.price`)} placeholder="0.00" />
                   {errors.modules?.[index]?.price && <p className="text-destructive text-xs">{errors.modules[index]?.price?.message}</p>}
                 </div>
-                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} disabled={fields.length === 1}>
-                  <Trash size={16} />
-                </Button>
+                <div className="space-y-2 col-span-3">
+                  <Label>Qtd Limite</Label>
+                  <Input type="number" min="1" {...register(`modules.${index}.maxQuantity`)} placeholder="Livre" />
+                  {errors.modules?.[index]?.maxQuantity && <p className="text-destructive text-xs">{errors.modules[index]?.maxQuantity?.message}</p>}
+                </div>
+                <div className="space-y-2 col-span-2 flex items-center gap-2 pb-2">
+                  <input 
+                    type="checkbox" 
+                    id={`baseOffer_${index}`} 
+                    className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
+                    {...register(`modules.${index}.isBaseOffer`)} 
+                  />
+                  <Label htmlFor={`baseOffer_${index}`} className="mb-0 cursor-pointer text-sm">Base da Oferta</Label>
+                </div>
+                <div className="col-span-1 flex justify-end">
+                  <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} disabled={fields.length === 1}>
+                    <Trash size={16} />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>

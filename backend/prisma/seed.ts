@@ -33,8 +33,8 @@ async function main() {
   console.log('🌱 Iniciando seed de desenvolvimento...');
 
   const schemaName = 'tenant_empresaautomacao';
-  const adminEmail = 'admin@lefer.com.br';
-  const adminPassword = 'admin123';
+  const adminEmail = 'e2e-test@lefer.com.br';
+  const adminPassword = 'PasswordE2E@123';
   const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
   const { prisma: publicPrisma, pool: publicPool } = await getPrismaClient('public');
@@ -56,7 +56,7 @@ async function main() {
     console.log(`✅ Tabelas provisionadas no schema "${schemaName}"`);
 
     // 3. Criar o tenant
-    const existingTenant = await publicPrisma.tenant.findFirst({ where: { slug: 'empresaautomacao' } });
+    const existingTenant = await publicPrisma.tenant.findFirst({ where: { document: '12345678000100' } });
     let tenant: any;
     if (existingTenant) {
       tenant = existingTenant;
@@ -103,6 +103,47 @@ async function main() {
       console.log(`✅ Usuário vinculado ao tenant`);
     } else {
       console.log(`⚠️  Usuário já está vinculado ao tenant`);
+    }
+
+    // 6. Provisionar Dados Iniciais para os Testes E2E (Mocks no Banco de Dados)
+    const { prisma: tenantPrisma, pool: tenantPool } = await getPrismaClient(schemaName);
+    try {
+      // 6.1 Criar Produto Padrão se não existir
+      const existingProduct = await tenantPrisma.softwareProduct.findUnique({ where: { id: 'prod1' } });
+      if (!existingProduct) {
+        const product = await tenantPrisma.softwareProduct.create({
+          data: {
+            id: 'prod1',
+            name: 'Gestão de Estoque Pro',
+            description: 'Produto para automação E2E',
+            isActive: true,
+          }
+        });
+        
+        await tenantPrisma.softwareModule.createMany({
+          data: [
+            { id: 'mod1', productId: product.id, name: 'Módulo Base', price: 500.0, isBaseOffer: true, isActive: true },
+            { id: 'mod2', productId: product.id, name: 'Módulo Fiscal', price: 800.0, isBaseOffer: false, isActive: true }
+          ]
+        });
+        console.log(`✅ Produto e Módulos de Teste criados no tenant`);
+      }
+
+      // 6.2 Criar Cliente Padrão se não existir (necessário para alguns testes que não criam cliente)
+      const existingCustomer = await tenantPrisma.customer.findUnique({ where: { id: 'cust1' } });
+      if (!existingCustomer) {
+        await tenantPrisma.customer.create({
+          data: {
+            id: 'cust1',
+            document: '99999999000199',
+            corporateName: 'Cliente Base E2E',
+          }
+        });
+        console.log(`✅ Cliente de Teste E2E criado no tenant`);
+      }
+    } finally {
+      await tenantPrisma.$disconnect();
+      await tenantPool.end();
     }
 
     console.log('\n🎉 Seed concluído com sucesso!');

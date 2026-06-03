@@ -2,6 +2,13 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Tenant Onboarding Flow', () => {
   test('Should create a new tenant and its schema', async ({ page }) => {
+    // 0. Login
+    await page.goto('http://localhost:3000/login');
+    await page.fill('input[type="email"]', 'e2e-test@lefer.com.br');
+    await page.fill('input[type="password"]', 'PasswordE2E@123');
+    await page.click('button[type="submit"]');
+    await expect(page).toHaveURL('http://localhost:3000/');
+
     // 1. Navigate to admin tenants page
     await page.goto('http://localhost:3000/admin/tenants');
     await expect(page.getByRole('heading', { name: 'Locatários (Tenants)' })).toBeVisible({ timeout: 10000 });
@@ -17,7 +24,6 @@ test.describe('Tenant Onboarding Flow', () => {
     await page.getByPlaceholder('00.000.000/0000-00').fill(uniqueCnpj);
     await page.getByPlaceholder('Ex: João da Silva').fill('João Automator');
     await page.getByPlaceholder('admin@empresa.com.br').fill(`admin+${Date.now()}@teste.com`);
-    await page.getByPlaceholder('********').fill('SenhaForte123!');
 
     // 4. Submit and wait for success
     page.on('dialog', async dialog => {

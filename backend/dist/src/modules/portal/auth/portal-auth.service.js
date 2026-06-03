@@ -65,8 +65,8 @@ let PortalAuthService = PortalAuthService_1 = class PortalAuthService {
         });
     }
     async login(tenantSlug, email, passwordString, keepConnected = false) {
-        const tenant = await this.globalPrisma.client.tenant.findUnique({
-            where: { schema: tenantSlug },
+        const tenant = await this.globalPrisma.client.tenant.findFirst({
+            where: { OR: [{ schema: tenantSlug }, { slug: tenantSlug }] },
         });
         if (!tenant) {
             throw new common_1.NotFoundException('Empresa não encontrada');
@@ -121,8 +121,8 @@ let PortalAuthService = PortalAuthService_1 = class PortalAuthService {
         try {
             const payload = await this.jwtService.verifyAsync(refreshToken);
             const tenantSlug = payload.tenantSlug;
-            const tenant = await this.globalPrisma.client.tenant.findUnique({
-                where: { schema: tenantSlug },
+            const tenant = await this.globalPrisma.client.tenant.findFirst({
+                where: { OR: [{ schema: tenantSlug }, { slug: tenantSlug }] },
             });
             if (!tenant)
                 throw new common_1.UnauthorizedException('Tenant inválido');
@@ -139,8 +139,8 @@ let PortalAuthService = PortalAuthService_1 = class PortalAuthService {
         }
     }
     async generateSetupToken(tenantSlug, contactId, email) {
-        const tenant = await this.globalPrisma.client.tenant.findUnique({
-            where: { slug: tenantSlug },
+        const tenant = await this.globalPrisma.client.tenant.findFirst({
+            where: { OR: [{ schema: tenantSlug }, { slug: tenantSlug }] },
         });
         if (!tenant)
             throw new common_1.NotFoundException('Empresa não encontrada');
@@ -168,8 +168,8 @@ let PortalAuthService = PortalAuthService_1 = class PortalAuthService {
         return { message: 'E-mail enviado com sucesso.' };
     }
     async requestMagicLink(tenantSlug, email) {
-        const tenant = await this.globalPrisma.client.tenant.findUnique({
-            where: { slug: tenantSlug },
+        const tenant = await this.globalPrisma.client.tenant.findFirst({
+            where: { OR: [{ schema: tenantSlug }, { slug: tenantSlug }] },
         });
         if (!tenant)
             throw new common_1.NotFoundException('Empresa não encontrada');

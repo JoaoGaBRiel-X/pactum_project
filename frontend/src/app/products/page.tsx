@@ -1,10 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Search, Box } from 'lucide-react';
+import { Pencil, Trash2, Search, Box, Eye } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -14,13 +15,35 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function ProductsPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [modulesFilter, setModulesFilter] = useState('all');
+  const [groupFilter, setGroupFilter] = useState('all');
+  const [productToDelete, setProductToDelete] = useState<any>(null);
+
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: () => apiFetch('/products'),
+  });
+
+  const { data: groups } = useQuery({
+    queryKey: ['product-groups'],
+    queryFn: () => apiFetch('/product-groups'),
   });
 
   const queryClient = useQueryClient();
@@ -36,10 +59,29 @@ export default function ProductsPage() {
   });
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este produto? Se houver contratos vinculados a ação falhará.')) {
-      deleteMutation.mutate(id);
-    }
+    deleteMutation.mutate(id);
+    setProductToDelete(null);
   };
+
+  const filteredProducts = products?.filter((product: any) => {
+    if (searchTerm && !product.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+
+    if (statusFilter === 'active' && !product.isActive) return false;
+    if (statusFilter === 'inactive' && product.isActive) return false;
+
+    const modulesCount = product.modules?.length || 0;
+    if (modulesFilter === 'with' && modulesCount === 0) return false;
+    if (modulesFilter === 'without' && modulesCount > 0) return false;
+
+    if (groupFilter !== 'all') {
+      if (groupFilter === 'none' && product.productGroupId) return false;
+      if (groupFilter !== 'none' && product.productGroupId !== groupFilter) return false;
+    }
+
+    return true;
+  });
 
   return (
     <div className="space-y-6 pb-12 text-slate-800">
@@ -48,9 +90,14 @@ export default function ProductsPage() {
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Catálogo de Produtos</h1>
           <p className="text-slate-500 mt-1">Gerencie os softwares e módulos.</p>
         </div>
-        <Link href="/products/new">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6">Novo Produto</Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/product-groups">
+            <Button variant="outline" className="font-medium px-6 border-slate-300">Grupos de Produtos</Button>
+          </Link>
+          <Link href="/products/new">
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6">Novo Produto</Button>
+          </Link>
+        </div>
       </div>
 
       <Card className="border-blue-200 shadow-sm bg-blue-50/40 overflow-hidden">
@@ -69,8 +116,54 @@ export default function ProductsPage() {
                 <Input 
                   placeholder="Buscar produto..." 
                   className="pl-9 border-slate-200 focus-visible:ring-blue-500" 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 block">Status</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="border-slate-200 focus:ring-blue-500">
+                  <SelectValue placeholder="Todos os Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Status</SelectItem>
+                  <SelectItem value="active">Ativos</SelectItem>
+                  <SelectItem value="inactive">Inativos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 block">Módulos</label>
+              <Select value={modulesFilter} onValueChange={setModulesFilter}>
+                <SelectTrigger className="border-slate-200 focus:ring-blue-500">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="with">Com módulos</SelectItem>
+                  <SelectItem value="without">Sem módulos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 block">Grupo</label>
+              <Select value={groupFilter} onValueChange={setGroupFilter}>
+                <SelectTrigger className="border-slate-200 focus:ring-blue-500">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="none">Sem Grupo</SelectItem>
+                  {groups?.map((g: any) => (
+                    <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -80,7 +173,8 @@ export default function ProductsPage() {
         <Table>
           <TableHeader className="bg-slate-50 border-b border-slate-200">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[40%] font-semibold text-slate-700 py-4 px-6">Nome do Produto</TableHead>
+              <TableHead className="w-[30%] font-semibold text-slate-700 py-4 px-6">Nome do Produto</TableHead>
+              <TableHead className="font-semibold text-slate-700 py-4 text-left">Grupo</TableHead>
               <TableHead className="font-semibold text-slate-700 py-4 text-center">Status</TableHead>
               <TableHead className="font-semibold text-slate-700 py-4 text-center">Módulos</TableHead>
               <TableHead className="text-right font-semibold text-slate-700 py-4 px-6">Ações</TableHead>
@@ -104,35 +198,60 @@ export default function ProductsPage() {
                 <TableCell colSpan={4} className="text-center py-16 text-slate-500">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Search size={32} className="text-slate-300 mb-2" />
-                    <p className="text-base font-medium text-slate-600">Nenhum produto cadastrado.</p>
+                    <p className="text-base font-medium text-slate-600">Nenhum produto encontrado</p>
+                    <p className="text-sm text-slate-400">Tente ajustar os filtros acima para ver mais resultados.</p>
                   </div>
                 </TableCell>
               </TableRow>
             )}
-            {products?.map((product: any) => (
+            {filteredProducts?.map((product: any) => (
               <TableRow key={product.id} className="hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0 group">
                 <TableCell className="px-6 py-4">
                   <div className="flex items-center gap-2">
                     <Box size={16} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
-                    <Link href={`/products/${product.id}/edit`} className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors">
+                    <Link href={`/products/${product.id}`} className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors">
                       {product.name}
                     </Link>
                   </div>
                 </TableCell>
+                <TableCell className="py-4">
+                  {product.productGroup ? (
+                    <span className="text-sm font-medium text-slate-700">{product.productGroup.name}</span>
+                  ) : (
+                    <span className="text-sm text-slate-400 italic">Sem grupo</span>
+                  )}
+                </TableCell>
                 <TableCell className="text-center py-4">
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${product.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    {product.isActive ? 'Ativo' : 'Inativo'}
+                  {product.isActive ? (
+                    <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200 font-medium">Ativo</Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-200 font-medium">Inativo</Badge>
+                  )}
+                </TableCell>
+                <TableCell className="text-center py-4">
+                  <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                    {product.modules?.length || 0}
                   </span>
                 </TableCell>
-                <TableCell className="text-center text-slate-600 font-medium py-4">{product.modules?.length || 0}</TableCell>
                 <TableCell className="text-right px-6 py-4">
                   <div className="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                    <Link href={`/products/${product.id}`}>
+                      <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50 bg-white border border-slate-200 shadow-sm" title="Ver Produto">
+                        <Eye size={16} />
+                      </Button>
+                    </Link>
                     <Link href={`/products/${product.id}/edit`}>
                       <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-600 hover:text-slate-900 hover:bg-slate-100 bg-white border border-slate-200 shadow-sm" title="Editar Produto">
                         <Pencil size={16} />
                       </Button>
                     </Link>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 text-red-600 hover:text-red-700 hover:bg-red-50 bg-white border border-slate-200 shadow-sm" title="Excluir Produto" onClick={() => handleDelete(product.id)}>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-9 w-9 text-red-600 hover:text-red-700 hover:bg-red-50 bg-white border border-slate-200 shadow-sm"
+                      title="Excluir Produto"
+                      onClick={() => setProductToDelete(product)}
+                    >
                       <Trash2 size={16} />
                     </Button>
                   </div>
@@ -142,6 +261,43 @@ export default function ProductsPage() {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {productToDelete?._count?.contracts > 0 ? 'Exclusão Bloqueada' : 'Excluir Produto?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {productToDelete?._count?.contracts > 0 ? (
+                <>
+                  Este produto não pode ser excluído pois possui <strong>{productToDelete._count.contracts}</strong> contrato(s) vinculado(s). 
+                  Cancele os contratos antes de prosseguir com a exclusão do produto.
+                </>
+              ) : (
+                `Tem certeza que deseja excluir o produto "${productToDelete?.name}"? Esta ação apagará também todos os módulos associados a ele.`
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {productToDelete?._count?.contracts > 0 ? (
+              <AlertDialogAction onClick={() => setProductToDelete(null)}>Entendi</AlertDialogAction>
+            ) : (
+              <>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={() => {
+                    if (productToDelete) handleDelete(productToDelete.id);
+                  }} 
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Excluir
+                </AlertDialogAction>
+              </>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

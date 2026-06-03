@@ -11,6 +11,10 @@ test.describe('Customer Management Flow', () => {
     await page.route('**/api/tenant-settings', async route => {
       await route.fulfill({ status: 200, json: { name: 'Tenant Mock', slug: 'mock' } });
     });
+    
+    await page.route('**/api/authentication/me/tenants', async route => {
+      await route.fulfill({ status: 200, json: [{ tenantId: 'mock-tenant-id', name: 'Tenant Mock' }] });
+    });
 
     // Inject auth mock
     await page.goto('http://localhost:3000/login');
@@ -115,5 +119,61 @@ test.describe('Customer Management Flow', () => {
 
     await expect(page.getByText('EMPRESA A')).toBeVisible();
     await expect(page.getByText('EMPRESA B')).not.toBeVisible();
+  });
+
+  test('Deve editar dados do cliente com sucesso', async ({ page }) => {
+    // Mock get customer details
+    await page.route('**/api/customers/1', async route => {
+      if (route.request().method() === 'GET') {
+        await route.fulfill({ status: 200, json: { 
+          id: '1', 
+          corporateName: 'EMPRESA ALFA', 
+          document: '11.111.111/1111-11',
+          contacts: [],
+          partners: [],
+          legalRepresentatives: []
+        } });
+      } else if (route.request().method() === 'PUT' || route.request().method() === 'PATCH') {
+        await route.fulfill({ status: 200, json: { id: '1' } });
+      }
+    });
+
+    await page.route('**/api/corporate-groups', async route => {
+      await route.fulfill({ status: 200, json: [] });
+    });
+
+    await page.goto('http://localhost:3000/customers/1/edit');
+    
+    await expect(page.locator('input[name="corporateName"]')).toHaveValue('EMPRESA ALFA');
+    
+    // Edit form
+    await page.locator('input[name="corporateName"]').fill('EMPRESA ALFA EDITADA');
+
+    // Save
+    await page.getByRole('button', { name: 'Salvar Cliente' }).click();
+
+    // Verify Redirect
+    await expect(page).toHaveURL(/.*\/customers/);
+  });
+
+  test('Deve visualizar detalhes do cliente', async ({ page }) => {
+    // Mock get customer details
+    await page.route('**/api/customers/1', async route => {
+      await route.fulfill({ status: 200, json: { 
+        id: '1', 
+        corporateName: 'EMPRESA ALFA DETALHE', 
+        document: '11.111.111/1111-11',
+        contacts: [{ id: 'c1', name: 'Contato 1', email: 'contato@teste.com' }],
+        contracts: []
+      } });
+    });
+
+    await page.goto('http://localhost:3000/customers/1');
+    
+    // Should display details
+    await expect(page.getByText('EMPRESA ALFA DETALHE')).toBeVisible();
+    await expect(page.getByText('11.111.111/1111-11')).toBeVisible();
+    await expect(page.getByText('Contato 1')).toBeVisible();
+    await expect(page.getByText('contato@teste.com')).toBeVisible();
   });
 });

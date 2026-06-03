@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Users, Package, Home, Settings, LogOut, FileText, DollarSign, TrendingUp, FileSignature, Mail, Key } from 'lucide-react';
+import { Users, Package, Home, Settings, LogOut, FileText, DollarSign, TrendingUp, FileSignature, Mail, Key, Boxes } from 'lucide-react';
 import { useTenantSettings } from '@/contexts/TenantSettingsContext';
 
 export const navigationGroups = [
@@ -17,6 +17,7 @@ export const navigationGroups = [
     items: [
       { href: "/customers", icon: Users, label: "Clientes" },
       { href: "/corporate-groups", icon: Users, label: "Grupos Econômicos" },
+      { href: "/product-groups", icon: Boxes, label: "Grupos de Produtos" },
       { href: "/products", icon: Package, label: "Produtos" }
     ]
   },

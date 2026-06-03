@@ -25,6 +25,7 @@ export class ProductService {
       },
       include: {
         modules: true,
+        productGroup: true,
       }
     });
   }
@@ -33,6 +34,10 @@ export class ProductService {
     return this.prisma.softwareProduct.findMany({
       include: {
         modules: true,
+        productGroup: true,
+        _count: {
+          select: { contracts: true }
+        }
       }
     });
   }
@@ -42,6 +47,7 @@ export class ProductService {
       where: { id },
       include: {
         modules: true,
+        productGroup: true,
       }
     });
 
@@ -79,6 +85,8 @@ export class ProductService {
               name: m.name,
               description: m.description,
               price: m.price,
+              isBaseOffer: m.isBaseOffer,
+              maxQuantity: m.maxQuantity,
               createdBy: userId,
               updatedBy: userId,
             })),
@@ -89,6 +97,8 @@ export class ProductService {
                 name: m.name,
                 description: m.description,
                 price: m.price,
+                isBaseOffer: m.isBaseOffer,
+                maxQuantity: m.maxQuantity,
                 isActive: true, // Garante que fique ativo
                 updatedBy: userId,
               }
@@ -102,6 +112,7 @@ export class ProductService {
         },
         include: {
           modules: true,
+          productGroup: true,
         }
       });
     }
@@ -115,6 +126,7 @@ export class ProductService {
       },
       include: {
         modules: true,
+        productGroup: true,
       }
     });
   }

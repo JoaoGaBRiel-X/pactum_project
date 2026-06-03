@@ -1,6 +1,21 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Contract E2E', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.route('**/api/authentication/me', async route => {
+      await route.fulfill({ status: 200, json: { id: '1', name: 'Mock User', role: 'ADMIN' } });
+    });
+    await page.route('**/api/authentication/me/tenants', async route => {
+      await route.fulfill({ status: 200, json: [{ tenantId: 'mock-tenant-id', name: 'Tenant Mock' }] });
+    });
+    
+    await page.goto('http://localhost:3000/login');
+    await page.evaluate(() => {
+      localStorage.setItem('gestao_tenant_id', 'mock-tenant-id');
+      localStorage.setItem('gestao_token', 'mock-token');
+    });
+  });
+
   test('Should validate required fields in New Contract Form', async ({ page }) => {
     await page.goto('http://localhost:3000/contracts/new');
 

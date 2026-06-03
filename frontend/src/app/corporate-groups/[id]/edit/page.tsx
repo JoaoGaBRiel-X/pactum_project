@@ -78,6 +78,12 @@ export default function EditCorporateGroupPage({ params }: { params: Promise<{ i
           </div>
         </div>
 
+        {mutation.isError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            <strong>Erro ao salvar:</strong> {mutation.error instanceof Error ? mutation.error.message : 'Erro desconhecido. Verifique os dados e tente novamente.'}
+          </div>
+        )}
+
         <div className="flex justify-end gap-4 bg-white p-4 rounded-xl border border-border shadow-sm">
           <Button type="button" variant="outline" onClick={() => router.back()}>Cancelar</Button>
           <Button type="submit" size="lg" className="shadow-lg shadow-primary/30" disabled={mutation.isPending}>

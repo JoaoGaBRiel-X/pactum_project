@@ -69,7 +69,7 @@ export default function GeneralSettingsPage() {
           companyDocument: data.companyDocument || "",
           name: data.name || "",
           tradeName: data.tradeName || "",
-          slug: data.slug || "",
+          slug: (data as any).slug || "",
           document: data.document || "",
           legalRepName: data.legalRepName || "",
           legalRepCpf: data.legalRepCpf || "",

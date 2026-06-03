@@ -190,12 +190,14 @@ model LegalRepresentative {
 // --- Product Catalog ---
 
 model SoftwareProduct {
-  id          String           @id @default(uuid())
-  name        String
-  description String?
-  isActive    Boolean          @default(true) @map("is_active")
-  modules     SoftwareModule[]
-  contracts   Contract[]
+  id             String           @id @default(uuid())
+  name           String
+  description    String?
+  isActive       Boolean          @default(true) @map("is_active")
+  productGroupId String?          @map("product_group_id")
+  productGroup   ProductGroup?    @relation(fields: [productGroupId], references: [id])
+  modules        SoftwareModule[]
+  contracts      Contract[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -211,6 +213,8 @@ model SoftwareModule {
   description String?
   price       Decimal         @default(0.0) // Preço base do módulo
   isActive    Boolean         @default(true) @map("is_active")
+  isBaseOffer Boolean         @default(false) @map("is_base_offer")
+  maxQuantity Int?            @map("max_quantity")
   productId   String          @map("product_id")
   product     SoftwareProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -220,6 +224,21 @@ model SoftwareModule {
   updatedBy String?  @map("updated_by")
 
   @@map("software_modules")
+}
+
+model ProductGroup {
+  id          String            @id @default(uuid())
+  name        String
+  description String?
+  isActive    Boolean           @default(true) @map("is_active")
+  products    SoftwareProduct[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
+  @@map("product_groups")
 }
 
 // --- Tenant Settings ---
