@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { CheckCircle2, XCircle } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -108,7 +109,7 @@ export default function ProductsPage() {
           <p className="text-sm text-blue-700/80 mt-1">Refine a listagem do catálogo de produtos.</p>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
               <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 block">Busca (Nome)</label>
               <div className="relative">
@@ -223,14 +224,20 @@ export default function ProductsPage() {
                 </TableCell>
                 <TableCell className="text-center py-4">
                   {product.isActive ? (
-                    <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200 font-medium">Ativo</Badge>
+                    <Badge className="bg-emerald-100/80 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 shadow-sm inline-flex items-center gap-1.5 px-2.5 py-1">
+                      <CheckCircle2 size={14} className="text-emerald-600" />
+                      <span className="font-medium">Ativo</span>
+                    </Badge>
                   ) : (
-                    <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-200 font-medium">Inativo</Badge>
+                    <Badge variant="outline" className="text-slate-500 border-slate-200 bg-slate-50 hover:bg-slate-100 inline-flex items-center gap-1.5 px-2.5 py-1">
+                      <XCircle size={14} className="text-slate-400" />
+                      <span className="font-medium">Inativo</span>
+                    </Badge>
                   )}
                 </TableCell>
                 <TableCell className="text-center py-4">
-                  <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                    {product.modules?.length || 0}
+                  <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-1 rounded-md border border-blue-200">
+                    {product.modules?.length || 0} módulo(s)
                   </span>
                 </TableCell>
                 <TableCell className="text-right px-6 py-4">

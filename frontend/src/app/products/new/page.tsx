@@ -83,7 +83,7 @@ export default function NewProductPage() {
         {/* Dados do Produto */}
         <div className="bg-white p-6 rounded-xl border border-border shadow-sm space-y-6">
           <h2 className="text-lg font-semibold flex items-center gap-2 border-b pb-2"><Package size={20} /> Detalhes do Produto</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nome do Produto *</Label>
               <Input id="name" {...register("name")} placeholder="Ex: ERP Completo" />
@@ -93,7 +93,7 @@ export default function NewProductPage() {
               <Label htmlFor="productGroupId">Grupo de Produtos</Label>
               <select 
                 id="productGroupId" 
-                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                 {...register("productGroupId")}
               >
                 <option value="">Sem grupo</option>
@@ -102,21 +102,22 @@ export default function NewProductPage() {
                 ))}
               </select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="isActive">Status</Label>
-              <select 
-                id="isActive" 
-                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                {...register("isActive", { setValueAs: (v) => String(v) === 'true' })}
-              >
-                <option value="true">Ativo</option>
-                <option value="false">Inativo</option>
-              </select>
-            </div>
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <Label htmlFor="description">Descrição</Label>
               <Input id="description" {...register("description")} placeholder="Descrição do produto (opcional)" />
             </div>
+          </div>
+          
+          <div className="flex items-center space-x-2 pt-2 border-t border-slate-100">
+            <input 
+              type="checkbox" 
+              id="isActive"
+              {...register("isActive")} 
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <Label htmlFor="isActive" className="cursor-pointer text-sm font-medium text-slate-700">
+              Produto Ativo
+            </Label>
           </div>
         </div>
 

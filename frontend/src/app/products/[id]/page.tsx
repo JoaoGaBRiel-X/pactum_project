@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Package, Box, Edit, Layers, Info, CheckCircle2, Activity } from 'lucide-react';
+import { ArrowLeft, Package, Box, Edit, Layers, Info, CheckCircle2, Activity, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -60,9 +60,17 @@ export default function ProductDetailsPage() {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">{product.name}</h1>
-              <Badge variant={product.isActive ? 'default' : 'secondary'} className={product.isActive ? 'bg-green-100 text-green-800 hover:bg-green-100 shadow-none border-none' : 'shadow-none border-none'}>
-                {product.isActive ? 'Ativo' : 'Inativo'}
-              </Badge>
+              {product.isActive ? (
+                <Badge className="bg-emerald-100/80 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 shadow-sm inline-flex items-center gap-1.5 px-2.5 py-1">
+                  <CheckCircle2 size={14} className="text-emerald-600" />
+                  <span className="font-medium">Ativo</span>
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-slate-500 border-slate-200 bg-slate-50 hover:bg-slate-100 inline-flex items-center gap-1.5 px-2.5 py-1">
+                  <XCircle size={14} className="text-slate-400" />
+                  <span className="font-medium">Inativo</span>
+                </Badge>
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-3 text-slate-500 font-medium">
               <span className="flex items-center gap-1.5 text-sm">
@@ -175,11 +183,13 @@ export default function ProductDetailsPage() {
                         </TableCell>
                         <TableCell className="text-center py-4">
                           {module.isActive ? (
-                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                              <CheckCircle2 size={12} className="text-emerald-600" />
                               Ativo
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                              <XCircle size={12} className="text-slate-400" />
                               Inativo
                             </span>
                           )}

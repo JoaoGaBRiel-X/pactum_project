@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Users, Package, Home, Settings, LogOut, FileText, DollarSign, TrendingUp, FileSignature, Mail, Key, Boxes } from 'lucide-react';
+import { Users, Package, Home, Settings, LogOut, FileText, DollarSign, TrendingUp, FileSignature, Mail, Key, Boxes, Building } from 'lucide-react';
 import { useTenantSettings } from '@/contexts/TenantSettingsContext';
 
 export const navigationGroups = [
@@ -38,6 +38,7 @@ export const navigationGroups = [
   {
     label: "Configurações",
     items: [
+      { href: "/admin/tenants", icon: Building, label: "Tenants (Locatários)" },
       { href: "/admin/notifications", icon: Mail, label: "Notificações" },
       { href: "/admin/settings/api-keys", icon: Key, label: "Chaves de API" },
       { href: "/admin/settings/general", icon: Settings, label: "Identidade Visual e Dados" }
