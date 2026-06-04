@@ -24,7 +24,6 @@ export default function RolesPage() {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
-      setIsModalOpen(false);
     }
   });
 
@@ -35,7 +34,6 @@ export default function RolesPage() {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
-      setIsModalOpen(false);
     }
   });
 

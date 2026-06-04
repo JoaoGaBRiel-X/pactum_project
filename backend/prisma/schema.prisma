@@ -21,6 +21,14 @@ model Tenant {
   legalRepName String? @map("legal_rep_name")
   legalRepCpf  String? @map("legal_rep_cpf")
 
+  zipCode      String? @map("zip_code")
+  street       String?
+  number       String?
+  complement   String?
+  neighborhood String?
+  city         String?
+  state        String?
+
   createdAt  DateTime     @default(now()) @map("created_at")
   updatedAt  DateTime     @updatedAt @map("updated_at")
   userLinks  UserTenant[]

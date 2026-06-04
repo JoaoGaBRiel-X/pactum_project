@@ -16,6 +16,13 @@ export interface TenantSettings {
   billingCutoffStrategy?: 'GLOBAL' | 'PER_CONTRACT' | 'PER_PRODUCT_GROUP';
   globalCutoffDay?: number;
   allowActivationWithoutDocument?: boolean;
+  zipCode?: string;
+  street?: string;
+  number?: string;
+  complement?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
 }
 
 export const tenantSettingsApi = {
@@ -27,6 +34,15 @@ export const tenantSettingsApi = {
     return apiFetch('/tenant-settings', {
       method: 'PUT',
       body: JSON.stringify(data),
+    });
+  },
+
+  uploadLogo: async (file: File): Promise<TenantSettings> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiFetch('/tenant-settings/logo', {
+      method: 'POST',
+      body: formData,
     });
   }
 };

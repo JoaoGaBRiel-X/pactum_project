@@ -1,6 +1,6 @@
 'use client';
 
-import { Settings, Key, Shield } from 'lucide-react';
+import { Settings, Key, Shield, Palette } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -9,6 +9,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
   const tabs = [
     { name: 'Geral', href: '/admin/settings/general', icon: Settings },
+    { name: 'Identidade Visual', href: '/admin/settings/visual-identity', icon: Palette },
     { name: 'Chaves de API', href: '/admin/settings/api-keys', icon: Key },
     { name: 'Perfis de Acesso', href: '/admin/settings/roles', icon: Shield },
   ];

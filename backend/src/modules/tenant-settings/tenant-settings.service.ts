@@ -16,7 +16,10 @@ export class TenantSettingsService {
   async getSettings(tenantId: string) {
     const publicTenant = await this.prismaService.client.tenant.findUnique({
       where: { id: tenantId },
-      select: { name: true, tradeName: true, document: true, legalRepName: true, legalRepCpf: true, slug: true }
+      select: { 
+        name: true, tradeName: true, document: true, legalRepName: true, legalRepCpf: true, slug: true,
+        zipCode: true, street: true, number: true, complement: true, neighborhood: true, city: true, state: true
+      }
     });
 
     let settings = await this.tenantClient.tenantSetting.findFirst();
@@ -33,7 +36,7 @@ export class TenantSettingsService {
   }
 
   async updateSettings(tenantId: string, dto: UpdateTenantSettingsDto) {
-    const { name, tradeName, document, legalRepName, legalRepCpf, slug, ...settingsData } = dto;
+    const { name, tradeName, document, legalRepName, legalRepCpf, slug, zipCode, street, number, complement, neighborhood, city, state, ...settingsData } = dto;
 
     if (slug) {
       const existing = await this.prismaService.client.tenant.findUnique({
@@ -44,7 +47,13 @@ export class TenantSettingsService {
       }
     }
 
-    if (name || tradeName || document || slug !== undefined || legalRepName !== undefined || legalRepCpf !== undefined) {
+    if (
+      name || tradeName || document || slug !== undefined || 
+      legalRepName !== undefined || legalRepCpf !== undefined ||
+      zipCode !== undefined || street !== undefined || number !== undefined || 
+      complement !== undefined || neighborhood !== undefined || 
+      city !== undefined || state !== undefined
+    ) {
       await this.prismaService.client.tenant.update({
         where: { id: tenantId },
         data: {
@@ -53,7 +62,14 @@ export class TenantSettingsService {
           ...(document && { document }),
           ...(slug !== undefined && { slug }),
           ...(legalRepName !== undefined && { legalRepName }),
-          ...(legalRepCpf !== undefined && { legalRepCpf })
+          ...(legalRepCpf !== undefined && { legalRepCpf }),
+          ...(zipCode !== undefined && { zipCode }),
+          ...(street !== undefined && { street }),
+          ...(number !== undefined && { number }),
+          ...(complement !== undefined && { complement }),
+          ...(neighborhood !== undefined && { neighborhood }),
+          ...(city !== undefined && { city }),
+          ...(state !== undefined && { state }),
         }
       });
     }
@@ -73,7 +89,10 @@ export class TenantSettingsService {
 
     const updatedPublicTenant = await this.prismaService.client.tenant.findUnique({
       where: { id: tenantId },
-      select: { name: true, tradeName: true, document: true, legalRepName: true, legalRepCpf: true, slug: true }
+      select: { 
+        name: true, tradeName: true, document: true, legalRepName: true, legalRepCpf: true, slug: true,
+        zipCode: true, street: true, number: true, complement: true, neighborhood: true, city: true, state: true
+      }
     });
 
     return { ...settings, ...updatedPublicTenant };
