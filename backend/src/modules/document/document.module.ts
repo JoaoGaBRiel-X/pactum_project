@@ -7,9 +7,10 @@ import { GotenbergService } from './gotenberg.service';
 import { ClicksignService } from './clicksign.service';
 import { TenantModule } from '../../tenant/tenant.module';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { StorageModule } from '../../infrastructure/storage/storage.module';
 
 @Module({
-  imports: [TenantModule, PrismaModule],
+  imports: [TenantModule, PrismaModule, StorageModule],
   controllers: [DocumentController, WebhookController],
   providers: [DocumentService, TemplateService, GotenbergService, ClicksignService],
   exports: [DocumentService]

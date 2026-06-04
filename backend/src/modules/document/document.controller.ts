@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Param, Req, Res, UseInterceptors, UploadedFile, Get, Delete } from '@nestjs/common';
 import type { Response } from 'express';
-import { createReadStream } from 'fs';
+// Removed fs import
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentService } from './document.service';
 
@@ -38,15 +38,14 @@ export class DocumentController {
 
   @Get('templates/:id/download')
   async downloadTemplate(@Param('id') templateId: string, @Res() res: Response) {
-    const template = await this.documentService.getTemplate(templateId);
+    const { stream, name } = await this.documentService.getTemplateStream(templateId);
     
     res.set({
       'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'Content-Disposition': `attachment; filename="template_${template.name}.docx"`,
+      'Content-Disposition': `attachment; filename="template_${name}.docx"`,
     });
 
-    const fileStream = createReadStream(template.path);
-    fileStream.pipe(res);
+    stream.pipe(res);
   }
 
   @Delete('templates/:id')
@@ -73,16 +72,15 @@ export class DocumentController {
 
   @Get(':id/download')
   async downloadDocument(@Param('id') documentId: string, @Res() res: Response) {
-    const document = await this.documentService.getDocument(documentId);
+    const { stream, id } = await this.documentService.getDocumentStream(documentId);
     
     // Set headers for download
     res.set({
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="${document.id}.pdf"`,
+      'Content-Disposition': `attachment; filename="${id}.pdf"`,
     });
 
-    const fileStream = createReadStream(document.path);
-    fileStream.pipe(res);
+    stream.pipe(res);
   }
 
   @Delete(':id')

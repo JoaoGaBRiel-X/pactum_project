@@ -5,8 +5,7 @@ import { TENANT_PRISMA_SERVICE } from '../../tenant/tenant.module';
 import { GotenbergService } from './gotenberg.service';
 import { TemplateService } from './template.service';
 import { ClicksignService } from './clicksign.service';
-import * as fs from 'fs/promises';
-import * as path from 'path';
+import { StorageService } from '../../infrastructure/storage/storage.service';
 
 @Injectable()
 export class DocumentService {
@@ -19,6 +18,7 @@ export class DocumentService {
     private readonly gotenberg: GotenbergService,
     private readonly template: TemplateService,
     private readonly clicksign: ClicksignService,
+    private readonly storage: StorageService,
   ) {}
 
   async getTemplates() {
@@ -65,10 +65,10 @@ export class DocumentService {
       }
     }
 
-    // Emulação: Ler o DOCX do disco
+    // Baixar o DOCX do MinIO
     let templateBuffer: Buffer;
     try {
-      templateBuffer = await fs.readFile(template.path);
+      templateBuffer = await this.storage.getFileBuffer(template.path);
     } catch (e) {
       throw new InternalServerErrorException(`Não foi possível ler o arquivo do template: ${template.path}. Erro interno: ${e.message}`);
     }
@@ -130,20 +130,20 @@ export class DocumentService {
       throw new InternalServerErrorException(`Erro ao converter DOCX para PDF no Gotenberg: ${e.message}`);
     }
 
-    // Emulação: Salvar PDF na pasta uploads
-    const uploadsDir = path.resolve(process.cwd(), 'uploads');
-    await fs.mkdir(uploadsDir, { recursive: true });
-    
-    const outputFilename = `contract_${contractId}_${Date.now()}.pdf`;
-    const outputPath = path.join(uploadsDir, outputFilename);
-    await fs.writeFile(outputPath, pdfBuffer);
+    // Salvar PDF no MinIO
+    const outputFilename = `contracts/contract_${contractId}_${Date.now()}.pdf`;
+    try {
+      await this.storage.uploadFile(outputFilename, pdfBuffer, 'application/pdf');
+    } catch (e) {
+      throw new InternalServerErrorException(`Erro ao fazer upload do PDF para o MinIO: ${e.message}`);
+    }
 
     // Salvar registro no banco
     const document = await this.prisma.contractDocument.create({
       data: {
         contractId: contract.id,
         type: 'PDF',
-        path: outputPath,
+        path: outputFilename,
         status: 'GENERATED',
         createdBy: userId
       }
@@ -200,11 +200,9 @@ export class DocumentService {
     if (!file) {
       throw new Error('Nenhum arquivo recebido pelo backend');
     }
-    const uploadsDir = path.resolve(process.cwd(), 'uploads/templates');
-    await fs.mkdir(uploadsDir, { recursive: true });
     
-    const outputPath = path.join(uploadsDir, `${Date.now()}_${file.originalname}`);
-    await fs.writeFile(outputPath, file.buffer);
+    const key = `templates/${Date.now()}_${file.originalname}`;
+    await this.storage.uploadFile(key, file.buffer, file.mimetype || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 
     return this.prisma.$transaction(async (tx) => {
       const existing = await tx.documentTemplate.findFirst({
@@ -225,7 +223,7 @@ export class DocumentService {
           description,
           category: category || 'STANDARD',
           version: existing ? existing.version + 1 : 1,
-          path: outputPath,
+          path: key,
           createdBy: userId
         }
       });
@@ -270,10 +268,10 @@ export class DocumentService {
     if (!template) throw new NotFoundException('Template não encontrado');
 
     try {
-      await fs.unlink(template.path);
-      this.logger.log(`Arquivo físico do template removido: ${template.path}`);
+      await this.storage.deleteFile(template.path);
+      this.logger.log(`Arquivo do template removido do MinIO: ${template.path}`);
     } catch (err: any) {
-      this.logger.warn(`Falha ao remover arquivo físico do template (${template.path}): ${err.message}`);
+      this.logger.warn(`Falha ao remover arquivo do template do MinIO (${template.path}): ${err.message}`);
     }
 
     return this.prisma.documentTemplate.delete({
@@ -292,14 +290,30 @@ export class DocumentService {
     }
 
     try {
-      await fs.unlink(document.path);
-      this.logger.log(`Arquivo físico removido: ${document.path}`);
+      await this.storage.deleteFile(document.path);
+      this.logger.log(`Arquivo removido do MinIO: ${document.path}`);
     } catch (err: any) {
-      this.logger.warn(`Falha ao remover arquivo físico (${document.path}): ${err.message}`);
+      this.logger.warn(`Falha ao remover arquivo do MinIO (${document.path}): ${err.message}`);
     }
 
     return this.prisma.contractDocument.delete({
       where: { id: documentId }
     });
+  }
+
+  async getTemplateStream(templateId: string) {
+    const template = await this.getTemplate(templateId);
+    return {
+      stream: await this.storage.getFileStream(template.path),
+      name: template.name
+    };
+  }
+
+  async getDocumentStream(documentId: string) {
+    const document = await this.getDocument(documentId);
+    return {
+      stream: await this.storage.getFileStream(document.path),
+      id: document.id
+    };
   }
 }
