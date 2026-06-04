@@ -164,6 +164,44 @@ export class AuthenticationService {
     }));
   }
 
+  async getUserPermissions(userId: string, tenantId: string) {
+    const user = await this.prisma.client.user.findUnique({
+      where: { id: userId },
+      select: { isSuperAdmin: true },
+    });
+
+    if (user?.isSuperAdmin) {
+      return {
+        role: 'SUPERADMIN',
+        roleId: 'SUPERADMIN',
+        permissions: ['*'],
+        maxDiscount: null,
+      };
+    }
+
+    if (!tenantId) {
+      throw new UnauthorizedException('Tenant ID ausente');
+    }
+
+    const userTenant = await this.prisma.client.userTenant.findUnique({
+      where: { userId_tenantId: { userId, tenantId } },
+      include: { roleProfile: true },
+    });
+
+    if (!userTenant) {
+      throw new UnauthorizedException('Usuário não pertence a este tenant');
+    }
+
+    const roleProfile = userTenant.roleProfile;
+
+    return {
+      role: roleProfile?.name || 'USER',
+      roleId: roleProfile?.id || null,
+      permissions: roleProfile?.permissions || [],
+      maxDiscount: userTenant.maxDiscount ?? null,
+    };
+  }
+
   async getProfile(userId: string) {
     const user = await this.prisma.client.user.findUnique({
       where: { id: userId },

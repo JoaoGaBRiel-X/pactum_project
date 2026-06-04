@@ -99,6 +99,7 @@ model UserTenant {
   userId        String @map("user_id")
   tenantId      String @map("tenant_id")
   roleProfileId String? @map("role_profile_id")
+  maxDiscount   Decimal? @map("max_discount") // Specific discount limit for this user in this tenant
 
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -295,6 +296,7 @@ model TenantSetting {
 
   billingCutoffStrategy BillingCutoffStrategy @default(GLOBAL) @map("billing_cutoff_strategy")
   globalCutoffDay       Int                   @default(15) @map("global_cutoff_day")
+  globalDiscountLimit   Decimal               @default(10.0) @map("global_discount_limit") // Global fallback limit
   
   allowActivationWithoutDocument Boolean @default(false) @map("allow_activation_without_doc")
 

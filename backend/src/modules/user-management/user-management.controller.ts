@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Param, Body, Req, UseGuards } from '@nestjs/common';
 import { UserManagementService } from './user-management.service';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../../iam/guards/jwt-auth.guard';
@@ -26,8 +26,21 @@ export class UserManagementController {
   @UseGuards(JwtAuthGuard)
   @Post('invite')
   async inviteUser(@Body() body: { email: string; roleProfileId: string }, @Req() req: any) {
-    const tenantId = req.headers['x-tenant-id'];
+    const tenantId = req.headers['x-tenant-id'] || req.tenantContext?.schema;
     return this.userManagementService.inviteUser(body.email, body.roleProfileId, tenantId);
+  }
+
+
+
+  @UseGuards(JwtAuthGuard)
+  @Put(':userId')
+  async updateUser(
+    @Param('userId') userId: string,
+    @Body() body: { roleProfileId?: string; maxDiscount?: number },
+    @Req() req: any
+  ) {
+    const tenantId = req.headers['x-tenant-id'] || req.tenantContext?.schema;
+    return this.userManagementService.updateUser(userId, tenantId, body.roleProfileId, body.maxDiscount);
   }
 
   // This endpoint is public (used by the user from the email link)

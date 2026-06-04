@@ -90,7 +90,7 @@ describe('CustomerService', () => {
       const customers = [{ id: '1', corporateName: 'Test' }];
       mockPrismaService.customer.findMany.mockResolvedValue(customers);
 
-      const result = await service.findAll();
+      const result = await service.findAll('user-1', []);
       expect(result).toEqual(customers);
       expect(mockPrismaService.customer.findMany).toHaveBeenCalled();
     });
@@ -101,14 +101,14 @@ describe('CustomerService', () => {
       const customer = { id: '1', corporateName: 'Test' };
       mockPrismaService.customer.findUnique.mockResolvedValue(customer);
 
-      const result = await service.findOne('1');
+      const result = await service.findOne('1', 'user-1', []);
       expect(result).toEqual(customer);
       expect(mockPrismaService.customer.findUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { id: '1' }}));
     });
 
     it('should throw NotFoundException if customer not found', async () => {
       mockPrismaService.customer.findUnique.mockResolvedValue(null);
-      await expect(service.findOne('999')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('999', 'user-1', [])).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -120,7 +120,7 @@ describe('CustomerService', () => {
       const updateData = { corporateName: 'Updated Corp' };
       mockPrismaService.customer.update.mockResolvedValue({ ...existingCustomer, ...updateData });
 
-      const result = await service.update('1', updateData, 'user-1');
+      const result = await service.update('1', updateData, 'user-1', 'tenant-mock', []);
       expect(result.corporateName).toBe('Updated Corp');
       expect(mockPrismaService.customer.update).toHaveBeenCalled();
     });
@@ -132,7 +132,7 @@ describe('CustomerService', () => {
         contracts: [{ id: 'c1' }] 
       });
 
-      await expect(service.update('1', { document: '999' }, 'user-1')).rejects.toThrow(BadRequestException);
+      await expect(service.update('1', { document: '999' }, 'user-1', 'tenant-mock', [])).rejects.toThrow(BadRequestException);
     });
 
     it('should trigger magic link generation if contact gets portalAccess', async () => {
@@ -150,7 +150,7 @@ describe('CustomerService', () => {
       mockPrismaService.customer.update.mockResolvedValue(updatedCustomer);
       mockPortalAuthService.generateSetupToken.mockResolvedValue(true);
 
-      await service.update('1', { contacts: [{ name: 'Test', email: 'test@test.com', portalAccess: true }] }, 'user-1', 'mock-slug');
+      await service.update('1', { contacts: [{ name: 'Test', email: 'test@test.com', portalAccess: true }] }, 'user-1', 'mock-slug', []);
       expect(mockPortalAuthService.generateSetupToken).toHaveBeenCalledWith('mock-slug', 'c1', 'test@test.com');
     });
   });
@@ -160,7 +160,7 @@ describe('CustomerService', () => {
       mockPrismaService.customer.findUnique.mockResolvedValue({ id: '1' });
       mockPrismaService.customer.delete.mockResolvedValue({ id: '1' });
 
-      const result = await service.remove('1');
+      const result = await service.remove('1', 'user-1', []);
       expect(result.message).toContain('excluído');
       expect(mockPrismaService.customer.delete).toHaveBeenCalledWith({ where: { id: '1' } });
     });
@@ -169,7 +169,7 @@ describe('CustomerService', () => {
       mockPrismaService.customer.findUnique.mockResolvedValue({ id: '1' });
       mockPrismaService.customer.delete.mockRejectedValue({ code: 'P2003' });
 
-      await expect(service.remove('1')).rejects.toThrow(BadRequestException);
+      await expect(service.remove('1', 'user-1', [])).rejects.toThrow(BadRequestException);
     });
   });
 });

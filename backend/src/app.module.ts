@@ -27,6 +27,7 @@ import { BullModule } from '@nestjs/bull';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TenantSettingsModule } from './modules/tenant-settings/tenant-settings.module';
 import { ProductGroupModule } from './modules/product-group/product-group.module';
+import { RoleProfileModule } from './modules/role-profile/role-profile.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { ProductGroupModule } from './modules/product-group/product-group.module
       ttl: 60000,
       limit: 60,
     }]),
+    RoleProfileModule,
   ],
   controllers: [AppController],
   providers: [

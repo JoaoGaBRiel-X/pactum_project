@@ -33,7 +33,7 @@ export default function PortalLoginPage({ params }: { params: Promise<{ tenantSl
       localStorage.setItem('portal_refresh_token', data.refresh_token);
       localStorage.setItem('portal_user', JSON.stringify(data.user));
 
-      router.push(`/portal/${tenantSlug}/dashboard`);
+      window.location.href = `/portal/${tenantSlug}/dashboard`;
     } catch (err: any) {
       setError(err.message);
     } finally {

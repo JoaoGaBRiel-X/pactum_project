@@ -7,6 +7,7 @@ import { JwtStrategy } from './authentication/strategies/jwt.strategy';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { TenantGuard } from './guards/tenant.guard';
+import { PermissionsGuard } from './guards/permissions.guard';
 
 import { StorageModule } from '../infrastructure/storage/storage.module';
 
@@ -31,6 +32,10 @@ import { StorageModule } from '../infrastructure/storage/storage.module';
     {
       provide: APP_GUARD,
       useClass: TenantGuard, // Enforce tenant isolation globally
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard, // Enforce RBAC permissions globally
     }
   ],
   exports: [AuthenticationService, JwtModule]

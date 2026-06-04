@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
+import { RequirePermissions } from '@/components/auth/RequirePermissions';
 
 export default function ContractsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,7 +41,8 @@ export default function ContractsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'DRAFT': return <span className="px-2.5 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded-md text-[11px] font-bold uppercase tracking-wider shadow-sm">Rascunho</span>;
-      case 'PENDING_SIGNATURE': return <span className="px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-200 rounded-md text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit shadow-sm"><FileSignature size={12}/> Pendente Assin.</span>;
+      case 'PENDING_APPROVAL': return <span className="px-2.5 py-1 bg-amber-100 text-amber-700 border border-amber-300 rounded-md text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit shadow-sm"><AlertCircle size={12}/> Aguard. Aprovação</span>;
+      case 'PENDING_SIGNATURE': return <span className="px-2.5 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded-md text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit shadow-sm"><FileSignature size={12}/> Pendente Assin.</span>;
       case 'ACTIVE': return <span className="px-2.5 py-1 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-md text-[11px] font-bold uppercase tracking-wider shadow-sm flex items-center gap-1 w-fit"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Ativo</span>;
       case 'CANCELLED': return <span className="px-2.5 py-1 bg-red-50 text-red-600 border border-red-200 rounded-md text-[11px] font-bold uppercase tracking-wider shadow-sm">Cancelado</span>;
       default: return <span className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md text-[11px] font-bold uppercase tracking-wider shadow-sm">{status}</span>;
@@ -71,11 +73,13 @@ export default function ContractsPage() {
             <p className="text-slate-500 mt-1">Gerencie o ciclo de vida dos contratos SaaS.</p>
           </div>
         </div>
-        <Link href="/contracts/new">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6">
-            <Plus size={16} className="mr-2" /> Novo Contrato
-          </Button>
-        </Link>
+        <RequirePermissions permissions="contracts:create">
+          <Link href="/contracts/new">
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6">
+              <Plus size={16} className="mr-2" /> Novo Contrato
+            </Button>
+          </Link>
+        </RequirePermissions>
       </div>
 
       <Card className="border-indigo-100 shadow-sm bg-white overflow-hidden rounded-2xl relative">
@@ -193,14 +197,18 @@ export default function ContractsPage() {
                 <TableCell className="text-right px-6 py-4">
                   {contract.status === 'DRAFT' ? (
                     <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                      <Link href={`/contracts/${contract.id}/edit`}>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 bg-white border border-slate-200 shadow-sm rounded-md" title="Editar Rascunho">
-                          <Pencil size={14} />
+                      <RequirePermissions permissions="contracts:update">
+                        <Link href={`/contracts/${contract.id}/edit`}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 bg-white border border-slate-200 shadow-sm rounded-md" title="Editar Rascunho">
+                            <Pencil size={14} />
+                          </Button>
+                        </Link>
+                      </RequirePermissions>
+                      <RequirePermissions permissions="contracts:delete">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-red-600 hover:bg-red-50 bg-white border border-slate-200 shadow-sm rounded-md" title="Excluir Rascunho" onClick={() => handleDelete(contract.id)}>
+                          <Trash2 size={14} />
                         </Button>
-                      </Link>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-red-600 hover:bg-red-50 bg-white border border-slate-200 shadow-sm rounded-md" title="Excluir Rascunho" onClick={() => handleDelete(contract.id)}>
-                        <Trash2 size={14} />
-                      </Button>
+                      </RequirePermissions>
                     </div>
                   ) : (
                     <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">

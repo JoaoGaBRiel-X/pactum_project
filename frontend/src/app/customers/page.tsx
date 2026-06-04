@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Pencil, Trash2, Search, MapPin, Eye, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { RequirePermissions } from '@/components/auth/RequirePermissions';
 import {
   Table,
   TableBody,
@@ -117,9 +118,11 @@ export default function CustomersPage() {
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Gestão de Clientes</h1>
           <p className="text-slate-500 mt-1">Gerencie as empresas cadastradas no sistema, seus dados e grupos.</p>
         </div>
-        <Link href="/customers/new">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6">Novo Cliente</Button>
-        </Link>
+        <RequirePermissions permissions="customers:create">
+          <Link href="/customers/new">
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6">Novo Cliente</Button>
+          </Link>
+        </RequirePermissions>
       </div>
 
       <Card className="border-blue-200 shadow-sm bg-blue-50/40 overflow-hidden">
@@ -286,26 +289,24 @@ export default function CustomersPage() {
                   </TableCell>
                   
                   <TableCell className="text-right px-6 py-4">
-                    <div className="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
                       <Link href={`/customers/${customer.id}`}>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50 bg-white border border-slate-200 shadow-sm" title="Ver Detalhes">
-                          <Eye size={16} />
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 bg-white border border-slate-200 shadow-sm rounded-md" title="Ver Detalhes">
+                          <Eye size={14} />
                         </Button>
                       </Link>
-                      <Link href={`/customers/${customer.id}/edit`}>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-600 hover:text-slate-900 hover:bg-slate-100 bg-white border border-slate-200 shadow-sm" title="Editar Cliente">
-                          <Pencil size={16} />
+                      <RequirePermissions permissions="customers:update">
+                        <Link href={`/customers/${customer.id}/edit`}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 bg-white border border-slate-200 shadow-sm rounded-md" title="Editar Cliente">
+                            <Pencil size={14} />
+                          </Button>
+                        </Link>
+                      </RequirePermissions>
+                      <RequirePermissions permissions="customers:delete">
+                        <Button variant="ghost" size="icon" onClick={() => setCustomerToDelete(customer)} className="h-8 w-8 text-slate-500 hover:text-red-600 hover:bg-red-50 bg-white border border-slate-200 shadow-sm rounded-md" title="Excluir Cliente">
+                          <Trash2 size={14} />
                         </Button>
-                      </Link>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-9 w-9 text-red-600 hover:text-red-700 hover:bg-red-50 bg-white border border-slate-200 shadow-sm" 
-                        title="Excluir Cliente"
-                        onClick={() => setCustomerToDelete(customer)}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
+                      </RequirePermissions>
                     </div>
                   </TableCell>
                 </TableRow>

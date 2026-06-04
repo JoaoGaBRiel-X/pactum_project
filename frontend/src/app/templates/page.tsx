@@ -228,40 +228,42 @@ export default function TemplatesPage() {
                   <TableCell className="py-4 text-center text-slate-600 text-sm">
                     {new Date(t.createdAt).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="py-4 text-right px-6 space-x-2 whitespace-nowrap">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleDownload(t.id, t.name)}
-                      className="text-slate-500 hover:text-blue-700 hover:bg-blue-50"
-                      title="Baixar Arquivo .docx"
-                    >
-                      <Download size={16} />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => toggleMutation.mutate({ id: t.id, isActive: !t.isActive })}
-                      className={t.isActive ? 'text-amber-500 hover:text-amber-700 hover:bg-amber-50' : 'text-green-600 hover:text-green-700 hover:bg-green-50'}
-                      disabled={toggleMutation.isPending}
-                      title={t.isActive ? 'Inativar Template' : 'Ativar Template'}
-                    >
-                      {t.isActive ? <PowerOff size={16} /> : <Power size={16} />}
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => {
-                        if(confirm('Tem certeza que deseja remover este template? Esta ação não pode ser desfeita.')) {
-                          deleteMutation.mutate(t.id);
-                        }
-                      }}
-                      className="text-slate-400 hover:text-red-700 hover:bg-red-50"
-                      disabled={deleteMutation.isPending}
-                      title="Remover Template"
-                    >
-                      <Trash2 size={16} />
-                    </Button>
+                  <TableCell className="py-4 text-right px-6">
+                    <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleDownload(t.id, t.name)}
+                        className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 bg-white border border-slate-200 shadow-sm rounded-md"
+                        title="Baixar Arquivo .docx"
+                      >
+                        <Download size={14} />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => toggleMutation.mutate({ id: t.id, isActive: !t.isActive })}
+                        className={`h-8 w-8 bg-white border border-slate-200 shadow-sm rounded-md ${t.isActive ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50' : 'text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50'}`}
+                        disabled={toggleMutation.isPending}
+                        title={t.isActive ? 'Inativar Template' : 'Ativar Template'}
+                      >
+                        {t.isActive ? <PowerOff size={14} /> : <Power size={14} />}
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => {
+                          if(confirm('Tem certeza que deseja remover este template? Esta ação não pode ser desfeita.')) {
+                            deleteMutation.mutate(t.id);
+                          }
+                        }}
+                        className="h-8 w-8 text-slate-500 hover:text-red-600 hover:bg-red-50 bg-white border border-slate-200 shadow-sm rounded-md"
+                        disabled={deleteMutation.isPending}
+                        title="Remover Template"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

@@ -241,25 +241,25 @@ export default function ProductsPage() {
                   </span>
                 </TableCell>
                 <TableCell className="text-right px-6 py-4">
-                  <div className="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
                     <Link href={`/products/${product.id}`}>
-                      <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50 bg-white border border-slate-200 shadow-sm" title="Ver Produto">
-                        <Eye size={16} />
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 bg-white border border-slate-200 shadow-sm rounded-md" title="Ver Produto">
+                        <Eye size={14} />
                       </Button>
                     </Link>
                     <Link href={`/products/${product.id}/edit`}>
-                      <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-600 hover:text-slate-900 hover:bg-slate-100 bg-white border border-slate-200 shadow-sm" title="Editar Produto">
-                        <Pencil size={16} />
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 bg-white border border-slate-200 shadow-sm rounded-md" title="Editar Produto">
+                        <Pencil size={14} />
                       </Button>
                     </Link>
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-9 w-9 text-red-600 hover:text-red-700 hover:bg-red-50 bg-white border border-slate-200 shadow-sm"
+                      className="h-8 w-8 text-slate-500 hover:text-red-600 hover:bg-red-50 bg-white border border-slate-200 shadow-sm rounded-md" 
                       title="Excluir Produto"
                       onClick={() => setProductToDelete(product)}
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={14} />
                     </Button>
                   </div>
                 </TableCell>

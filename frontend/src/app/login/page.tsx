@@ -30,9 +30,9 @@ export default function LoginPage() {
       apiFetch('/authentication/me')
         .then((profile) => {
           if (profile.isSuperAdmin && !localStorage.getItem('gestao_tenant_id')) {
-            router.push('/admin/tenants');
+            window.location.href = '/admin/tenants';
           } else {
-            router.push('/');
+            window.location.href = '/';
           }
         })
         .catch(() => {
@@ -40,7 +40,7 @@ export default function LoginPage() {
           localStorage.removeItem('gestao_refresh_token');
         });
     }
-  }, [router]);
+  }, []);
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -69,10 +69,10 @@ export default function LoginPage() {
 
         if (tenants.length > 0) {
           localStorage.setItem('gestao_tenant_id', tenants[0].tenantId);
-          router.push('/');
+          window.location.href = '/';
         } else if (profile.isSuperAdmin) {
           localStorage.removeItem('gestao_tenant_id');
-          router.push('/admin/tenants');
+          window.location.href = '/admin/tenants';
         } else {
           setError('Usuário não possui acesso a nenhum locatário.');
         }

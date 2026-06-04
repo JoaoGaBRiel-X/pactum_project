@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit, Trash2, Package, Search, Eye, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, Search, Eye, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -199,27 +199,27 @@ export default function ProductGroupsPage() {
                   </TableCell>
 
                   <TableCell className="text-right px-6 py-4">
-                    <div className="flex items-center justify-end gap-2 opacity-80 group-hover/row:opacity-100 transition-opacity">
-                      <Link href={`/product-groups/${group.id}`}>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50 bg-white border border-slate-200 shadow-sm" title="Ver Grupo">
-                          <Eye size={16} />
+                      <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                        <Link href={`/product-groups/${group.id}`}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 bg-white border border-slate-200 shadow-sm rounded-md" title="Ver Grupo">
+                            <Eye size={14} />
+                          </Button>
+                        </Link>
+                        <Link href={`/product-groups/${group.id}/edit`}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 bg-white border border-slate-200 shadow-sm rounded-md" title="Editar Grupo">
+                            <Pencil size={14} />
+                          </Button>
+                        </Link>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-slate-500 hover:text-red-600 hover:bg-red-50 bg-white border border-slate-200 shadow-sm rounded-md" 
+                          title="Excluir Grupo"
+                          onClick={() => setGroupToDelete(group)}
+                        >
+                          <Trash2 size={14} />
                         </Button>
-                      </Link>
-                      <Link href={`/product-groups/${group.id}/edit`}>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-600 hover:text-slate-900 hover:bg-slate-100 bg-white border border-slate-200 shadow-sm" title="Editar Grupo">
-                          <Edit size={16} />
-                        </Button>
-                      </Link>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-9 w-9 text-red-600 hover:text-red-700 hover:bg-red-50 bg-white border border-slate-200 shadow-sm"
-                        onClick={() => setGroupToDelete(group)}
-                        title="Excluir Grupo"
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
+                      </div>
                   </TableCell>
                 </TableRow>
               ))

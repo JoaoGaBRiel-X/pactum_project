@@ -63,8 +63,14 @@ export class CustomerService {
     }
   }
 
-  async findAll() {
+  async findAll(userId: string, permissions: string[]) {
+    let whereClause: any = {};
+    if (!permissions.includes('customers:read') && permissions.includes('customers:read_own')) {
+      whereClause.createdBy = userId;
+    }
+
     return this.prisma.customer.findMany({
+      where: whereClause,
       include: {
         contacts: true,
         corporateGroup: true,
@@ -77,9 +83,14 @@ export class CustomerService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, userId: string, permissions: string[]) {
+    let whereClause: any = { id };
+    if (!permissions.includes('customers:read') && permissions.includes('customers:read_own')) {
+      whereClause.createdBy = userId;
+    }
+
     const customer = await this.prisma.customer.findUnique({
-      where: { id },
+      where: whereClause,
       include: {
         contacts: true,
         partners: true,
@@ -95,15 +106,15 @@ export class CustomerService {
     });
 
     if (!customer) {
-      throw new NotFoundException('Cliente não encontrado.');
+      throw new NotFoundException('Cliente não encontrado ou acesso negado.');
     }
 
     return customer;
   }
 
-  async update(id: string, updateCustomerDto: UpdateCustomerDto, userId: string, tenantSlug?: string) {
+  async update(id: string, updateCustomerDto: UpdateCustomerDto, userId: string, tenantSlug?: string, permissions: string[] = []) {
     // Verificar se existe
-    const existingCustomer = await this.findOne(id);
+    const existingCustomer = await this.findOne(id, userId, permissions);
 
     // Validação da Regra de Negócio: Não pode alterar CNPJ se tiver contrato
     if (updateCustomerDto.document && updateCustomerDto.document !== existingCustomer.document) {
@@ -181,8 +192,8 @@ export class CustomerService {
     }
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, userId: string, permissions: string[]) {
+    await this.findOne(id, userId, permissions);
 
     try {
       await this.prisma.customer.delete({

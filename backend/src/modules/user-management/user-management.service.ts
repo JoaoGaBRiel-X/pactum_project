@@ -42,7 +42,9 @@ export class UserManagementService {
         name: ut.user.name,
         email: ut.user.email,
         avatarUrl: ut.user.avatarUrl,
+        roleProfileId: ut.roleProfileId,
         roleProfile: ut.roleProfile?.name || 'N/A',
+        maxDiscount: ut.maxDiscount,
       })),
       pendingInvitations: invitations.map(inv => ({
         id: inv.id,
@@ -131,5 +133,23 @@ export class UserManagementService {
     await this.prisma.client.userInvitation.delete({ where: { id: invitation.id } });
 
     return { message: 'Invitation accepted successfully' };
+  }
+
+  async updateUser(userId: string, tenantId: string, roleProfileId?: string, maxDiscount?: number) {
+    if (!tenantId) throw new BadRequestException('Tenant ID is required');
+
+    const userTenant = await this.prisma.client.userTenant.findUnique({
+      where: { userId_tenantId: { userId, tenantId } }
+    });
+
+    if (!userTenant) throw new NotFoundException('User not found in this tenant');
+
+    return this.prisma.client.userTenant.update({
+      where: { userId_tenantId: { userId, tenantId } },
+      data: {
+        roleProfileId: roleProfileId !== undefined ? roleProfileId : userTenant.roleProfileId,
+        maxDiscount: maxDiscount !== undefined ? maxDiscount : userTenant.maxDiscount,
+      }
+    });
   }
 }

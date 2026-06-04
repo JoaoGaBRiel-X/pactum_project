@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Users, Package, Home, Settings, LogOut, FileText, DollarSign, TrendingUp, FileSignature, Mail, Key, Boxes, Building } from 'lucide-react';
+import { Users, Package, Home, Settings, LogOut, FileText, DollarSign, TrendingUp, FileSignature, Mail, Key, Boxes, Building, Shield } from 'lucide-react';
 import { useTenantSettings } from '@/contexts/TenantSettingsContext';
 import { useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/api';
@@ -11,59 +11,52 @@ export const navigationGroups = [
   {
     label: "Visão Geral",
     items: [
-      { href: "/", icon: Home, label: "Dashboard" }
+      { href: "/", icon: Home, label: "Dashboard", requiredPermissions: [] }
     ]
   },
   {
     label: "Cadastros",
     items: [
-      { href: "/customers", icon: Users, label: "Clientes" },
-      { href: "/corporate-groups", icon: Users, label: "Grupos Econômicos" },
-      { href: "/product-groups", icon: Boxes, label: "Grupos de Produtos" },
-      { href: "/products", icon: Package, label: "Produtos" }
+      { href: "/customers", icon: Users, label: "Clientes", requiredPermissions: ['customers:read', 'customers:read_own'] },
+      { href: "/corporate-groups", icon: Users, label: "Grupos Econômicos", requiredPermissions: ['customers:read'] },
+      { href: "/product-groups", icon: Boxes, label: "Grupos de Produtos", requiredPermissions: ['settings:manage'] },
+      { href: "/products", icon: Package, label: "Produtos", requiredPermissions: ['settings:manage'] }
     ]
   },
   {
     label: "Comercial / Jurídico",
     items: [
-      { href: "/contracts", icon: FileText, label: "Contratos" },
-      { href: "/templates", icon: FileSignature, label: "Templates" }
+      { href: "/contracts", icon: FileText, label: "Contratos", requiredPermissions: ['contracts:read', 'contracts:read_own'] },
+      { href: "/templates", icon: FileSignature, label: "Templates", requiredPermissions: ['settings:manage'] }
     ]
   },
   {
     label: "Financeiro",
     items: [
-      { href: "/financial", icon: DollarSign, label: "Financeiro" },
-      { href: "/adjustments", icon: TrendingUp, label: "Reajustes" }
+      { href: "/financial", icon: DollarSign, label: "Financeiro", requiredPermissions: ['financial:read'] },
+      { href: "/adjustments", icon: TrendingUp, label: "Reajustes", requiredPermissions: ['financial:read'] }
     ]
   },
   {
     label: "Configurações",
     items: [
-      { href: "/admin/tenants", icon: Building, label: "Tenants (Locatários)" },
-      { href: "/admin/notifications", icon: Mail, label: "Notificações" },
-      { href: "/admin/settings/api-keys", icon: Key, label: "Chaves de API" },
-      { href: "/admin/settings/general", icon: Settings, label: "Configurações" },
-      { href: "/admin/users", icon: Users, label: "Gestão de Usuários" }
+      { href: "/admin/tenants", icon: Building, label: "Tenants (Locatários)", requiredPermissions: ['SUPERADMIN'] },
+      { href: "/admin/notifications", icon: Mail, label: "Notificações", requiredPermissions: ['settings:manage'] },
+      { href: "/admin/settings/api-keys", icon: Key, label: "Chaves de API", requiredPermissions: ['settings:manage'] },
+      { href: "/admin/settings/general", icon: Settings, label: "Configurações", requiredPermissions: ['settings:manage'] },
+      { href: "/admin/roles", icon: Shield, label: "Perfis de Acesso", requiredPermissions: ['users:manage'] },
+      { href: "/admin/users", icon: Users, label: "Gestão de Usuários", requiredPermissions: ['users:manage'] }
     ]
   }
 ];
 
+import { usePermissions } from '@/hooks/usePermissions';
+
 export function SidebarContent({ handleLogout }: { handleLogout: () => void }) {
   const pathname = usePathname();
   const { settings } = useTenantSettings();
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-
-  useEffect(() => {
-    const isClient = typeof window !== 'undefined';
-    if (!isClient) return;
-    const token = localStorage.getItem('gestao_token');
-    if (token) {
-      apiFetch('/authentication/me/tenants').then((data) => {
-        setIsSuperAdmin(data.some((t: any) => t.role === 'SUPERADMIN'));
-      }).catch(() => {});
-    }
-  }, []);
+  const { role, hasPermission, isLoading } = usePermissions();
+  const isSuperAdmin = role === 'SUPERADMIN';
 
   return (
     <>
@@ -76,32 +69,41 @@ export function SidebarContent({ handleLogout }: { handleLogout: () => void }) {
       </div>
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-700">
         <nav className="p-4 space-y-6">
-          {navigationGroups.map((group, idx) => (
-            <div key={idx}>
-              <h3 className="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                {group.label}
-              </h3>
-              <div className="space-y-1">
-                {group.items.map((item, itemIdx) => {
-                  if (item.href === '/admin/tenants' && !isSuperAdmin) return null;
-                  const Icon = item.icon;
-                  const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
-                  return (
-                    <Link 
-                      key={itemIdx} 
-                      href={item.href} 
-                      className={`flex items-center gap-3 px-4 py-2 rounded-md transition-colors ${
-                        isActive ? 'bg-slate-800 text-white font-medium' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
-                      }`}
-                    >
-                      <Icon size={18} className={isActive ? 'text-[var(--primary)]' : ''} /> 
-                      <span className="truncate">{item.label}</span>
-                    </Link>
-                  );
-                })}
+          {navigationGroups.map((group, idx) => {
+            const filteredItems = group.items.filter(item => {
+              if (item.requiredPermissions.includes('SUPERADMIN') && !isSuperAdmin) return false;
+              if (item.requiredPermissions.length === 0 || item.requiredPermissions.includes('SUPERADMIN')) return true;
+              return hasPermission(item.requiredPermissions);
+            });
+
+            if (filteredItems.length === 0 && !isLoading) return null;
+
+            return (
+              <div key={idx}>
+                <h3 className="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                  {group.label}
+                </h3>
+                <div className="space-y-1">
+                  {filteredItems.map((item, itemIdx) => {
+                    const Icon = item.icon;
+                    const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+                    return (
+                      <Link 
+                        key={itemIdx} 
+                        href={item.href} 
+                        className={`flex items-center gap-3 px-4 py-2 rounded-md transition-colors ${
+                          isActive ? 'bg-slate-800 text-white font-medium' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                        }`}
+                      >
+                        <Icon size={18} className={isActive ? 'text-[var(--primary)]' : ''} /> 
+                        <span className="truncate">{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </nav>
       </div>
       <div className="p-4 border-t border-slate-800">
@@ -113,9 +115,12 @@ export function SidebarContent({ handleLogout }: { handleLogout: () => void }) {
   );
 }
 
+import { useQueryClient } from '@tanstack/react-query';
+
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   if (pathname === '/login') {
     return null;
@@ -124,6 +129,7 @@ export function Sidebar() {
   const handleLogout = () => {
     localStorage.removeItem('gestao_token');
     localStorage.removeItem('gestao_tenant_id');
+    queryClient.clear();
     router.push('/login');
   };
 

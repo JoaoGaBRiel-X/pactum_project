@@ -3,6 +3,7 @@ import { IsString, IsEnum, IsOptional, IsNotEmpty } from 'class-validator';
 export enum ContractStatus {
   DRAFT = 'DRAFT',
   PENDING_SIGNATURE = 'PENDING_SIGNATURE',
+  PENDING_APPROVAL = 'PENDING_APPROVAL',
   ACTIVE = 'ACTIVE',
   SUSPENDED = 'SUSPENDED',
   RENEWAL_PENDING = 'RENEWAL_PENDING',

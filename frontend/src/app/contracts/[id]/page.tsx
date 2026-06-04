@@ -9,6 +9,7 @@ import { use, useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { IMaskInput } from 'react-imask';
 import { toast } from 'sonner';
+import { RequirePermissions } from '@/components/auth/RequirePermissions';
 
 export default function ContractDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -155,6 +156,26 @@ export default function ContractDetailsPage({ params }: { params: Promise<{ id: 
       setIsCancelOpen(false);
     },
     onError: (err: any) => toast.error(`Erro ao cancelar: ${err.message}`)
+  });
+
+  const approveDiscountMutation = useMutation({
+    mutationFn: () => apiFetch(`/contracts/${contractId}/discount/approve`, { method: 'POST' }),
+    onSuccess: () => {
+      toast.success('Desconto aprovado! Contrato avançou.');
+      queryClient.invalidateQueries({ queryKey: ['contracts', contractId] });
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+    },
+    onError: (err: any) => toast.error(`Erro ao aprovar: ${err.message}`)
+  });
+
+  const rejectDiscountMutation = useMutation({
+    mutationFn: () => apiFetch(`/contracts/${contractId}/discount/reject`, { method: 'POST' }),
+    onSuccess: () => {
+      toast.success('Desconto rejeitado! Contrato retornou para rascunho.');
+      queryClient.invalidateQueries({ queryKey: ['contracts', contractId] });
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+    },
+    onError: (err: any) => toast.error(`Erro ao rejeitar: ${err.message}`)
   });
 
   const currentMonthStr = useMemo(() => {
@@ -315,6 +336,44 @@ export default function ContractDetailsPage({ params }: { params: Promise<{ id: 
           <p className="text-sm">
             <strong>Atenção:</strong> É necessário <span className="font-semibold underline">{!hasDocuments ? 'gerar um documento' : 'assinar manualmente o documento gerado'}</span> na aba inferior antes de conseguir ativá-lo manualmente.
           </p>
+        </div>
+      )}
+
+      {contract.status === 'PENDING_APPROVAL' && (
+        <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between shadow-sm gap-4">
+          <div className="flex gap-3">
+            <AlertCircle className="text-amber-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-bold text-amber-800">Aprovação Necessária</h3>
+              <p className="text-sm text-amber-700">Este contrato possui um desconto que excede o limite permitido e requer a aprovação de um gerente para prosseguir.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <RequirePermissions permissions="contracts:approve_discount">
+              <Button 
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={() => {
+                  if(confirm('Tem certeza que deseja REJEITAR este desconto? O contrato voltará para o status de Rascunho.')) {
+                    rejectDiscountMutation.mutate();
+                  }
+                }}
+                disabled={rejectDiscountMutation.isPending}
+              >
+                Rejeitar
+              </Button>
+              <Button 
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => {
+                  if(confirm('Tem certeza que deseja APROVAR este desconto? O contrato seguirá para assinatura.')) {
+                    approveDiscountMutation.mutate();
+                  }
+                }}
+                disabled={approveDiscountMutation.isPending}
+              >
+                Aprovar Desconto
+              </Button>
+            </RequirePermissions>
+          </div>
         </div>
       )}
 

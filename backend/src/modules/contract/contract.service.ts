@@ -13,10 +13,31 @@ export class ContractService {
   constructor(
     @Inject(TENANT_PRISMA_SERVICE)
     private readonly prisma: PrismaClient,
+    private readonly globalPrisma: PrismaService,
     private readonly notificationService: NotificationService,
   ) {}
 
-  async create(createDto: CreateContractDto, userId: string) {
+  private async checkDiscountApproval(userId: string, tenantId: string, globalDiscount: number, totalValueBeforeDiscount: number) {
+    if (totalValueBeforeDiscount === 0) return { requiresApproval: false };
+    const discountPercentage = (globalDiscount / totalValueBeforeDiscount) * 100;
+
+    const userTenant = await this.globalPrisma.client.userTenant.findUnique({
+      where: { userId_tenantId: { userId, tenantId } }
+    });
+    
+    const tenantSetting = await this.globalPrisma.client.tenantSetting.findFirst();
+
+    const globalLimit = tenantSetting?.globalDiscountLimit ? Number(tenantSetting.globalDiscountLimit) : 10;
+    const userLimit = userTenant?.maxDiscount != null ? Number(userTenant.maxDiscount) : globalLimit;
+
+    return {
+      requiresApproval: discountPercentage > userLimit,
+      discountPercentage,
+      userLimit,
+    };
+  }
+
+  async create(createDto: CreateContractDto, userId: string, tenantId?: string) {
     const { customerId, productId, items, globalDiscount = 0, renewalMode = 'AUTOMATIC' } = createDto;
 
     // Validate Customer
@@ -68,6 +89,7 @@ export class ContractService {
       });
     }
 
+    const totalValueBeforeDiscount = totalValue;
     totalValue -= globalDiscount;
     if (totalValue < 0) throw new BadRequestException('Desconto global maior que o valor total do contrato.');
 
@@ -120,8 +142,14 @@ export class ContractService {
     });
   }
 
-  async findAll() {
+  async findAll(userId: string, permissions: string[]) {
+    let whereClause: any = {};
+    if (!permissions.includes('contracts:read') && permissions.includes('contracts:read_own')) {
+      whereClause.createdBy = userId;
+    }
+
     return this.prisma.contract.findMany({
+      where: whereClause,
       include: {
         items: true,
         customer: { select: { corporateName: true, document: true } },
@@ -130,9 +158,14 @@ export class ContractService {
     });
   }
 
-  async findOne(id: string) {
-    return this.prisma.contract.findUnique({
-      where: { id },
+  async findOne(id: string, userId: string, permissions: string[]) {
+    let whereClause: any = { id };
+    if (!permissions.includes('contracts:read') && permissions.includes('contracts:read_own')) {
+      whereClause.createdBy = userId;
+    }
+
+    const contract = await this.prisma.contract.findUnique({
+      where: whereClause,
       include: {
         customer: true,
         product: { include: { modules: true } },
@@ -143,11 +176,22 @@ export class ContractService {
         },
       }
     });
+
+    if (!contract) {
+      throw new NotFoundException('Contrato não encontrado ou acesso negado.');
+    }
+
+    return contract;
   }
 
-  async update(id: string, updateDto: UpdateContractDto, userId: string) {
-    const contract = await this.prisma.contract.findUnique({ where: { id }, include: { items: true } });
-    if (!contract) throw new NotFoundException('Contrato não encontrado.');
+  async update(id: string, updateDto: UpdateContractDto, userId: string, permissions: string[]) {
+    let whereClause: any = { id };
+    if (!permissions.includes('contracts:read') && permissions.includes('contracts:read_own')) {
+      whereClause.createdBy = userId;
+    }
+
+    const contract = await this.prisma.contract.findUnique({ where: whereClause, include: { items: true } });
+    if (!contract) throw new NotFoundException('Contrato não encontrado ou acesso negado.');
     if (contract.status !== 'DRAFT') throw new BadRequestException('Apenas contratos em rascunho podem ser alterados diretamente.');
 
     // We can simplify by expecting the full list of items if items are provided
@@ -245,11 +289,17 @@ export class ContractService {
     });
   }
 
-  async amendContract(id: string, amendDto: UpdateContractDto, userId: string) {
-    const contract = await this.prisma.contract.findUnique({ where: { id } });
-    if (!contract) throw new NotFoundException('Contrato não encontrado.');
+  async amendContract(id: string, amendDto: UpdateContractDto, userId: string, permissions: string[]) {
+    let whereClause: any = { id };
+    if (!permissions.includes('contracts:read') && permissions.includes('contracts:read_own')) {
+      whereClause.createdBy = userId;
+    }
+
+    const contract = await this.prisma.contract.findUnique({ where: whereClause });
+    if (!contract) throw new NotFoundException('Contrato não encontrado ou acesso negado.');
     if (contract.status !== 'ACTIVE') throw new BadRequestException('Apenas contratos ativos podem receber aditivos.');
 
+    let totalValueBeforeDiscount = 0;
     let totalValue = 0;
     let globalDiscount = amendDto.globalDiscount !== undefined ? amendDto.globalDiscount : Number(contract.globalDiscount);
     const contractItemsData: any[] = [];
@@ -273,6 +323,7 @@ export class ContractService {
         const discount = item.discount || 0;
         const itemTotal = (unitPrice - discount) * item.quantity;
         
+        totalValueBeforeDiscount += unitPrice * item.quantity;
         totalValue += itemTotal;
 
         contractItemsData.push({
@@ -293,6 +344,7 @@ export class ContractService {
       items: contractItemsData,
       globalDiscount,
       totalValue,
+      totalValueBeforeDiscount, // Save for applyAmendment discount check
       createdAt: new Date().toISOString(),
       createdBy: userId,
     };
@@ -305,12 +357,24 @@ export class ContractService {
     });
   }
 
-  async applyAmendment(id: string, userId: string) {
+  async applyAmendment(id: string, userId: string, tenantId: string) {
     const contract = await this.prisma.contract.findUnique({ where: { id }, include: { items: true } });
     if (!contract) throw new NotFoundException('Contrato não encontrado.');
     if (!contract.pendingAmendment) throw new BadRequestException('Não há aditivo pendente para este contrato.');
 
     const amendment = contract.pendingAmendment as any;
+    
+    // Check if the amendment requires manager approval due to discounts
+    const discountCheck = await this.checkDiscountApproval(userId, tenantId, amendment.globalDiscount, amendment.totalValueBeforeDiscount);
+
+    if (discountCheck.requiresApproval && contract.status !== 'PENDING_APPROVAL') {
+      // Put the contract in PENDING_APPROVAL instead of applying it
+      await this.prisma.contract.update({
+        where: { id },
+        data: { status: 'PENDING_APPROVAL' }
+      });
+      throw new BadRequestException(`O desconto excede o limite permitido (${discountCheck.userLimit}%). O aditivo foi enviado para aprovação.`);
+    }
 
     return this.prisma.$transaction(async (tx) => {
       // Exclui os itens antigos
@@ -356,7 +420,7 @@ export class ContractService {
     });
   }
 
-  async updateStatus(id: string, updateStatusDto: UpdateContractStatusDto, userId: string) {
+  async updateStatus(id: string, updateStatusDto: UpdateContractStatusDto, userId: string, tenantId: string) {
     const { status, reason } = updateStatusDto;
 
     const contract = await this.prisma.contract.findUnique({
@@ -380,6 +444,18 @@ export class ContractService {
       });
       if (documentsCount === 0) {
         throw new BadRequestException('Não é possível enviar para assinatura sem um documento gerado.');
+      }
+      
+      // Before sending to signature, check discount limits!
+      const totalValueBeforeDiscount = contract.items.reduce((acc, it) => acc + (Number(it.unitPrice) * it.quantity), 0);
+      const discountCheck = await this.checkDiscountApproval(userId, tenantId, Number(contract.globalDiscount), totalValueBeforeDiscount);
+      
+      if (discountCheck.requiresApproval && contract.status !== 'PENDING_APPROVAL') {
+        // Change status to PENDING_APPROVAL instead
+        return this.prisma.contract.update({
+          where: { id },
+          data: { status: 'PENDING_APPROVAL', updatedBy: userId }
+        });
       }
     }
 
@@ -505,14 +581,19 @@ export class ContractService {
     return result;
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId: string, permissions: string[]) {
+    let whereClause: any = { id };
+    if (!permissions.includes('contracts:delete') && permissions.includes('contracts:read_own')) {
+      whereClause.createdBy = userId;
+    }
+
     const contract = await this.prisma.contract.findUnique({
-      where: { id },
+      where: whereClause,
       select: { status: true }
     });
 
     if (!contract) {
-      throw new NotFoundException('Contrato não encontrado.');
+      throw new NotFoundException('Contrato não encontrado ou acesso negado.');
     }
 
     if (contract.status !== 'DRAFT') {
@@ -524,5 +605,94 @@ export class ContractService {
     });
 
     return { message: 'Contrato excluído com sucesso.' };
+  }
+
+  async approveDiscount(id: string, userId: string) {
+    const contract = await this.prisma.contract.findUnique({ where: { id } });
+    if (!contract) throw new NotFoundException('Contrato não encontrado.');
+    if (contract.status !== 'PENDING_APPROVAL') {
+      throw new BadRequestException('Contrato não está aguardando aprovação de desconto.');
+    }
+
+    // Se aprovado, vai para PENDING_SIGNATURE se for novo, 
+    // ou se tiver aditivo pendente, aplica o aditivo (que muda pra ACTIVE).
+    if (contract.pendingAmendment) {
+      // É um aditivo pendente, vamos aplicar
+      // Bypass check since it's approved
+      
+      // Clear pending status first to avoid loop
+      await this.prisma.contract.update({ where: { id }, data: { status: 'ACTIVE' } });
+      
+      // Actually applyAmendment handles it, but it expects pendingAmendment and calls checkDiscountApproval.
+      // To bypass the check inside applyAmendment since it's approved:
+      // We can just implement the apply logic directly here or bypass it.
+      // Let's clear pending status and call applyAmendment? No, applyAmendment will re-trigger PENDING_APPROVAL.
+      // Better to extract apply logic. For simplicity, just update status and apply it inline.
+      const amendment = contract.pendingAmendment as any;
+      return this.prisma.$transaction(async (tx) => {
+        await tx.contractItem.deleteMany({ where: { contractId: id } });
+        const updatedContract = await tx.contract.update({
+          where: { id },
+          data: {
+            status: 'ACTIVE',
+            totalValue: amendment.totalValue,
+            globalDiscount: amendment.globalDiscount,
+            pendingAmendment: Prisma.DbNull,
+            items: { create: amendment.items }
+          },
+          include: { items: true }
+        });
+        
+        await tx.contractHistory.create({
+          data: {
+            contractId: id,
+            status: 'ACTIVE',
+            totalValue: amendment.totalValue,
+            changedBy: userId,
+            reason: 'Aprovação de Desconto de Aditivo',
+            modulesPayload: { globalDiscount: amendment.globalDiscount, items: amendment.items },
+          }
+        });
+        return updatedContract;
+      });
+    }
+
+    // É um contrato novo indo para assinatura
+    return this.prisma.contract.update({
+      where: { id },
+      data: {
+        status: 'PENDING_SIGNATURE',
+        updatedBy: userId
+      }
+    });
+  }
+
+  async rejectDiscount(id: string, userId: string) {
+    const contract = await this.prisma.contract.findUnique({ where: { id } });
+    if (!contract) throw new NotFoundException('Contrato não encontrado.');
+    if (contract.status !== 'PENDING_APPROVAL') {
+      throw new BadRequestException('Contrato não está aguardando aprovação de desconto.');
+    }
+
+    if (contract.pendingAmendment) {
+      // Rejeita aditivo, volta para ACTIVE sem aplicar
+      return this.prisma.contract.update({
+        where: { id },
+        data: {
+          status: 'ACTIVE',
+          pendingAmendment: Prisma.DbNull,
+          updatedBy: userId
+        }
+      });
+    }
+
+    // Contrato novo, volta para rascunho
+    return this.prisma.contract.update({
+      where: { id },
+      data: {
+        status: 'DRAFT',
+        updatedBy: userId
+      }
+    });
   }
 }

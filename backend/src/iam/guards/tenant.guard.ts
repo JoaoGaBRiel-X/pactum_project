@@ -70,6 +70,9 @@ export class TenantGuard implements CanActivate {
           userId: user.userId,
           tenantId: tenantId as string,
         }
+      },
+      include: {
+        roleProfile: true
       }
     });
 
@@ -80,7 +83,8 @@ export class TenantGuard implements CanActivate {
     // Attach current role and tenant info to the request for further RBAC checks
     request.tenantContext = {
       tenantId: userTenant.tenantId,
-      role: userTenant.roleProfileId
+      role: userTenant.roleProfileId,
+      permissions: userTenant.roleProfile?.permissions || []
     };
 
     return true;

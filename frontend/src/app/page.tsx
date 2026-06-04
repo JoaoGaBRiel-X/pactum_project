@@ -6,6 +6,8 @@ import { KpiCards } from "@/components/dashboard/kpi-cards"
 import { UpcomingRenewalsTable } from "@/components/dashboard/upcoming-renewals-table"
 import { RecentOverdueTable } from "@/components/dashboard/recent-overdue-table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { RequirePermissions } from "@/components/auth/RequirePermissions"
+
 export default function DashboardPage() {
   const [metrics, setMetrics] = useState({
     activeContracts: 0,
@@ -50,23 +52,27 @@ export default function DashboardPage() {
       <KpiCards metrics={metrics} />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-4">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Renovações Próximas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <UpcomingRenewalsTable contracts={upcomingRenewals} />
-          </CardContent>
-        </Card>
+        <RequirePermissions permissions={['contracts:read', 'contracts:read_own']}>
+          <Card className="col-span-4">
+            <CardHeader>
+              <CardTitle>Renovações Próximas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <UpcomingRenewalsTable contracts={upcomingRenewals} />
+            </CardContent>
+          </Card>
+        </RequirePermissions>
         
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Inadimplência Recente</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RecentOverdueTable receivables={recentOverdue} />
-          </CardContent>
-        </Card>
+        <RequirePermissions permissions="financial:read">
+          <Card className="col-span-3">
+            <CardHeader>
+              <CardTitle>Inadimplência Recente</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <RecentOverdueTable receivables={recentOverdue} />
+            </CardContent>
+          </Card>
+        </RequirePermissions>
       </div>
     </div>
   )

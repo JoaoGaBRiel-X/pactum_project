@@ -61,4 +61,11 @@ export class AuthenticationController {
   getMyTenants(@Req() req: any) {
     return this.authService.getUserTenants(req.user.userId);
   }
+
+  @Get('me/permissions')
+  @ApiOperation({ summary: 'Retorna as permissões do usuário logado no tenant ativo' })
+  getMyPermissions(@Req() req: any) {
+    const tenantId = req.headers['x-tenant-id'];
+    return this.authService.getUserPermissions(req.user.userId, tenantId);
+  }
 }
