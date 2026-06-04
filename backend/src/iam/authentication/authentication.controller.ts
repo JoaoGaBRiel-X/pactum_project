@@ -68,4 +68,20 @@ export class AuthenticationController {
     const tenantId = req.headers['x-tenant-id'];
     return this.authService.getUserPermissions(req.user.userId, tenantId);
   }
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Solicita a redefinição de senha e envia um e-mail' })
+  forgotPassword(@Body() body: { email: string }) {
+    return this.authService.requestPasswordReset(body.email);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Redefine a senha do usuário usando o token' })
+  resetPassword(@Body() body: { token: string; password: string }) {
+    return this.authService.resetPassword(body.token, body.password);
+  }
 }

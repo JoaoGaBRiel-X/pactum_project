@@ -24,7 +24,9 @@ export function TenantSettingsProvider({ children }: { children: React.ReactNode
     if (
       pathname === '/login' ||
       pathname.startsWith('/admin') ||
-      pathname.startsWith('/portal/')
+      pathname.startsWith('/portal/') ||
+      pathname === '/forgot-password' ||
+      pathname === '/reset-password'
     ) {
       setLoading(false);
       return;

@@ -41,4 +41,32 @@ export class MailService {
       throw new Error('Failed to send invitation email');
     }
   }
+
+  async sendPasswordReset(email: string, token: string) {
+    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+    const mailOptions = {
+      from: '"Lefer SaaS" <no-reply@lefer.com.br>',
+      to: email,
+      subject: 'Redefinição de Senha - Lefer SaaS',
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+          <h2>Redefinição de Senha</h2>
+          <p>Você solicitou a redefinição de senha para sua conta no Lefer SaaS.</p>
+          <p>Para criar uma nova senha, clique no botão abaixo:</p>
+          <a href="${resetLink}" style="display: inline-block; padding: 10px 20px; background-color: #0ea5e9; color: #ffffff; text-decoration: none; border-radius: 5px;">
+            Redefinir Senha
+          </a>
+          <p>Se você não solicitou esta alteração, ignore este e-mail.</p>
+        </div>
+      `,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      this.logger.log(`Password reset email sent to ${email}`);
+    } catch (error) {
+      this.logger.error(`Failed to send password reset email to ${email}`, error);
+      throw new Error('Failed to send password reset email');
+    }
+  }
 }

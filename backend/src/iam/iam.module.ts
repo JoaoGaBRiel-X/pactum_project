@@ -10,11 +10,12 @@ import { TenantGuard } from './guards/tenant.guard';
 import { PermissionsGuard } from './guards/permissions.guard';
 
 import { StorageModule } from '../infrastructure/storage/storage.module';
-
+import { MailModule } from '../infrastructure/mail/mail.module';
 @Global()
 @Module({
   imports: [
     StorageModule,
+    MailModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'super-secret',

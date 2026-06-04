@@ -11,7 +11,9 @@ export function MainLayoutWrapper({ children }: { children: React.ReactNode }) {
     pathname === '/login' || 
     pathname === '/admin/tenants/new' || 
     pathname.startsWith('/portal/') ||
-    pathname.startsWith('/invite')
+    pathname.startsWith('/invite') ||
+    pathname === '/forgot-password' ||
+    pathname === '/reset-password'
   ) {
     return <main className="min-h-screen">{children}</main>;
   }

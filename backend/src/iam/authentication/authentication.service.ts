@@ -9,6 +9,8 @@ import { StorageService } from '../../infrastructure/storage/storage.service';
 import { LoginDto, MfaVerifyDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { authenticator } from 'otplib';
+import { MailService } from '../../infrastructure/mail/mail.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthenticationService {
@@ -16,6 +18,7 @@ export class AuthenticationService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly storageService: StorageService,
+    private readonly mailService: MailService,
   ) {}
 
   async login(dto: LoginDto) {
@@ -252,5 +255,59 @@ export class AuthenticationService {
     } catch (e) {
       throw new UnauthorizedException('Token de renovação inválido ou expirado');
     }
+  }
+
+  async requestPasswordReset(email: string) {
+    const user = await this.prisma.client.user.findUnique({ where: { email } });
+    if (!user) {
+      // Don't leak if user exists
+      return { message: 'Se o e-mail estiver cadastrado, você receberá um link de redefinição.' };
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1); // 1 hour expiration
+
+    // Delete existing tokens for this user to keep it clean
+    await this.prisma.client.passwordResetToken.deleteMany({
+      where: { userId: user.id },
+    });
+
+    await this.prisma.client.passwordResetToken.create({
+      data: {
+        token,
+        userId: user.id,
+        expiresAt,
+      },
+    });
+
+    await this.mailService.sendPasswordReset(user.email, token);
+
+    return { message: 'Se o e-mail estiver cadastrado, você receberá um link de redefinição.' };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const resetToken = await this.prisma.client.passwordResetToken.findUnique({
+      where: { token },
+      include: { user: true },
+    });
+
+    if (!resetToken || resetToken.expiresAt < new Date()) {
+      throw new UnauthorizedException('Token inválido ou expirado');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.client.user.update({
+      where: { id: resetToken.userId },
+      data: { password: hashedPassword },
+    });
+
+    // Clean up
+    await this.prisma.client.passwordResetToken.delete({
+      where: { id: resetToken.id },
+    });
+
+    return { message: 'Senha redefinida com sucesso' };
   }
 }
