@@ -18,10 +18,13 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { tenantSettingsApi, TenantSettings } from "@/services/tenant-settings-api";
 import { UploadCloud } from "lucide-react";
+import { toast } from "sonner";
 
 const visualIdentitySchema = z.object({
   primaryColor: z.string().regex(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i, "Cor inválida").optional(),
   secondaryColor: z.string().regex(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i, "Cor inválida").optional().or(z.literal("")),
+  sidebarColor: z.string().regex(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i, "Cor inválida").optional().or(z.literal("")),
+  sidebarTextColor: z.string().regex(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i, "Cor inválida").optional().or(z.literal("")),
 });
 
 type VisualIdentityFormValues = z.infer<typeof visualIdentitySchema>;
@@ -37,6 +40,8 @@ export default function VisualIdentitySettingsPage() {
     defaultValues: {
       primaryColor: "#1E40AF",
       secondaryColor: "",
+      sidebarColor: "#0f172a",
+      sidebarTextColor: "#ffffff",
     },
   });
 
@@ -48,6 +53,8 @@ export default function VisualIdentitySettingsPage() {
         form.reset({
           primaryColor: data.primaryColor || "#1E40AF",
           secondaryColor: data.secondaryColor || "",
+          sidebarColor: data.sidebarColor || "#0f172a",
+          sidebarTextColor: data.sidebarTextColor || "#ffffff",
         });
       } catch (err) {
         console.error(err);
@@ -61,10 +68,10 @@ export default function VisualIdentitySettingsPage() {
   async function onSubmit(data: VisualIdentityFormValues) {
     try {
       await tenantSettingsApi.updateSettings(data);
-      alert("Configurações de cores salvas com sucesso!");
-      window.location.reload(); 
-    } catch (err) {
-      alert("Erro ao salvar as configurações");
+      toast.success("Configurações de cores salvas com sucesso!");
+      setTimeout(() => window.location.reload(), 1500); 
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao salvar as configurações");
     }
   }
 
@@ -150,7 +157,9 @@ export default function VisualIdentitySettingsPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit, (errs) => {
+              toast.error("Por favor, verifique os campos com erro.");
+            })} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
@@ -171,27 +180,79 @@ export default function VisualIdentitySettingsPage() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="secondaryColor"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cor Secundária (Hex)</FormLabel>
-                      <div className="flex gap-4 items-center">
-                        <FormControl>
-                          <Input type="color" className="w-16 h-10 p-1 cursor-pointer" {...field} />
-                        </FormControl>
-                        <FormControl>
-                          <Input className="flex-1" placeholder="#F8FAFC" {...field} />
-                        </FormControl>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                  <FormField
+                    control={form.control}
+                    name="secondaryColor"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cor Secundária (Hex)</FormLabel>
+                        <div className="flex gap-4 items-center">
+                          <FormControl>
+                            <Input type="color" className="w-16 h-10 p-1 cursor-pointer" {...field} />
+                          </FormControl>
+                          <FormControl>
+                            <Input className="flex-1" placeholder="#F8FAFC" {...field} />
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="sidebarColor"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cor de Fundo do Menu Lateral (Hex)</FormLabel>
+                        <div className="flex gap-4 items-center">
+                          <FormControl>
+                            <Input type="color" className="w-16 h-10 p-1 cursor-pointer" {...field} />
+                          </FormControl>
+                          <FormControl>
+                            <Input className="flex-1" placeholder="#0f172a" {...field} />
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="sidebarTextColor"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cor do Texto do Menu Lateral (Hex)</FormLabel>
+                        <div className="flex gap-4 items-center">
+                          <FormControl>
+                            <Input type="color" className="w-16 h-10 p-1 cursor-pointer" {...field} />
+                          </FormControl>
+                          <FormControl>
+                            <Input className="flex-1" placeholder="#ffffff" {...field} />
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    if (window.confirm("Deseja restaurar as cores para o padrão original? Você precisará clicar em Salvar para confirmar.")) {
+                      form.setValue("primaryColor", "#1E40AF");
+                      form.setValue("secondaryColor", "");
+                      form.setValue("sidebarColor", "#0f172a");
+                      form.setValue("sidebarTextColor", "#ffffff");
+                    }
+                  }}
+                >
+                  Restaurar Padrões
+                </Button>
                 <Button type="submit">Salvar Cores</Button>
               </div>
             </form>

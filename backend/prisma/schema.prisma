@@ -307,6 +307,8 @@ model TenantSetting {
   logoUrl         String? @map("logo_url")
   primaryColor    String? @map("primary_color")
   secondaryColor  String? @map("secondary_color")
+  sidebarColor    String? @map("sidebar_color")
+  sidebarTextColor String? @map("sidebar_text_color")
   supportEmail    String? @map("support_email")
   supportPhone    String? @map("support_phone")
   companyDocument String? @map("company_document")

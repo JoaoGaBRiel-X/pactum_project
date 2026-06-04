@@ -21,6 +21,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { tenantSettingsApi } from "@/services/tenant-settings-api";
 import { maskCNPJ, maskCPF, maskCEP, maskPhone } from "@/lib/masks";
 import { Search, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const settingsSchema = z.object({
   name: z.string().min(3, "Razão social é obrigatória"),
@@ -110,9 +111,9 @@ export default function GeneralSettingsPage() {
   async function onSubmit(data: SettingsFormValues) {
     try {
       await tenantSettingsApi.updateSettings(data);
-      alert("Configurações salvas com sucesso!");
-    } catch (err) {
-      alert("Erro ao salvar as configurações");
+      toast.success("Configurações salvas com sucesso!");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao salvar as configurações");
     }
   }
 
@@ -182,7 +183,9 @@ export default function GeneralSettingsPage() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit, (errs) => {
+          toast.error("Por favor, preencha corretamente os campos obrigatórios.");
+        })} className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Dados da Empresa e Responsável Legal</CardTitle>

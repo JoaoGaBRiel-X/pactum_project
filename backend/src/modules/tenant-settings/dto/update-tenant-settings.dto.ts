@@ -7,13 +7,23 @@ export class UpdateTenantSettingsDto {
 
   @IsOptional()
   @IsString()
-  @Matches(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i, { message: 'Primary color must be a valid HEX color' })
+  @Matches(/^#([0-9a-f]{3}|[0-9a-f]{6})$|^$/i, { message: 'Primary color must be a valid HEX color or empty' })
   primaryColor?: string;
 
   @IsOptional()
   @IsString()
-  @Matches(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i, { message: 'Secondary color must be a valid HEX color' })
+  @Matches(/^#([0-9a-f]{3}|[0-9a-f]{6})$|^$/i, { message: 'Secondary color must be a valid HEX color or empty' })
   secondaryColor?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^#([0-9a-f]{3}|[0-9a-f]{6})$|^$/i, { message: 'Sidebar color must be a valid HEX color or empty' })
+  sidebarColor?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^#([0-9a-f]{3}|[0-9a-f]{6})$|^$/i, { message: 'Sidebar text color must be a valid HEX color or empty' })
+  sidebarTextColor?: string;
 
   @IsOptional()
   @IsString()

@@ -60,7 +60,7 @@ export class TenantSettingsService {
           ...(name && { name }),
           ...(tradeName && { tradeName }),
           ...(document && { document }),
-          ...(slug !== undefined && { slug }),
+          ...(slug !== undefined && { slug: slug === "" ? null : slug }),
           ...(legalRepName !== undefined && { legalRepName }),
           ...(legalRepCpf !== undefined && { legalRepCpf }),
           ...(zipCode !== undefined && { zipCode }),

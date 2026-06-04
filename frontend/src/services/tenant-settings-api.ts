@@ -5,6 +5,8 @@ export interface TenantSettings {
   logoUrl?: string;
   primaryColor?: string;
   secondaryColor?: string;
+  sidebarColor?: string;
+  sidebarTextColor?: string;
   supportEmail?: string;
   supportPhone?: string;
   companyDocument?: string;

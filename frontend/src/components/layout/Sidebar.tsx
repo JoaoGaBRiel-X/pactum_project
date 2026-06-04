@@ -58,11 +58,11 @@ export function SidebarContent({ handleLogout }: { handleLogout: () => void }) {
 
   return (
     <>
-      <div className="p-6 border-b border-slate-800">
+      <div className="p-3 border-b border-[var(--sidebar-border,theme(colors.slate.800))] flex justify-center items-center min-h-[72px]">
         {settings?.logoUrl ? (
-          <img src={settings.logoUrl} alt="Logo" className="max-h-12 max-w-full object-contain" />
+          <img src={settings.logoUrl} alt="Logo" className="max-h-16 max-w-full object-contain" />
         ) : (
-          <h1 className="text-xl font-bold text-white">Lefer SaaS</h1>
+          <h1 className="text-xl font-bold text-[var(--sidebar-fg,white)]">Lefer SaaS</h1>
         )}
       </div>
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-700">
@@ -78,7 +78,7 @@ export function SidebarContent({ handleLogout }: { handleLogout: () => void }) {
 
             return (
               <div key={idx}>
-                <h3 className="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                <h3 className="px-4 text-xs font-semibold text-[var(--sidebar-fg,theme(colors.slate.500))] opacity-70 uppercase tracking-wider mb-2">
                   {group.label}
                 </h3>
                 <div className="space-y-1">
@@ -90,7 +90,7 @@ export function SidebarContent({ handleLogout }: { handleLogout: () => void }) {
                         key={itemIdx} 
                         href={item.href} 
                         className={`flex items-center gap-3 px-4 py-2 rounded-md transition-colors ${
-                          isActive ? 'bg-slate-800 text-white font-medium' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                          isActive ? 'bg-black/20 text-[var(--sidebar-fg,white)] font-medium' : 'text-[var(--sidebar-fg,theme(colors.slate.400))] opacity-80 hover:bg-black/10 hover:opacity-100'
                         }`}
                       >
                         <Icon size={18} className={isActive ? 'text-[var(--primary)]' : ''} /> 
@@ -104,8 +104,8 @@ export function SidebarContent({ handleLogout }: { handleLogout: () => void }) {
           })}
         </nav>
       </div>
-      <div className="p-4 border-t border-slate-800">
-        <button onClick={handleLogout} className="flex w-full items-center gap-3 px-4 py-2 rounded-md text-slate-400 hover:bg-slate-800 hover:text-white transition-colors text-left">
+      <div className="p-4 border-t border-[var(--sidebar-border,theme(colors.slate.800))]">
+        <button onClick={handleLogout} className="flex w-full items-center gap-3 px-4 py-2 rounded-md text-[var(--sidebar-fg,theme(colors.slate.400))] opacity-80 hover:bg-black/10 hover:opacity-100 transition-colors text-left">
           <LogOut size={18} /> <span>Sair</span>
         </button>
       </div>
@@ -132,7 +132,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-slate-300 h-screen fixed left-0 top-0 border-r border-slate-800 z-50">
+    <aside className="hidden md:flex flex-col w-64 bg-[var(--sidebar-bg,theme(colors.slate.900))] text-[var(--sidebar-fg,theme(colors.slate.300))] h-screen fixed left-0 top-0 border-r border-[var(--sidebar-border,theme(colors.slate.800))] z-50">
       <SidebarContent handleLogout={handleLogout} />
     </aside>
   );

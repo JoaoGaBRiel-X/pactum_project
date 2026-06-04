@@ -23,7 +23,6 @@ export function TenantSettingsProvider({ children }: { children: React.ReactNode
     // Não carregar em rotas públicas (login, setup, portal do cliente)
     if (
       pathname === '/login' ||
-      pathname.startsWith('/admin') ||
       pathname.startsWith('/portal/') ||
       pathname === '/forgot-password' ||
       pathname === '/reset-password'
@@ -58,11 +57,14 @@ export function TenantSettingsProvider({ children }: { children: React.ReactNode
 
   return (
     <TenantSettingsContext.Provider value={{ settings, loading }}>
-      {settings && settings.primaryColor && (
+      {(settings?.primaryColor || settings?.sidebarColor || settings?.sidebarTextColor) && (
         <style dangerouslySetInnerHTML={{
           __html: `
             :root {
-              --primary: ${settings.primaryColor} !important;
+              ${settings.primaryColor ? `--primary: ${settings.primaryColor} !important;` : ''}
+              ${settings.sidebarColor ? `--sidebar-bg: ${settings.sidebarColor} !important;` : ''}
+              ${settings.sidebarTextColor ? `--sidebar-fg: ${settings.sidebarTextColor} !important;` : ''}
+              ${settings.sidebarColor ? `--sidebar-border: ${settings.sidebarColor} !important;` : ''}
             }
           `
         }} />

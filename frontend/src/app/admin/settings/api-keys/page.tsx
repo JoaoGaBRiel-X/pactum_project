@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { apiFetch } from '@/lib/api';
 import { Trash2, Copy, Check } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 type ApiKey = {
   id: string;
@@ -52,7 +53,9 @@ export default function ApiKeysPage() {
       });
       setName('');
       loadApiKeys();
-    } catch (error) {
+      toast.success('Chave de API gerada com sucesso!');
+    } catch (error: any) {
+      toast.error(error.message || 'Falha ao criar chave de API');
       console.error('Failed to create API key', error);
     } finally {
       setLoading(false);
@@ -67,7 +70,9 @@ export default function ApiKeysPage() {
     try {
       await apiFetch(`/tenant-management/api-keys/${id}`, { method: 'DELETE' });
       loadApiKeys();
-    } catch (error) {
+      toast.success('Chave revogada com sucesso');
+    } catch (error: any) {
+      toast.error(error.message || 'Falha ao revogar chave');
       console.error('Failed to revoke API key', error);
     }
   };

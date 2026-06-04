@@ -8,6 +8,7 @@ import { Shield, Plus, Pencil, Trash2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { RequirePermissions } from '@/components/auth/RequirePermissions';
 import { Card } from '@/components/ui/card';
+import { toast } from 'sonner';
 
 export default function RolesPage() {
   const { data: roles, isLoading, error } = useQuery({
@@ -41,6 +42,10 @@ export default function RolesPage() {
     mutationFn: (id: string) => apiFetch(`/roles/${id}`, { method: 'DELETE' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
+      toast.success('Perfil excluído com sucesso');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Falha ao excluir perfil');
     }
   });
 
