@@ -97,7 +97,7 @@ export default function RoleEditPage() {
       }
     },
     onSuccess: () => {
-      router.push('/admin/roles');
+      router.push('/admin/settings/roles');
     },
     onError: (err: any) => {
       alert(`Erro ao salvar: ${err.message || 'Desconhecido'}`);
@@ -135,7 +135,7 @@ export default function RoleEditPage() {
         <ShieldAlert size={48} className="text-amber-500 mb-4" />
         <h2 className="text-2xl font-bold">Perfil de Sistema</h2>
         <p className="text-slate-500 mt-2">Este perfil não pode ser editado pois é um perfil padrão do sistema.</p>
-        <Link href="/admin/roles" className="mt-6">
+        <Link href="/admin/settings/roles" className="mt-6">
           <Button variant="outline">Voltar para Perfis</Button>
         </Link>
       </div>
@@ -145,7 +145,7 @@ export default function RoleEditPage() {
   return (
     <div className="space-y-6 pb-12 max-w-5xl mx-auto">
       <div className="flex items-center gap-4">
-        <Link href="/admin/roles">
+        <Link href="/admin/settings/roles">
           <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-slate-100 hover:bg-slate-200">
             <ChevronLeft size={20} className="text-slate-700" />
           </Button>
@@ -237,7 +237,7 @@ export default function RoleEditPage() {
         </Card>
 
         <div className="flex justify-end gap-4">
-          <Link href="/admin/roles">
+          <Link href="/admin/settings/roles">
             <Button type="button" variant="outline">Cancelar</Button>
           </Link>
           <Button type="submit" disabled={mutation.isPending} className="bg-blue-600 hover:bg-blue-700">

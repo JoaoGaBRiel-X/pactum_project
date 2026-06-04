@@ -42,9 +42,7 @@ export const navigationGroups = [
     items: [
       { href: "/admin/tenants", icon: Building, label: "Tenants (Locatários)", requiredPermissions: ['SUPERADMIN'] },
       { href: "/admin/notifications", icon: Mail, label: "Notificações", requiredPermissions: ['settings:manage'] },
-      { href: "/admin/settings/api-keys", icon: Key, label: "Chaves de API", requiredPermissions: ['settings:manage'] },
       { href: "/admin/settings/general", icon: Settings, label: "Configurações", requiredPermissions: ['settings:manage'] },
-      { href: "/admin/roles", icon: Shield, label: "Perfis de Acesso", requiredPermissions: ['users:manage'] },
       { href: "/admin/users", icon: Users, label: "Gestão de Usuários", requiredPermissions: ['users:manage'] }
     ]
   }

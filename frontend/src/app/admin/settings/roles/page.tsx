@@ -63,7 +63,7 @@ export default function RolesPage() {
           </div>
         </div>
         <RequirePermissions permissions="roles:create">
-          <Link href="/admin/roles/new">
+          <Link href="/admin/settings/roles/new">
             <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6">
               <Plus size={16} className="mr-2" /> Novo Perfil
             </Button>
@@ -112,7 +112,7 @@ export default function RolesPage() {
                     {!role.isSystem && (
                       <>
                         <RequirePermissions permissions="roles:update">
-                          <Link href={`/admin/roles/${role.id}`}>
+                          <Link href={`/admin/settings/roles/${role.id}`}>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 bg-white border border-slate-200 shadow-sm rounded-md" title="Editar Perfil">
                               <Pencil size={14} />
                             </Button>
