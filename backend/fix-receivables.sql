@@ -1,1 +1,0 @@
-ALTER TABLE tenant_c2f0479460164010aa1cb79c25e8770e.receivables ADD COLUMN IF NOT EXISTS boleto_url TEXT;

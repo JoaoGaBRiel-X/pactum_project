@@ -1,1 +1,0 @@
-fetch('http://localhost:3333/api/adjustments/sync-bacen', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-tenant-id': 'tenant_1', 'x-user-id': 'test' } }).then(res => res.json()).then(console.log);
