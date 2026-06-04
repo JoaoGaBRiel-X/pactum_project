@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import { StorageModule } from './infrastructure/storage/storage.module';
+import { MailModule } from './infrastructure/mail/mail.module';
+import { UserManagementModule } from './modules/user-management/user-management.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AuditInterceptor } from './modules/audit/audit.interceptor';
 import { AppController } from './app.controller';
@@ -52,6 +55,9 @@ import { ProductGroupModule } from './modules/product-group/product-group.module
     PublicApiModule,
     DashboardModule,
     TenantSettingsModule,
+    StorageModule,
+    MailModule,
+    UserManagementModule,
     ThrottlerModule.forRoot([{
       ttl: 60000,
       limit: 60,

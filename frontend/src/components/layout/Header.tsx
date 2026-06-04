@@ -6,6 +6,15 @@ import { apiFetch } from '@/lib/api';
 import { Menu } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SidebarContent } from './Sidebar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export function Header() {
   const pathname = usePathname();
@@ -13,6 +22,7 @@ export function Header() {
   const [tenants, setTenants] = useState<any[]>([]);
   const [activeTenant, setActiveTenant] = useState<string>('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
     const isClient = typeof window !== 'undefined';
@@ -40,6 +50,10 @@ export function Header() {
           router.push('/login');
         }
       });
+
+      apiFetch('/authentication/me').then((data) => {
+        setUserProfile(data);
+      }).catch(() => {});
     }
   }, [pathname, router]);
 
@@ -95,12 +109,32 @@ export function Header() {
         </select>
       </div>
       <div className="flex items-center gap-4">
-        <button onClick={handleLogout} className="text-sm text-red-600 hover:text-red-800 font-medium mr-4 hidden sm:block">
-          Sair
-        </button>
-        <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-sm font-bold text-slate-600 shrink-0">
-          AD
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2 outline-none focus:ring-2 focus:ring-slate-400 rounded-full">
+              <span className="text-sm font-medium text-slate-700 hidden sm:block">
+                {userProfile?.name || 'Carregando...'}
+              </span>
+              <Avatar className="h-9 w-9 border border-slate-200">
+                <AvatarImage src={userProfile?.avatarUrl} alt={userProfile?.name || 'User'} />
+                <AvatarFallback className="bg-slate-800 text-white text-xs">
+                  {userProfile?.name?.substring(0, 2).toUpperCase() || 'AD'}
+                </AvatarFallback>
+              </Avatar>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push('/profile')}>
+              Configurações de Perfil
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600 focus:bg-red-50">
+              Sair
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

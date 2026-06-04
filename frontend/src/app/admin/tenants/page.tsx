@@ -11,7 +11,7 @@ export default function TenantsPage() {
 
   const { data: tenants, isLoading } = useQuery({
     queryKey: ['tenants'],
-    queryFn: () => apiFetch('/tenants'), // public route for global admin
+    queryFn: () => apiFetch('/tenants', { headers: { 'x-api-key': 'lefer-secret-dev-key' } }), // public route for global admin
   });
 
   return (

@@ -1,4 +1,5 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Req, Get } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Req, Get, Patch, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthenticationService } from './authentication.service';
 import { LoginDto, MfaVerifyDto } from './dto/login.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -35,6 +36,25 @@ export class AuthenticationController {
 
   // To do: setup mfa routes would need a valid JWT token to know WHICH user to setup.
   // We will need a JwtGuard first.
+
+  @Get('me')
+  @ApiOperation({ summary: 'Retorna os dados do perfil do usuário logado' })
+  getProfile(@Req() req: any) {
+    return this.authService.getProfile(req.user.userId);
+  }
+
+  @Patch('me')
+  @ApiOperation({ summary: 'Atualiza os dados do perfil do usuário logado' })
+  updateProfile(@Req() req: any, @Body() body: { name?: string; password?: string }) {
+    return this.authService.updateProfile(req.user.userId, body);
+  }
+
+  @Post('me/avatar')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({ summary: 'Faz upload do avatar do usuário logado' })
+  uploadAvatar(@Req() req: any, @UploadedFile() file: Express.Multer.File) {
+    return this.authService.uploadAvatar(req.user.userId, file);
+  }
 
   @Get('me/tenants')
   @ApiOperation({ summary: 'Retorna a lista de locatários aos quais o usuário tem acesso' })

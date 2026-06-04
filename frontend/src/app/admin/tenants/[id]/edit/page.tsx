@@ -26,7 +26,7 @@ export default function EditTenantPage() {
 
   const { data: tenant, isLoading } = useQuery({
     queryKey: ['tenant', tenantId],
-    queryFn: () => apiFetch(`/tenants/${tenantId}`),
+    queryFn: () => apiFetch(`/tenants/${tenantId}`, { headers: { 'x-api-key': 'lefer-secret-dev-key' } }),
   });
 
   useEffect(() => {
@@ -42,6 +42,7 @@ export default function EditTenantPage() {
 
   const updateTenantMutation = useMutation({
     mutationFn: (data: typeof formData) => apiFetch(`/tenants/${tenantId}`, {
+      headers: { 'x-api-key': 'lefer-secret-dev-key' },
       method: 'PATCH',
       body: JSON.stringify({
         ...data,

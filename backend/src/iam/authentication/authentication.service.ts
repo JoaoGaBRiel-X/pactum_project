@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
+import { StorageService } from '../../infrastructure/storage/storage.service';
 import { LoginDto, MfaVerifyDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { authenticator } from 'otplib';
@@ -14,6 +15,7 @@ export class AuthenticationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly storageService: StorageService,
   ) {}
 
   async login(dto: LoginDto) {
@@ -150,6 +152,7 @@ export class AuthenticationService {
       where: { userId },
       include: {
         tenant: true,
+        roleProfile: true,
       },
     });
 
@@ -157,8 +160,51 @@ export class AuthenticationService {
       tenantId: ut.tenantId,
       name: ut.tenant.name,
       document: ut.tenant.document,
-      role: ut.role,
+      role: ut.roleProfile?.name || 'USER',
     }));
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.prisma.client.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+        isSuperAdmin: true,
+      }
+    });
+    if (!user) throw new NotFoundException('Usuário não encontrado');
+    return user;
+  }
+
+  async updateProfile(userId: string, data: { name?: string; password?: string }) {
+    const updateData: any = {};
+    if (data.name) updateData.name = data.name;
+    if (data.password) {
+      updateData.password = await bcrypt.hash(data.password, 10);
+    }
+    await this.prisma.client.user.update({
+      where: { id: userId },
+      data: updateData,
+    });
+    return { message: 'Perfil atualizado com sucesso' };
+  }
+
+  async uploadAvatar(userId: string, file: Express.Multer.File) {
+    if (!file) throw new NotFoundException('Nenhum arquivo enviado');
+    const ext = file.originalname.split('.').pop();
+    const filename = `avatars/${userId}-${Date.now()}.${ext}`;
+    
+    const url = await this.storageService.uploadFile(filename, file.buffer, file.mimetype);
+    
+    await this.prisma.client.user.update({
+      where: { id: userId },
+      data: { avatarUrl: url },
+    });
+    
+    return { avatarUrl: url };
   }
 
   async refreshTokens(refreshToken: string) {

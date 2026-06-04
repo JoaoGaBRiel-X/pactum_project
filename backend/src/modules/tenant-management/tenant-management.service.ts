@@ -82,8 +82,21 @@ export class TenantManagementService {
         schema: schemaName,
         legalRepName: dto.legalRepName,
         legalRepCpf: dto.legalRepCpf,
+        // Seed default role profiles for the tenant
+        roleProfiles: {
+          create: [
+            { name: 'Admin', description: 'Acesso total ao sistema', permissions: ['*'] },
+            { name: 'Financeiro', description: 'Acesso ao módulo financeiro', permissions: ['financial:read', 'financial:write'] },
+            { name: 'Visualizador', description: 'Apenas visualização', permissions: ['contracts:read', 'customers:read'] },
+          ]
+        }
       },
+      include: {
+        roleProfiles: true,
+      }
     });
+
+    const adminProfile = tenant.roleProfiles.find(p => p.name === 'Admin');
 
     // 5. Vincular/Criar Usuário Admin
     if (existingUser) {
@@ -91,7 +104,7 @@ export class TenantManagementService {
         data: {
           userId: existingUser.id,
           tenantId: tenant.id,
-          role: 'ADMIN',
+          roleProfileId: adminProfile?.id,
         },
       });
     } else {
@@ -103,7 +116,7 @@ export class TenantManagementService {
           tenantLinks: {
             create: {
               tenantId: tenant.id,
-              role: 'ADMIN',
+              roleProfileId: adminProfile?.id,
             },
           },
         },

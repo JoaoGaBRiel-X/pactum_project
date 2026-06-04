@@ -23,7 +23,7 @@ export function TenantSettingsProvider({ children }: { children: React.ReactNode
     // Não carregar em rotas públicas (login, setup, portal do cliente)
     if (
       pathname === '/login' ||
-      pathname === '/admin/tenants/new' ||
+      pathname.startsWith('/admin') ||
       pathname.startsWith('/portal/')
     ) {
       setLoading(false);

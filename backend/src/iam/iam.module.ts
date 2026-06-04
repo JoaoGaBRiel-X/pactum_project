@@ -8,9 +8,12 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { TenantGuard } from './guards/tenant.guard';
 
+import { StorageModule } from '../infrastructure/storage/storage.module';
+
 @Global()
 @Module({
   imports: [
+    StorageModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'super-secret',

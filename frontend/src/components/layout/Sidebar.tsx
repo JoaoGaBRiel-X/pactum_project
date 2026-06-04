@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Users, Package, Home, Settings, LogOut, FileText, DollarSign, TrendingUp, FileSignature, Mail, Key, Boxes, Building } from 'lucide-react';
 import { useTenantSettings } from '@/contexts/TenantSettingsContext';
+import { useState, useEffect } from 'react';
+import { apiFetch } from '@/lib/api';
 
 export const navigationGroups = [
   {
@@ -41,7 +43,8 @@ export const navigationGroups = [
       { href: "/admin/tenants", icon: Building, label: "Tenants (Locatários)" },
       { href: "/admin/notifications", icon: Mail, label: "Notificações" },
       { href: "/admin/settings/api-keys", icon: Key, label: "Chaves de API" },
-      { href: "/admin/settings/general", icon: Settings, label: "Identidade Visual e Dados" }
+      { href: "/admin/settings/general", icon: Settings, label: "Configurações" },
+      { href: "/admin/users", icon: Users, label: "Gestão de Usuários" }
     ]
   }
 ];
@@ -49,6 +52,18 @@ export const navigationGroups = [
 export function SidebarContent({ handleLogout }: { handleLogout: () => void }) {
   const pathname = usePathname();
   const { settings } = useTenantSettings();
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  useEffect(() => {
+    const isClient = typeof window !== 'undefined';
+    if (!isClient) return;
+    const token = localStorage.getItem('gestao_token');
+    if (token) {
+      apiFetch('/authentication/me/tenants').then((data) => {
+        setIsSuperAdmin(data.some((t: any) => t.role === 'SUPERADMIN'));
+      }).catch(() => {});
+    }
+  }, []);
 
   return (
     <>
@@ -68,6 +83,7 @@ export function SidebarContent({ handleLogout }: { handleLogout: () => void }) {
               </h3>
               <div className="space-y-1">
                 {group.items.map((item, itemIdx) => {
+                  if (item.href === '/admin/tenants' && !isSuperAdmin) return null;
                   const Icon = item.icon;
                   const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
                   return (

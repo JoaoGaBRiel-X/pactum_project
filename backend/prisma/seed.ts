@@ -70,7 +70,15 @@ async function main() {
           slug: 'empresaautomacao',
           legalRepName: 'João Demo',
           legalRepCpf: '12345678901',
+          roleProfiles: {
+            create: [
+              { name: 'Admin', description: 'Acesso total ao sistema', permissions: ['*'] },
+              { name: 'Financeiro', description: 'Acesso ao módulo financeiro', permissions: ['financial:read', 'financial:write'] },
+              { name: 'Visualizador', description: 'Apenas visualização', permissions: ['contracts:read', 'customers:read'] },
+            ]
+          }
         },
+        include: { roleProfiles: true }
       });
       console.log(`✅ Tenant criado: ${tenant.name} (slug: ${tenant.slug})`);
     }
@@ -97,8 +105,9 @@ async function main() {
       where: { userId: user.id, tenantId: tenant.id },
     });
     if (!existingLink) {
+      const adminProfile = tenant.roleProfiles?.find((p: any) => p.name === 'Admin');
       await publicPrisma.userTenant.create({
-        data: { userId: user.id, tenantId: tenant.id, role: 'ADMIN' },
+        data: { userId: user.id, tenantId: tenant.id, roleProfileId: adminProfile?.id },
       });
       console.log(`✅ Usuário vinculado ao tenant`);
     } else {

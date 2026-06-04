@@ -25,6 +25,8 @@ model Tenant {
   updatedAt  DateTime     @updatedAt @map("updated_at")
   userLinks  UserTenant[]
   apiClients ApiClient[]
+  roleProfiles RoleProfile[]
+  invitations  UserInvitation[]
 
   @@map("tenants")
 }
@@ -52,6 +54,7 @@ model User {
   isSuperAdmin Boolean @default(false) @map("is_superadmin")
   mfaEnabled   Boolean @default(false) @map("mfa_enabled")
   mfaSecret    String? @map("mfa_secret")
+  avatarUrl    String? @map("avatar_url")
 
   tenantLinks UserTenant[]
 
@@ -61,21 +64,48 @@ model User {
   @@map("users")
 }
 
-model UserTenant {
-  userId   String @map("user_id")
-  tenantId String @map("tenant_id")
-  role     Role   @default(USER)
+model RoleProfile {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  permissions String[]
+  tenantId    String   @map("tenant_id")
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  users  UserTenant[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("role_profiles")
+}
+
+model UserInvitation {
+  id            String   @id @default(uuid())
+  email         String
+  tenantId      String   @map("tenant_id")
+  roleProfileId String   @map("role_profile_id")
+  token         String   @unique
+  expiresAt     DateTime @map("expires_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("user_invitations")
+}
+
+model UserTenant {
+  userId        String @map("user_id")
+  tenantId      String @map("tenant_id")
+  roleProfileId String? @map("role_profile_id")
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  roleProfile RoleProfile? @relation(fields: [roleProfileId], references: [id], onDelete: SetNull)
 
   @@id([userId, tenantId])
   @@map("user_tenants")
-}
-
-enum Role {
-  ADMIN
-  USER
 }
 
 // ==========================================

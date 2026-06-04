@@ -10,7 +10,8 @@ export function MainLayoutWrapper({ children }: { children: React.ReactNode }) {
   if (
     pathname === '/login' || 
     pathname === '/admin/tenants/new' || 
-    pathname.startsWith('/portal/')
+    pathname.startsWith('/portal/') ||
+    pathname.startsWith('/invite')
   ) {
     return <main className="min-h-screen">{children}</main>;
   }

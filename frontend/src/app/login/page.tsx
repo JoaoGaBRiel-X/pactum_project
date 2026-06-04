@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,6 +23,24 @@ export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('gestao_token');
+    if (token) {
+      apiFetch('/authentication/me')
+        .then((profile) => {
+          if (profile.isSuperAdmin && !localStorage.getItem('gestao_tenant_id')) {
+            router.push('/admin/tenants');
+          } else {
+            router.push('/');
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem('gestao_token');
+          localStorage.removeItem('gestao_refresh_token');
+        });
+    }
+  }, [router]);
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -47,9 +65,14 @@ export default function LoginPage() {
         
         // Fetch user tenants para definir o tenant_id ativo
         const tenants = await apiFetch('/authentication/me/tenants');
+        const profile = await apiFetch('/authentication/me');
+
         if (tenants.length > 0) {
           localStorage.setItem('gestao_tenant_id', tenants[0].tenantId);
           router.push('/');
+        } else if (profile.isSuperAdmin) {
+          localStorage.removeItem('gestao_tenant_id');
+          router.push('/admin/tenants');
         } else {
           setError('Usuário não possui acesso a nenhum locatário.');
         }
