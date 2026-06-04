@@ -26,6 +26,7 @@ const productSchema = z.object({
   description: z.string().optional(),
   productGroupId: z.string().optional().nullable(),
   isActive: z.boolean().default(true),
+  cutoffDay: z.coerce.number().min(1, 'Dia inválido').max(31, 'Dia inválido').optional().nullable(),
   modules: z.array(moduleSchema).min(1, 'Adicione pelo menos um módulo'),
 });
 
@@ -101,6 +102,12 @@ export default function NewProductPage() {
                   <option key={group.id} value={group.id}>{group.name}</option>
                 ))}
               </select>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="cutoffDay">Dia de Corte de Faturamento (Opcional)</Label>
+              <Input id="cutoffDay" type="number" min="1" max="31" {...register("cutoffDay")} placeholder="Ex: 15" />
+              {errors.cutoffDay && <p className="text-destructive text-sm">{errors.cutoffDay.message}</p>}
+              <p className="text-xs text-muted-foreground">Usado caso a estratégia de faturamento seja 'Por Produto'. Se deixado em branco, herda do Global.</p>
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="description">Descrição</Label>

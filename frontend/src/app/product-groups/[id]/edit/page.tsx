@@ -16,7 +16,7 @@ import { useEffect } from 'react';
 const groupSchema = z.object({
   name: z.string().min(2, 'Nome é obrigatório'),
   description: z.string().optional().nullable(),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean().optional(),
 });
 
 type FormValues = z.infer<typeof groupSchema>;

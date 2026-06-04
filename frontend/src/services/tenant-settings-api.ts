@@ -13,6 +13,9 @@ export interface TenantSettings {
   document?: string;
   legalRepName?: string;
   legalRepCpf?: string;
+  billingCutoffStrategy?: 'GLOBAL' | 'PER_CONTRACT' | 'PER_PRODUCT_GROUP';
+  globalCutoffDay?: number;
+  allowActivationWithoutDocument?: boolean;
 }
 
 export const tenantSettingsApi = {

@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import { CreateContractDto } from './dto/create-contract.dto';
 import { UpdateContractDto } from './dto/update-contract.dto';
@@ -39,6 +39,10 @@ export class ContractService {
       const module = product.modules.find(m => m.id === item.moduleId);
       if (!module) throw new BadRequestException(`Módulo ${item.moduleId} não pertence a este produto.`);
       if (!module.isActive) throw new BadRequestException(`Módulo ${module.name} está inativo.`);
+      
+      if (module.maxQuantity && item.quantity > module.maxQuantity) {
+        throw new BadRequestException(`Quantidade do módulo ${module.name} excede o limite permitido (${module.maxQuantity}).`);
+      }
 
       const unitPrice = Number(module.price);
       const discount = item.discount || 0;
@@ -241,6 +245,117 @@ export class ContractService {
     });
   }
 
+  async amendContract(id: string, amendDto: UpdateContractDto, userId: string) {
+    const contract = await this.prisma.contract.findUnique({ where: { id } });
+    if (!contract) throw new NotFoundException('Contrato não encontrado.');
+    if (contract.status !== 'ACTIVE') throw new BadRequestException('Apenas contratos ativos podem receber aditivos.');
+
+    let totalValue = 0;
+    let globalDiscount = amendDto.globalDiscount !== undefined ? amendDto.globalDiscount : Number(contract.globalDiscount);
+    const contractItemsData: any[] = [];
+
+    if (amendDto.items && amendDto.items.length > 0) {
+      const product = await this.prisma.softwareProduct.findUnique({
+        where: { id: amendDto.productId || contract.productId },
+        include: { modules: true }
+      });
+      if (!product) throw new NotFoundException('Produto não encontrado.');
+
+      for (const item of amendDto.items) {
+        const module = product.modules.find(m => m.id === item.moduleId);
+        if (!module) throw new BadRequestException(`Módulo ${item.moduleId} não encontrado no produto.`);
+        
+        if (module.maxQuantity && item.quantity > module.maxQuantity) {
+          throw new BadRequestException(`Quantidade do módulo ${module.name} excede o limite permitido (${module.maxQuantity}).`);
+        }
+        
+        const unitPrice = Number(module.price);
+        const discount = item.discount || 0;
+        const itemTotal = (unitPrice - discount) * item.quantity;
+        
+        totalValue += itemTotal;
+
+        contractItemsData.push({
+          moduleId: item.moduleId,
+          quantity: item.quantity,
+          unitPrice: unitPrice,
+          discount: discount,
+        });
+      }
+      
+      totalValue -= globalDiscount;
+      if (totalValue < 0) throw new BadRequestException('Desconto global maior que o valor total.');
+    } else {
+      throw new BadRequestException('É necessário informar os itens do aditivo.');
+    }
+
+    const pendingAmendment = {
+      items: contractItemsData,
+      globalDiscount,
+      totalValue,
+      createdAt: new Date().toISOString(),
+      createdBy: userId,
+    };
+
+    return this.prisma.contract.update({
+      where: { id },
+      data: {
+        pendingAmendment,
+      }
+    });
+  }
+
+  async applyAmendment(id: string, userId: string) {
+    const contract = await this.prisma.contract.findUnique({ where: { id }, include: { items: true } });
+    if (!contract) throw new NotFoundException('Contrato não encontrado.');
+    if (!contract.pendingAmendment) throw new BadRequestException('Não há aditivo pendente para este contrato.');
+
+    const amendment = contract.pendingAmendment as any;
+
+    return this.prisma.$transaction(async (tx) => {
+      // Exclui os itens antigos
+      await tx.contractItem.deleteMany({ where: { contractId: id } });
+
+      // Atualiza os valores e itens e limpa o pending
+      const updatedContract = await tx.contract.update({
+        where: { id },
+        data: {
+          totalValue: amendment.totalValue,
+          globalDiscount: amendment.globalDiscount,
+          pendingAmendment: Prisma.DbNull, // Limpa o pending
+          items: {
+            create: amendment.items,
+          }
+        },
+        include: { items: true }
+      });
+
+      // Salva snapshot no history
+      const historyPayloadItems = amendment.items.map((item: any) => ({
+        moduleId: item.moduleId,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        discount: item.discount,
+      }));
+
+      await tx.contractHistory.create({
+        data: {
+          contractId: id,
+          status: 'ACTIVE',
+          totalValue: amendment.totalValue,
+          changedBy: userId,
+          reason: 'Aprovação de Aditivo Contratual',
+          modulesPayload: {
+            globalDiscount: amendment.globalDiscount,
+            items: historyPayloadItems,
+          },
+        }
+      });
+
+      return updatedContract;
+    });
+  }
+
   async updateStatus(id: string, updateStatusDto: UpdateContractStatusDto, userId: string) {
     const { status, reason } = updateStatusDto;
 
@@ -259,6 +374,29 @@ export class ContractService {
       throw new BadRequestException(`Contrato não pode ser alterado a partir do status ${currentStatus}`);
     }
 
+    if (status === 'PENDING_SIGNATURE') {
+      const documentsCount = await this.prisma.contractDocument.count({
+        where: { contractId: id }
+      });
+      if (documentsCount === 0) {
+        throw new BadRequestException('Não é possível enviar para assinatura sem um documento gerado.');
+      }
+    }
+
+    if (status === 'ACTIVE') {
+      const tenantSettings = await this.prisma.tenantSetting.findFirst();
+      const allowActivationWithoutDoc = tenantSettings?.allowActivationWithoutDocument ?? false;
+      
+      if (!allowActivationWithoutDoc) {
+        const signedDocsCount = await this.prisma.contractDocument.count({
+          where: { contractId: id, status: 'SIGNED' }
+        });
+        if (signedDocsCount === 0) {
+          throw new BadRequestException('Não é possível ativar um contrato sem um documento assinado.');
+        }
+      }
+    }
+
     if (status === 'ACTIVE' && currentStatus === 'DRAFT') {
       // Allow draft to active if skipping signature, or maybe require PENDING_SIGNATURE
       // We will allow it for simplicity, but normally it goes DRAFT -> PENDING_SIGNATURE -> ACTIVE
@@ -275,6 +413,44 @@ export class ContractService {
     }
 
     const result = await this.prisma.$transaction(async (tx) => {
+      let financialReasonStr = '';
+      if (status === 'CANCELLED') {
+        const tenantSettings = await tx.tenantSetting.findFirst();
+        const strategy = tenantSettings?.billingCutoffStrategy || 'GLOBAL';
+        let cutoffDay = tenantSettings?.globalCutoffDay || 15;
+
+        if (strategy === 'PER_CONTRACT') {
+          cutoffDay = contract.cutoffDay || cutoffDay;
+        } else if (strategy === 'PER_PRODUCT_GROUP') {
+          const product = await tx.softwareProduct.findUnique({
+             where: { id: contract.productId },
+             include: { productGroup: true }
+          });
+          cutoffDay = product?.cutoffDay || product?.productGroup?.cutoffDay || cutoffDay;
+        }
+
+        const today = new Date().getDate();
+        const keepNextInvoice = today > cutoffDay;
+
+        const pendingReceivables = await tx.receivable.findMany({
+          where: { contractId: contract.id, status: 'PENDING' },
+          orderBy: { dueDate: 'asc' }
+        });
+
+        if (pendingReceivables.length > 0) {
+          const receivablesToCancel = keepNextInvoice ? pendingReceivables.slice(1) : pendingReceivables;
+          if (receivablesToCancel.length > 0) {
+            await tx.receivable.updateMany({
+              where: { id: { in: receivablesToCancel.map(r => r.id) } },
+              data: { status: 'CANCELED', updatedBy: userId }
+            });
+          }
+          financialReasonStr = keepNextInvoice 
+            ? ` Cancelamento após data de corte (dia ${cutoffDay}). Próxima fatura mantida, demais canceladas.` 
+            : ` Cancelamento no limite da data de corte (dia ${cutoffDay}). Todas as faturas futuras canceladas.`;
+        }
+      }
+
       const updatedContract = await tx.contract.update({
         where: { id },
         data: {
@@ -303,7 +479,7 @@ export class ContractService {
           status,
           totalValue: contract.totalValue,
           changedBy: userId,
-          reason,
+          reason: reason ? reason + financialReasonStr : financialReasonStr.trim(),
           modulesPayload,
         }
       });

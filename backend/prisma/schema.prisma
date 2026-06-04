@@ -189,11 +189,18 @@ model LegalRepresentative {
 
 // --- Product Catalog ---
 
+enum BillingCutoffStrategy {
+  GLOBAL
+  PER_CONTRACT
+  PER_PRODUCT_GROUP
+}
+
 model SoftwareProduct {
   id             String           @id @default(uuid())
   name           String
   description    String?
   isActive       Boolean          @default(true) @map("is_active")
+  cutoffDay      Int?             @map("cutoff_day")
   productGroupId String?          @map("product_group_id")
   productGroup   ProductGroup?    @relation(fields: [productGroupId], references: [id])
   modules        SoftwareModule[]
@@ -231,6 +238,7 @@ model ProductGroup {
   name        String
   description String?
   isActive    Boolean           @default(true) @map("is_active")
+  cutoffDay   Int?              @map("cutoff_day")
   products    SoftwareProduct[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -254,6 +262,11 @@ model TenantSetting {
 
   gatewayToken   String? @map("gateway_token")
   clicksignToken String? @map("clicksign_token")
+
+  billingCutoffStrategy BillingCutoffStrategy @default(GLOBAL) @map("billing_cutoff_strategy")
+  globalCutoffDay       Int                   @default(15) @map("global_cutoff_day")
+  
+  allowActivationWithoutDocument Boolean @default(false) @map("allow_activation_without_doc")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -305,6 +318,7 @@ model Contract {
   totalValue     Decimal         @default(0.0) @map("total_value")
   globalDiscount Decimal         @default(0.0) @map("global_discount")
   renewalMode    String          @default("AUTOMATIC") @map("renewal_mode")
+  cutoffDay      Int?            @map("cutoff_day")
 
   items       ContractItem[]
   documents   ContractDocument[]
@@ -315,6 +329,7 @@ model Contract {
   adjustmentIndexId  String?          @map("adjustment_index_id")
   adjustmentIndex    AdjustmentIndex? @relation(fields: [adjustmentIndexId], references: [id])
   nextAdjustmentDate DateTime?        @map("next_adjustment_date")
+  pendingAmendment   Json?            @map("pending_amendment")
   createdAt          DateTime         @default(now()) @map("created_at")
   updatedAt          DateTime         @updatedAt @map("updated_at")
   createdBy          String?          @map("created_by")
@@ -374,6 +389,8 @@ model DocumentTemplate {
   name        String
   description String?
   path        String // Caminho no disco ou MinIO onde o .docx reside
+  category    String  @default("STANDARD") // STANDARD, ADDENDUM
+  version     Int     @default(1)
   isActive    Boolean @default(true) @map("is_active")
 
   createdAt DateTime @default(now()) @map("created_at")

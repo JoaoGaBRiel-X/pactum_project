@@ -1,1 +1,1 @@
-export class CreateContractItemDto { moduleId: string; quantity: number; discount: number; } export class CreateContractDto { customerId: string; productId: string; globalDiscount: number; renewalMode: string; adjustmentIndexId?: string; items: CreateContractItemDto[]; }
+export class CreateContractItemDto { moduleId: string; quantity: number; discount: number; } export class CreateContractDto { customerId: string; productId: string; globalDiscount: number; renewalMode: string; adjustmentIndexId?: string; cutoffDay?: number; items: CreateContractItemDto[]; }

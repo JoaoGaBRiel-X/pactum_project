@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Body, Param, Req, Patch, Put, Delete } from '@nestjs/common';
 import { ContractService } from './contract.service';
-import { DocumentService } from './document/document.service';
 import { CreateContractDto } from './dto/create-contract.dto';
 import { UpdateContractDto } from './dto/update-contract.dto';
 import { UpdateContractStatusDto } from './dto/update-contract-status.dto';
@@ -11,16 +10,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 export class ContractController {
   constructor(
     private readonly contractService: ContractService,
-    private readonly documentService: DocumentService,
   ) {}
-
-  @Post(':id/generate-document')
-  @ApiOperation({ summary: 'Generate DOCX for the contract' })
-  async generateDocument(@Param('id') id: string, @Req() req: any) {
-    const userId = req.user?.id || 'system-user';
-    const path = await this.documentService.generateContractDocument(id, userId);
-    return { message: 'Document generated successfully', path };
-  }
 
   @Post()
   @ApiOperation({ summary: 'Create a new contract' })
@@ -61,6 +51,24 @@ export class ContractController {
   ) {
     const userId = req.user?.id || 'system-user';
     return this.contractService.update(id, updateContractDto, userId);
+  }
+
+  @Post(':id/amend')
+  @ApiOperation({ summary: 'Create a pending amendment for an active contract' })
+  amendContract(
+    @Param('id') id: string,
+    @Body() amendDto: UpdateContractDto,
+    @Req() req: any,
+  ) {
+    const userId = req.user?.id || 'system-user';
+    return this.contractService.amendContract(id, amendDto, userId);
+  }
+
+  @Post(':id/amend/apply')
+  @ApiOperation({ summary: 'Apply the pending amendment and activate the new terms' })
+  applyAmendment(@Param('id') id: string, @Req() req: any) {
+    const userId = req.user?.id || 'system-user';
+    return this.contractService.applyAmendment(id, userId);
   }
 
   @Delete(':id')

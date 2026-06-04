@@ -25,6 +25,11 @@ const contractSchema = z.object({
   globalDiscount: z.coerce.number().min(0).default(0),
   renewalMode: z.enum(['AUTOMATIC', 'MANUAL']).default('AUTOMATIC'),
   adjustmentIndexId: z.string().optional(),
+  cutoffDay: z.union([
+    z.coerce.number().min(1, 'Dia inválido').max(31, 'Dia inválido'),
+    z.literal(''),
+    z.nan()
+  ]).optional().nullable().transform(e => (e === '' || Number.isNaN(e)) ? null : e),
   items: z.array(contractItemSchema).min(1, 'Adicione pelo menos um módulo'),
 });
 
@@ -37,6 +42,7 @@ export default function NewContractPage() {
   const { data: customers } = useQuery({ queryKey: ['customers'], queryFn: () => apiFetch('/customers') });
   const { data: products } = useQuery({ queryKey: ['products'], queryFn: () => apiFetch('/products') });
   const { data: indexes } = useQuery({ queryKey: ['adjustments-indexes'], queryFn: () => apiFetch('/adjustments/indexes') });
+  const { data: settings } = useQuery({ queryKey: ['tenant-settings'], queryFn: () => apiFetch('/tenant-settings') });
 
   const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ContractFormValues>({
     resolver: zodResolver(contractSchema) as any,
@@ -61,10 +67,23 @@ export default function NewContractPage() {
     return products?.find((p: any) => p.id === selectedProductId);
   }, [selectedProductId, products]);
 
-  // Se mudar o produto, limpa os itens
+  // Se mudar o produto, insere os módulos base automaticamente
   useEffect(() => {
-    setValue('items', []);
-  }, [selectedProductId, setValue]);
+    if (selectedProduct && selectedProduct.modules) {
+      const baseModules = selectedProduct.modules.filter((m: any) => m.isActive && m.isBaseOffer);
+      if (baseModules.length > 0) {
+        setValue('items', baseModules.map((m: any) => ({
+          moduleId: m.id,
+          quantity: 1,
+          discount: 0,
+        })));
+      } else {
+        setValue('items', []);
+      }
+    } else {
+      setValue('items', []);
+    }
+  }, [selectedProduct, setValue]);
 
   // Calculadora em tempo real
   const totalValue = useMemo(() => {
@@ -147,6 +166,16 @@ export default function NewContractPage() {
                 ))}
               </select>
             </div>
+
+            <div className="space-y-2">
+              <Label className="text-slate-700 font-medium">Dia de Corte de Faturamento (Opcional)</Label>
+              <Input type="number" min="1" max="31" {...register('cutoffDay')} className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" placeholder="Ex: 15" />
+              {errors.cutoffDay && <p className="text-destructive text-sm font-medium">{errors.cutoffDay.message}</p>}
+              <p className="text-xs text-muted-foreground">
+                Estratégia atual: {settings?.billingCutoffStrategy === 'BY_CONTRACT' ? 'Por Contrato' : settings?.billingCutoffStrategy === 'GLOBAL' ? 'Global' : 'Por Grupo Corporativo'}.
+                Aplicável se a estratégia não for Global.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -171,7 +200,7 @@ export default function NewContractPage() {
 
                 return (
                   <div key={field.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-slate-50 p-4 rounded-lg border border-border">
-                    <div className="space-y-2 col-span-4">
+                    <div className="space-y-2 col-span-4 relative">
                       <Label className="text-slate-700 font-medium">Módulo</Label>
                       <select {...register(`items.${index}.moduleId`)} className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                         <option value="">Selecione...</option>
@@ -179,11 +208,16 @@ export default function NewContractPage() {
                           <option key={m.id} value={m.id}>{m.name} (R$ {Number(m.price).toFixed(2)})</option>
                         ))}
                       </select>
-                      {errors.items?.[index]?.moduleId && <p className="text-destructive text-xs font-medium">{errors.items[index]?.moduleId?.message}</p>}
+                      {errors.items?.[index]?.moduleId && <p className="text-destructive text-[10px] font-medium absolute -bottom-5 left-0">{errors.items[index]?.moduleId?.message}</p>}
                     </div>
                     
                     <div className="space-y-2 col-span-2">
-                      <Label className="text-slate-700 font-medium">Quantidade</Label>
+                      <Label className="text-slate-700 font-medium flex items-center justify-between">
+                        <span>Qtd</span>
+                        {moduleObj?.maxQuantity && (
+                          <span className="text-[10px] font-normal text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded">Máx: {moduleObj.maxQuantity}</span>
+                        )}
+                      </Label>
                       <Controller
                         control={control}
                         name={`items.${index}.quantity`}
@@ -192,6 +226,7 @@ export default function NewContractPage() {
                             mask={Number}
                             scale={0}
                             min={1}
+                            max={moduleObj?.maxQuantity || undefined}
                             unmask={true}
                             onAccept={(val) => onChange(val)}
                             onBlur={onBlur}
@@ -233,8 +268,10 @@ export default function NewContractPage() {
                       <div className="font-semibold text-slate-800">R$ {lineTotal.toFixed(2)}</div>
                     </div>
 
-                    <div className="col-span-1 pb-1">
-                      <Button type="button" variant="ghost" className="text-destructive hover:bg-red-100" size="sm" onClick={() => remove(index)}>Remover</Button>
+                    <div className="col-span-1 pb-1 flex items-end justify-end">
+                      {(!moduleObj || !moduleObj.isBaseOffer) && (
+                        <Button type="button" variant="ghost" className="text-destructive hover:bg-red-100" size="sm" onClick={() => remove(index)}>Remover</Button>
+                      )}
                     </div>
                   </div>
                 );

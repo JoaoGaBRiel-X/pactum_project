@@ -1,4 +1,4 @@
-import { IsString, IsOptional, Matches } from 'class-validator';
+import { IsString, IsOptional, Matches, IsBoolean } from 'class-validator';
 
 export class UpdateTenantSettingsDto {
   @IsOptional()
@@ -51,4 +51,8 @@ export class UpdateTenantSettingsDto {
   @IsString()
   @Matches(/^[a-z0-9-]+$/, { message: 'Domínio deve conter apenas letras minúsculas, números e hifens' })
   slug?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  allowActivationWithoutDocument?: boolean;
 }

@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -15,6 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { tenantSettingsApi, TenantSettings } from "@/services/tenant-settings-api";
 
@@ -31,6 +33,9 @@ const settingsSchema = z.object({
   document: z.string().min(11, "Documento inválido"),
   legalRepName: z.string().optional(),
   legalRepCpf: z.string().optional(),
+  billingCutoffStrategy: z.enum(['GLOBAL', 'PER_CONTRACT', 'PER_PRODUCT_GROUP']).optional().default('GLOBAL'),
+  globalCutoffDay: z.coerce.number().min(1).max(31).optional().default(15),
+  allowActivationWithoutDocument: z.boolean().optional().default(false),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -53,6 +58,9 @@ export default function GeneralSettingsPage() {
       document: "",
       legalRepName: "",
       legalRepCpf: "",
+      billingCutoffStrategy: "GLOBAL",
+      globalCutoffDay: 15,
+      allowActivationWithoutDocument: false,
     },
   });
 
@@ -73,6 +81,9 @@ export default function GeneralSettingsPage() {
           document: data.document || "",
           legalRepName: data.legalRepName || "",
           legalRepCpf: data.legalRepCpf || "",
+          billingCutoffStrategy: data.billingCutoffStrategy || "GLOBAL",
+          globalCutoffDay: data.globalCutoffDay || 15,
+          allowActivationWithoutDocument: data.allowActivationWithoutDocument || false,
         });
       } catch (err) {
         console.error(err);
@@ -290,6 +301,82 @@ export default function GeneralSettingsPage() {
                           <Input placeholder="(11) 99999-9999" {...field} />
                         </FormControl>
                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="border-t pt-6 mt-6">
+                <h3 className="text-lg font-medium mb-4">Faturamento e Cobrança</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="billingCutoffStrategy"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Estratégia de Data de Corte</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a estratégia" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="GLOBAL">Global (Única para a empresa)</SelectItem>
+                            <SelectItem value="PER_CONTRACT">Por Contrato (Definida no contrato)</SelectItem>
+                            <SelectItem value="PER_PRODUCT_GROUP">Por Produto / Grupo (Definida no produto)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Define em qual nível a data de corte será validada no momento do cancelamento do contrato.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {form.watch("billingCutoffStrategy") === "GLOBAL" && (
+                    <FormField
+                      control={form.control}
+                      name="globalCutoffDay"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Dia de Corte Padrão</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="1" max="31" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Dia do mês em que o cliente deixa de pagar o próximo boleto pendente no cancelamento.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className="border-t pt-6 mt-6">
+                <h3 className="text-lg font-medium mb-4">Contratos e Documentos</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="allowActivationWithoutDocument"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Permitir ativação sem documento</FormLabel>
+                          <FormDescription>
+                            Permite mudar o status do contrato para Ativo mesmo sem um documento DOCX gerado vinculado a ele.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
                       </FormItem>
                     )}
                   />

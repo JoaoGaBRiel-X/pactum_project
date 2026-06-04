@@ -92,4 +92,121 @@ test.describe('Contract E2E', () => {
     const submitBtn = page.getByRole('button', { name: 'Gerar Contrato' });
     await expect(submitBtn).toBeEnabled();
   });
+
+  test('Should interact with signature flow (PENDING_SIGNATURE and Assinatura Manual)', async ({ page }) => {
+    // Mock the API for fetching contract details
+    await page.route('**/api/contracts/contract-123', async route => {
+      const json = { 
+        id: 'contract-123', 
+        status: 'DRAFT', 
+        totalValue: '1500', 
+        globalDiscount: '0', 
+        customer: { corporateName: 'Test Corp', document: '123' },
+        product: { name: 'ERP' },
+        items: [],
+        documents: [
+          { id: 'doc-1', status: 'GENERATED', createdAt: new Date().toISOString() }
+        ],
+        history: []
+      };
+      // We fulfill it with a delay to allow the loading state to show up
+      await route.fulfill({ json });
+    });
+
+    // Mock the API for updating status
+    let patchedStatus = '';
+    await page.route('**/api/contracts/contract-123/status', async route => {
+      if (route.request().method() === 'PATCH') {
+        const body = JSON.parse(route.request().postData() || '{}');
+        patchedStatus = body.status;
+        await route.fulfill({ status: 200, json: { status: patchedStatus } });
+      }
+    });
+
+    await page.goto('http://localhost:3000/contracts/contract-123');
+
+    await expect(page.locator('h1').filter({ hasText: 'Contrato #contract' })).toBeVisible();
+
+    // Check that we are in DRAFT
+    await expect(page.locator('span', { hasText: 'DRAFT' })).toBeVisible();
+
+    // The 'Enviar para Assinatura' button should be visible in DRAFT
+    const sendSignatureBtn = page.getByRole('button', { name: /Enviar para Assinatura/i });
+    
+    // We can't automatically accept window.confirm in playwright without an event handler
+    page.once('dialog', dialog => dialog.accept());
+    await sendSignatureBtn.click();
+
+    // Since we accepted the dialog, it should call the PATCH endpoint
+    expect(patchedStatus).toBe('PENDING_SIGNATURE');
+
+    // Test Clicksign Toast / Alert
+    const clicksignBtn = page.getByRole('button', { name: 'Enviar para Clicksign' });
+    page.once('dialog', dialog => {
+      expect(dialog.message()).toContain('Funcionalidade Clicksign postergada');
+      dialog.accept();
+    });
+    await clicksignBtn.click();
+  });
+
+  test('Should handle Contract Amendment (Aditivo) flow', async ({ page }) => {
+    // Mock the API for fetching ACTIVE contract details
+    await page.route('**/api/contracts/contract-456', async route => {
+      const json = { 
+        id: 'contract-456', 
+        status: 'ACTIVE', 
+        totalValue: '1500', 
+        globalDiscount: '0', 
+        customer: { corporateName: 'Test Corp', document: '123' },
+        product: { 
+          name: 'ERP',
+          modules: [
+            { id: 'mod1', name: 'Financeiro', price: 1500 },
+            { id: 'mod2', name: 'Estoque', price: 800 }
+          ]
+        },
+        items: [
+          { moduleId: 'mod1', quantity: 1, unitPrice: 1500, discount: 0 }
+        ],
+        history: []
+      };
+      await route.fulfill({ json });
+    });
+
+    // Mock Amendment POST
+    let amendmentPayload: any = {};
+    await page.route('**/api/contracts/contract-456/amend', async route => {
+      amendmentPayload = JSON.parse(route.request().postData() || '{}');
+      await route.fulfill({ status: 200, json: { pendingAmendment: amendmentPayload } });
+    });
+
+    await page.goto('http://localhost:3000/contracts/contract-456');
+
+    // Check that we are in ACTIVE
+    await expect(page.locator('span', { hasText: 'ACTIVE' })).toBeVisible();
+
+    // Click "Gerar Aditivo"
+    const amendBtn = page.getByRole('button', { name: /Gerar Aditivo/i });
+    await amendBtn.click();
+
+    // Modal should open
+    await expect(page.locator('h2').filter({ hasText: 'Gerar Aditivo Contratual' })).toBeVisible();
+
+    // Add another module (mod2)
+    // There should be an "Adicionar" button for "Estoque"
+    const addMod2Btn = page.locator('div').filter({ hasText: 'Estoque' }).getByRole('button', { name: 'Adicionar' });
+    await addMod2Btn.click();
+
+    // Change global discount
+    await page.locator('input').last().fill('100'); // Assuming the last input is global discount in the modal
+
+    // Confirm Amendment
+    page.once('dialog', dialog => dialog.accept()); // Alert success
+    const submitBtn = page.getByRole('button', { name: 'Gerar Aditivo' }).last();
+    await submitBtn.click();
+
+    // Assert that the payload was sent correctly
+    expect(amendmentPayload.globalDiscount).toBe(100);
+    expect(amendmentPayload.items.length).toBe(2);
+  });
 });

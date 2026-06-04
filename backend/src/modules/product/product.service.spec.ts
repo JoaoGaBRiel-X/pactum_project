@@ -46,16 +46,21 @@ describe('ProductService', () => {
       expect(result).toHaveProperty('id', '1');
       expect(mockPrismaService.softwareProduct.create).toHaveBeenCalledWith({
         data: {
-          name: 'ERP Complete',
-          description: 'Complete ERP suite',
-          createdBy: 'user-1',
+          name: 'ERP',
+          description: 'Sistema',
           modules: {
-            create: [{ name: 'Finance', basePrice: 100, isActive: true, createdBy: 'user-1' }],
+            create: [
+              {
+                name: 'Financeiro',
+                price: 100,
+                isActive: true,
+                createdBy: 'user-1'
+              }
+            ]
           },
+          createdBy: 'user-1'
         },
-        include: {
-          modules: true,
-        },
+        include: { modules: true, productGroup: true },
       });
     });
   });

@@ -48,6 +48,11 @@ export class CreateSoftwareProductDto {
   isActive?: boolean;
 
   @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  cutoffDay?: number;
+
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   productGroupId?: string;

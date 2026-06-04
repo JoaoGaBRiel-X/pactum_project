@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotificationService } from './notification.service';
 import { TENANT_PRISMA_SERVICE } from '../../tenant/tenant.module';
+import { PrismaService } from '../../prisma/prisma.service';
 
 // Mocking nodemailer
 jest.mock('nodemailer', () => ({
@@ -30,10 +31,10 @@ describe('NotificationService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationService,
-        {
-          provide: TENANT_PRISMA_SERVICE,
-          useValue: mockPrisma,
-        },
+        { provide: TENANT_PRISMA_SERVICE, useValue: mockPrisma },
+        { provide: PrismaService, useValue: { client: { tenant: { findUnique: jest.fn().mockResolvedValue({ schema: 'tenant_test' }) } } } },
+        { provide: 'BullQueue_email', useValue: { add: jest.fn() } },
+        { provide: 'REQUEST', useValue: { headers: { 'x-tenant-id': 'tenant-1' } } },
       ],
     }).compile();
 
@@ -44,26 +45,6 @@ describe('NotificationService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
-  });
-
-  describe('replaceVariables', () => {
-    it('should replace variables correctly', () => {
-      // Testing private method logic via public usage or bypassing TS
-      const text = 'Hello {{customer.corporateName}}, you owe {{receivable.amount}}';
-      const data = {
-        customer: { corporateName: 'Test Corp' },
-        receivable: { amount: 500 },
-      };
-      const result = (service as any).replaceVariables(text, data);
-      expect(result).toBe('Hello Test Corp, you owe 500');
-    });
-
-    it('should leave missing variables intact', () => {
-      const text = 'Hello {{missing.field}}';
-      const data = {};
-      const result = (service as any).replaceVariables(text, data);
-      expect(result).toBe('Hello {{missing.field}}');
-    });
   });
 
   describe('sendNotification', () => {
@@ -79,27 +60,23 @@ describe('NotificationService', () => {
       expect(result).toBeNull();
     });
 
-    it('should send email successfully', async () => {
+    it('should push notification to queue successfully', async () => {
       mockPrisma.notificationTemplate.findUnique.mockResolvedValue({
         isActive: true,
-        subject: 'Subject {{customer.name}}',
-        content: 'Content {{receivable.amount}}',
       });
 
       const result = await service.sendNotification('VALID_TEMPLATE', 'test@test.com', {
         customer: { name: 'João' },
-        receivable: { amount: 150 },
       });
 
-      expect(result).toEqual({ messageId: '123' });
-      // Assert that transporter.sendMail was called with replaced variables
-      expect((service as any).transporter.sendMail).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: 'test@test.com',
-          subject: 'Subject João',
-          html: 'Content 150',
-        }),
-      );
+      expect(result).toEqual({ success: true, message: 'Enfileirado com sucesso' });
+      // Assert that queue.add was called
+      const emailQueue = (service as any).emailQueue;
+      expect(emailQueue.add).toHaveBeenCalledWith('send-notification', expect.objectContaining({
+        templateName: 'VALID_TEMPLATE',
+        toEmail: 'test@test.com',
+        tenantSchema: 'tenant_test',
+      }), expect.any(Object));
     });
   });
 });

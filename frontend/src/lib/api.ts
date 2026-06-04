@@ -1,10 +1,12 @@
-export async function apiFetch(endpoint: string, options: RequestInit & { _isRetry?: boolean } = {}) {
+export async function apiFetch(endpoint: string, options: RequestInit & { _isRetry?: boolean, rawResponse?: boolean } = {}) {
   const isClient = typeof window !== 'undefined';
   const isPortalEndpoint = endpoint.startsWith('/portal');
 
-  const defaultHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+  const defaultHeaders: Record<string, string> = {};
+  
+  if (!(options.body instanceof FormData)) {
+    defaultHeaders['Content-Type'] = 'application/json';
+  }
 
   if (isClient) {
     const token = isPortalEndpoint 
@@ -96,5 +98,9 @@ export async function apiFetch(endpoint: string, options: RequestInit & { _isRet
     return null;
   }
   
+  if (options.rawResponse) {
+    return res;
+  }
+
   return res.json().catch(() => ({}));
 }

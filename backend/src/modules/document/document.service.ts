@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, InternalServerErrorException, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TENANT_PRISMA_SERVICE } from '../../tenant/tenant.module';
@@ -36,7 +36,9 @@ export class DocumentService {
             contacts: true,
           }
         },
-        product: true,
+        product: {
+          include: { modules: true }
+        },
         items: true,
       }
     });
@@ -68,7 +70,7 @@ export class DocumentService {
     try {
       templateBuffer = await fs.readFile(template.path);
     } catch (e) {
-      throw new Error(`Não foi possível ler o arquivo do template: ${template.path}`);
+      throw new InternalServerErrorException(`Não foi possível ler o arquivo do template: ${template.path}. Erro interno: ${e.message}`);
     }
 
     // Preparar dados para o docxtemplater
@@ -80,6 +82,8 @@ export class DocumentService {
         legalRepCpf: tenantInfo.legalRepCpf,
       },
       customer: {
+        name: contract.customer.corporateName,
+        cnpj: contract.customer.document,
         corporateName: contract.customer.corporateName,
         tradeName: contract.customer.tradeName || contract.customer.corporateName,
         document: contract.customer.document,
@@ -90,6 +94,7 @@ export class DocumentService {
         contactCpf: (contract.customer.contacts?.[0] as any)?.cpf || 'CPF não informado',
       },
       contract: {
+        value: Number(contract.totalValue).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
         globalDiscount: Number(contract.globalDiscount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
         totalValue: Number(contract.totalValue).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
         renewalMode: contract.renewalMode === 'AUTOMATIC' ? 'Automática' : 'Manual',
@@ -98,22 +103,35 @@ export class DocumentService {
         name: contract.product.name,
         description: contract.product.description || '',
       },
-      modules: contract.items.map(item => ({
-        name: item.moduleId, // Ideally we should join with SoftwareModule to get the real name, but it is stored in Product
-        quantity: item.quantity,
-        unitPrice: Number(item.unitPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-        discount: Number(item.discount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-      }))
+      modules: contract.items.map(item => {
+        const moduleDef = contract.product.modules.find(m => m.id === item.moduleId);
+        return {
+          name: moduleDef ? moduleDef.name : item.moduleId,
+          quantity: item.quantity,
+          unitPrice: Number(item.unitPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+          discount: Number(item.discount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        };
+      })
     };
 
     // Preencher o DOCX
-    const filledDocxBuffer = await this.template.fillTemplate(templateBuffer, viewData);
+    let filledDocxBuffer: Buffer;
+    try {
+      filledDocxBuffer = await this.template.fillTemplate(templateBuffer, viewData);
+    } catch (e) {
+      throw new InternalServerErrorException(`Erro ao preencher o template DOCX: ${e.message}`);
+    }
 
     // Converter para PDF via Gotenberg
-    const pdfBuffer = await this.gotenberg.convertDocxToPdf(filledDocxBuffer, 'contract.docx');
+    let pdfBuffer: Buffer;
+    try {
+      pdfBuffer = await this.gotenberg.convertDocxToPdf(filledDocxBuffer, 'contract.docx');
+    } catch (e) {
+      throw new InternalServerErrorException(`Erro ao converter DOCX para PDF no Gotenberg: ${e.message}`);
+    }
 
     // Emulação: Salvar PDF na pasta uploads
-    const uploadsDir = path.resolve(__dirname, '../../../uploads');
+    const uploadsDir = path.resolve(process.cwd(), 'uploads');
     await fs.mkdir(uploadsDir, { recursive: true });
     
     const outputFilename = `contract_${contractId}_${Date.now()}.pdf`;
@@ -178,20 +196,110 @@ export class DocumentService {
     });
   }
 
-  async uploadTemplate(file: Express.Multer.File, name: string, description: string, userId: string) {
-    const uploadsDir = path.resolve(__dirname, '../../../uploads/templates');
+  async uploadTemplate(file: Express.Multer.File, name: string, description: string, category: string, userId: string) {
+    if (!file) {
+      throw new Error('Nenhum arquivo recebido pelo backend');
+    }
+    const uploadsDir = path.resolve(process.cwd(), 'uploads/templates');
     await fs.mkdir(uploadsDir, { recursive: true });
     
     const outputPath = path.join(uploadsDir, `${Date.now()}_${file.originalname}`);
     await fs.writeFile(outputPath, file.buffer);
 
-    return this.prisma.documentTemplate.create({
-      data: {
-        name,
-        description,
-        path: outputPath,
-        createdBy: userId
+    return this.prisma.$transaction(async (tx) => {
+      const existing = await tx.documentTemplate.findFirst({
+        where: { name, category: category || 'STANDARD', isActive: true },
+        orderBy: { version: 'desc' }
+      });
+
+      if (existing) {
+        await tx.documentTemplate.update({
+          where: { id: existing.id },
+          data: { isActive: false }
+        });
       }
+
+      return tx.documentTemplate.create({
+        data: {
+          name,
+          description,
+          category: category || 'STANDARD',
+          version: existing ? existing.version + 1 : 1,
+          path: outputPath,
+          createdBy: userId
+        }
+      });
+    });
+  }
+
+  async getDocument(documentId: string) {
+    const document = await this.prisma.contractDocument.findUnique({
+      where: { id: documentId }
+    });
+    if (!document) {
+      throw new NotFoundException('Documento não encontrado');
+    }
+    return document;
+  }
+
+  async toggleTemplateStatus(templateId: string, isActive: boolean) {
+    const template = await this.prisma.documentTemplate.findUnique({
+      where: { id: templateId }
+    });
+    
+    if (!template) throw new NotFoundException('Template não encontrado');
+
+    return this.prisma.documentTemplate.update({
+      where: { id: templateId },
+      data: { isActive }
+    });
+  }
+
+  async getTemplate(templateId: string) {
+    const template = await this.prisma.documentTemplate.findUnique({
+      where: { id: templateId }
+    });
+    if (!template) throw new NotFoundException('Template não encontrado');
+    return template;
+  }
+
+  async deleteTemplate(templateId: string) {
+    const template = await this.prisma.documentTemplate.findUnique({
+      where: { id: templateId }
+    });
+    if (!template) throw new NotFoundException('Template não encontrado');
+
+    try {
+      await fs.unlink(template.path);
+      this.logger.log(`Arquivo físico do template removido: ${template.path}`);
+    } catch (err: any) {
+      this.logger.warn(`Falha ao remover arquivo físico do template (${template.path}): ${err.message}`);
+    }
+
+    return this.prisma.documentTemplate.delete({
+      where: { id: templateId }
+    });
+  }
+
+  async deleteDocument(documentId: string) {
+    const document = await this.prisma.contractDocument.findUnique({
+      where: { id: documentId }
+    });
+    
+    if (!document) throw new NotFoundException('Documento não encontrado');
+    if (document.status === 'SIGNED') {
+      throw new BadRequestException('Não é possível remover um documento assinado.');
+    }
+
+    try {
+      await fs.unlink(document.path);
+      this.logger.log(`Arquivo físico removido: ${document.path}`);
+    } catch (err: any) {
+      this.logger.warn(`Falha ao remover arquivo físico (${document.path}): ${err.message}`);
+    }
+
+    return this.prisma.contractDocument.delete({
+      where: { id: documentId }
     });
   }
 }
