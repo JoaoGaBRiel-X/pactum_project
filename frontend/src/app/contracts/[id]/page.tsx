@@ -187,7 +187,8 @@ export default function ContractDetailsPage({ params }: { params: Promise<{ id: 
     try {
       const token = localStorage.getItem('gestao_token');
       const tenantId = localStorage.getItem('gestao_tenant_id');
-      const res = await fetch(`http://localhost:3333/api/documents/${docId}/download`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333';
+      const res = await fetch(`${baseUrl}/api/documents/${docId}/download`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'x-tenant-id': tenantId || ''

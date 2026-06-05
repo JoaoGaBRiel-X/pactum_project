@@ -38,15 +38,17 @@ services:
     restart: unless-stopped
 
   traefik:
-    image: traefik:v2.10
+    image: traefik:v3.7.3
     container_name: gestao_contratos_traefik
+    environment:
+      - DOCKER_API_VERSION=1.44
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
     ports:
-      - '80:80'
+      - '8000:80'
       - '8080:8080' # Traefik Dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro

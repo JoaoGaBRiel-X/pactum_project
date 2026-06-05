@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { apiFetch } from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -59,21 +60,12 @@ export default function ProfilePage() {
     formData.append('file', file);
 
     try {
-      const token = localStorage.getItem('gestao_token');
-      const response = await fetch('http://localhost:3333/api/authentication/me/avatar', {
+      await apiFetch('/authentication/me/avatar', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
         body: formData,
       });
-
-      if (response.ok) {
-        alert('Foto atualizada!');
-        window.location.reload();
-      } else {
-        alert('Falha ao enviar foto.');
-      }
+      alert('Foto atualizada!');
+      window.location.reload();
     } catch (err) {
       console.error(err);
       alert('Erro ao enviar foto.');
@@ -93,7 +85,7 @@ export default function ProfilePage() {
         </CardHeader>
         <CardContent className="flex items-center gap-6">
           <Avatar className="h-24 w-24">
-            <AvatarImage src={profile?.avatarUrl} />
+            <AvatarImage src={getImageUrl(profile?.avatarUrl)} />
             <AvatarFallback className="bg-slate-800 text-white text-xl">
               {profile?.name?.substring(0, 2).toUpperCase() || 'AD'}
             </AvatarFallback>

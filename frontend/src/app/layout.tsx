@@ -1,11 +1,7 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { MainLayoutWrapper } from '@/components/layout/MainLayoutWrapper';
 import { Toaster } from 'sonner';
-
-const inter = Inter({ subsets: ['latin'] });
-
 export const metadata: Metadata = {
   title: 'Lefer SaaS - Gestão de Contratos',
   description: 'Plataforma SaaS de Gestão de Contratos e Cobrança',
@@ -20,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${inter.className} bg-slate-50 min-h-screen`}>
+      <body className={`font-sans bg-slate-50 min-h-screen`}>
         <Providers>
           <MainLayoutWrapper>
             {children}

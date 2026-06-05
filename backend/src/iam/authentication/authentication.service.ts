@@ -238,14 +238,15 @@ export class AuthenticationService {
     const ext = file.originalname.split('.').pop();
     const filename = `avatars/${userId}-${Date.now()}.${ext}`;
     
-    const url = await this.storageService.uploadFile(filename, file.buffer, file.mimetype);
+    const key = await this.storageService.uploadFile(filename, file.buffer, file.mimetype);
+    const avatarUrl = `/storage/${key}`;
     
     await this.prisma.client.user.update({
       where: { id: userId },
-      data: { avatarUrl: url },
+      data: { avatarUrl: avatarUrl },
     });
     
-    return { avatarUrl: url };
+    return { avatarUrl: avatarUrl };
   }
 
   async refreshTokens(refreshToken: string) {

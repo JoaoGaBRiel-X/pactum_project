@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -236,7 +237,7 @@ export default function UsersPage() {
                   <TableCell className="pl-6">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9 border border-slate-200 shadow-sm">
-                        <AvatarImage src={user.avatarUrl} />
+                        <AvatarImage src={getImageUrl(user.avatarUrl)} />
                         <AvatarFallback className="bg-indigo-100 text-indigo-700 font-semibold">
                           {user.name?.substring(0,2).toUpperCase()}
                         </AvatarFallback>

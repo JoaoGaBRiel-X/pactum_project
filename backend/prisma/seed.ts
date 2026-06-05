@@ -33,8 +33,8 @@ async function main() {
   console.log('🌱 Iniciando seed de desenvolvimento...');
 
   const schemaName = 'tenant_empresaautomacao';
-  const adminEmail = 'e2e-test@lefer.com.br';
-  const adminPassword = 'PasswordE2E@123';
+  const adminEmail = 'admin@lefer.com.br';
+  const adminPassword = 'password';
   const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
   const { prisma: publicPrisma, pool: publicPool } = await getPrismaClient('public');
@@ -95,6 +95,7 @@ async function main() {
           email: adminEmail,
           password: hashedPassword,
           name: 'Administrador Lefer',
+          isSuperAdmin: true,
         },
       });
       console.log(`✅ Usuário admin criado: ${user.email}`);

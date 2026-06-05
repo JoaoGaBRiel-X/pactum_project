@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Users, Package, Home, Settings, LogOut, FileText, DollarSign, TrendingUp, FileSignature, Mail, Key, Boxes, Building, Shield } from 'lucide-react';
 import { useTenantSettings } from '@/contexts/TenantSettingsContext';
+import { getImageUrl } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/api';
 
@@ -60,7 +61,7 @@ export function SidebarContent({ handleLogout }: { handleLogout: () => void }) {
     <>
       <div className="p-3 border-b border-[var(--sidebar-border,theme(colors.slate.800))] flex justify-center items-center min-h-[72px]">
         {settings?.logoUrl ? (
-          <img src={settings.logoUrl} alt="Logo" className="max-h-16 max-w-full object-contain" />
+          <img src={getImageUrl(settings.logoUrl)} alt="Logo" className="max-h-16 max-w-full object-contain" />
         ) : (
           <h1 className="text-xl font-bold text-[var(--sidebar-fg,white)]">Lefer SaaS</h1>
         )}

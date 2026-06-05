@@ -35,8 +35,8 @@ export class TenantSettingsController {
 
     const extension = file.originalname.split('.').pop();
     const filename = `tenant-${tenantId}/logo-${Date.now()}.${extension}`;
-    
-    const logoUrl = await this.storageService.uploadFile(filename, file.buffer, file.mimetype);
+    const key = await this.storageService.uploadFile(filename, file.buffer, file.mimetype);
+    const logoUrl = `/storage/${key}`;
     
     return this.tenantSettingsService.updateSettings(tenantId, { logoUrl });
   }

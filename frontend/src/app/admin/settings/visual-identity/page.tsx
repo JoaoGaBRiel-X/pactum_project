@@ -16,7 +16,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { tenantSettingsApi, TenantSettings } from "@/services/tenant-settings-api";
+import { tenantSettingsApi } from "@/services/tenant-settings-api";
+import { getImageUrl } from "@/lib/utils";
 import { UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 
@@ -140,7 +141,7 @@ export default function VisualIdentitySettingsPage() {
               <div className="flex-1">
                 <p className="text-sm font-medium mb-2">Visualização Atual:</p>
                 <div className="p-6 border rounded-md bg-slate-50 flex justify-center items-center h-40">
-                  <img src={logoUrl} alt="Logo atual" className="max-h-full max-w-full object-contain" />
+                  <img src={getImageUrl(logoUrl)} alt="Logo atual" className="max-h-full max-w-full object-contain" />
                 </div>
               </div>
             )}

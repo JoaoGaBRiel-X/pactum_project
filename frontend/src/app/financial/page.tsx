@@ -55,19 +55,10 @@ export default function FinancialPage() {
       const formData = new FormData();
       formData.append('file', data.file);
       
-      const token = localStorage.getItem('token');
-      const tenantId = localStorage.getItem('tenantId');
-
-      const res = await fetch(`http://localhost:3333/financial/receivables/${data.id}/boleto`, {
+      return apiFetch(`/financial/receivables/${data.id}/boleto`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'x-tenant-id': tenantId || ''
-        },
         body: formData
       });
-      if (!res.ok) throw new Error('Falha ao fazer upload do boleto');
-      return res.json();
     },
     onSuccess: () => {
       alert('Boleto anexado com sucesso!');
@@ -207,7 +198,7 @@ export default function FinancialPage() {
                       </Button>
                     )}
                     {r.boletoUrl && (
-                      <a href={`http://localhost:3333${r.boletoUrl}`} target="_blank" rel="noreferrer">
+                      <a href={`${process.env.NEXT_PUBLIC_API_URL || ''}/api${r.boletoUrl}`} target="_blank" rel="noreferrer">
                         <Button variant="ghost" size="sm" className="h-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50 bg-white border border-slate-200 shadow-sm font-medium">
                           <FileText size={16} className="mr-1.5" /> Boleto
                         </Button>

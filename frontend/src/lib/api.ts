@@ -1,5 +1,6 @@
 export async function apiFetch(endpoint: string, options: RequestInit & { _isRetry?: boolean, rawResponse?: boolean } = {}) {
-  const isClient = typeof window !== 'undefined';
+  const isServer = typeof window === 'undefined';
+  const isClient = !isServer;
   const isPortalEndpoint = endpoint.startsWith('/portal');
 
   const defaultHeaders: Record<string, string> = {};
@@ -25,7 +26,10 @@ export async function apiFetch(endpoint: string, options: RequestInit & { _isRet
     }
   }
   
-  const res = await fetch(`http://localhost:3333/api${endpoint}`, {
+  const baseUrl = isServer
+    ? (process.env.INTERNAL_API_URL || 'http://backend:3000')
+    : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333');
+  const res = await fetch(`${baseUrl}/api${endpoint}`, {
     ...options,
     headers: { ...defaultHeaders, ...options.headers },
   });
@@ -38,11 +42,11 @@ export async function apiFetch(endpoint: string, options: RequestInit & { _isRet
 
       if (refreshToken) {
         try {
-          let refreshUrl = `http://localhost:3333/api/authentication/refresh`;
+          let refreshUrl = `${baseUrl}/api/authentication/refresh`;
           if (isPortalEndpoint) {
              const match = endpoint.match(/^\/portal\/([^/]+)/);
              if (match) {
-                 refreshUrl = `http://localhost:3333/api/portal/${match[1]}/auth/refresh`;
+                 refreshUrl = `${baseUrl}/api/portal/${match[1]}/auth/refresh`;
              }
           }
 

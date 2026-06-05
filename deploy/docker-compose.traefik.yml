@@ -2,8 +2,10 @@ version: '3.8'
 
 services:
   traefik:
-    image: traefik:v2.10
+    image: traefik:v3.7.3
     container_name: traefik_global
+    environment:
+      - DOCKER_API_VERSION=1.44
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
@@ -12,7 +14,7 @@ services:
       - "--entrypoints.web.address=:80"
       # Opcional: Adicionar entrypoint seguro 443 se usar HTTPS
     ports:
-      - '80:80'
+      - '8000:80'
       - '8080:8080' # Dashboard do Traefik (usar apenas em dev/internamente)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro

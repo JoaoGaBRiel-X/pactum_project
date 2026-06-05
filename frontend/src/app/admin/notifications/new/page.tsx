@@ -115,7 +115,7 @@ export default function NewNotificationTemplatePage() {
             required
             rows={10}
             className="w-full border rounded-md p-3 text-sm font-mono"
-            placeholder={`<h1>Olá {{customer.corporateName}},</h1>\n<p>Seu boleto no valor de R$ {{receivable.amount}} está disponível.</p>\n<a href="http://localhost:3333{{receivable.boletoUrl}}">Baixar Boleto</a>`}
+            placeholder={`<h1>Olá {{customer.corporateName}},</h1>\n<p>Seu boleto no valor de R$ {{receivable.amount}} está disponível.</p>\n<a href="https://api.seusistema.com{{receivable.boletoUrl}}">Baixar Boleto</a>`}
             value={formData.content}
             onChange={(e) => setFormData({...formData, content: e.target.value})}
           />

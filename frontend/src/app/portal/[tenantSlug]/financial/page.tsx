@@ -72,8 +72,8 @@ export default function PortalFinancialPage({ params }: { params: Promise<{ tena
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   {item.boletoUrl ? (
-                    <a href={`http://localhost:3001${item.boletoUrl}`} target="_blank" rel="noreferrer">
-                      <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                    <a href={`${process.env.NEXT_PUBLIC_API_URL || ''}/api${item.boletoUrl}`} target="_blank" rel="noreferrer">
+                      <Button variant="outline" size="sm" className="h-8 text-blue-600 border-blue-200 hover:bg-blue-50">
                         <Download size={14} className="mr-2" />
                         Baixar Boleto
                       </Button>

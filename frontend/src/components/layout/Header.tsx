@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
+import { getImageUrl } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Menu } from 'lucide-react';
@@ -116,7 +117,7 @@ export function Header() {
                 {userProfile?.name || 'Carregando...'}
               </span>
               <Avatar className="h-9 w-9 border border-slate-200">
-                <AvatarImage src={userProfile?.avatarUrl} alt={userProfile?.name || 'User'} />
+                <AvatarImage src={getImageUrl(userProfile?.avatarUrl)} alt={userProfile?.name || 'User'} />
                 <AvatarFallback className="bg-slate-800 text-white text-xs">
                   {userProfile?.name?.substring(0, 2).toUpperCase() || 'AD'}
                 </AvatarFallback>

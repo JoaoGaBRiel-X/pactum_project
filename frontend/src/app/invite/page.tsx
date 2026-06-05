@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function InvitePage() {
+function InviteForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
@@ -23,7 +23,8 @@ export default function InvitePage() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3333/api/users/accept-invite', {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333';
+      const response = await fetch(`${baseUrl}/api/users/accept-invite`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, name, passwordHash: password }), // Will be hashed backend
@@ -45,62 +46,68 @@ export default function InvitePage() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-red-600">Link Inválido</CardTitle>
-            <CardDescription>O link de convite fornecido não é válido ou já expirou.</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-red-600">Link Inválido</CardTitle>
+          <CardDescription>O link de convite fornecido não é válido ou já expirou.</CardDescription>
+        </CardHeader>
+      </Card>
     );
   }
 
   return (
+    <Card className="w-full max-w-md shadow-lg">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl font-bold">Criar sua conta</CardTitle>
+        <CardDescription>
+          Bem-vindo! Preencha os dados abaixo para aceitar o convite e acessar o sistema.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-md border border-red-200">
+              {error}
+            </div>
+          )}
+          
+          <div className="space-y-2">
+            <Label htmlFor="name">Seu Nome Completo</Label>
+            <Input
+              id="name"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex: João Silva"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="password">Crie uma Senha</Label>
+            <Input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          
+          <Button className="w-full" type="submit" disabled={loading}>
+            {loading ? 'Processando...' : 'Aceitar Convite e Criar Conta'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function InvitePage() {
+  return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Criar sua conta</CardTitle>
-          <CardDescription>
-            Bem-vindo! Preencha os dados abaixo para aceitar o convite e acessar o sistema.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="p-3 bg-red-50 text-red-600 text-sm rounded-md border border-red-200">
-                {error}
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="name">Seu Nome Completo</Label>
-              <Input
-                id="name"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: João Silva"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password">Crie uma Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            
-            <Button className="w-full" type="submit" disabled={loading}>
-              {loading ? 'Processando...' : 'Aceitar Convite e Criar Conta'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      <Suspense fallback={<div>Carregando...</div>}>
+        <InviteForm />
+      </Suspense>
     </div>
   );
 }
