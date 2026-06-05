@@ -27,8 +27,8 @@ export async function apiFetch(endpoint: string, options: RequestInit & { _isRet
   }
   
   const baseUrl = isServer
-    ? (process.env.INTERNAL_API_URL || 'http://backend:3000')
-    : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333');
+    ? (process.env.INTERNAL_API_URL || 'http://localhost:3333')
+    : ''; // Cliente usa caminhos relativos (interceptados pelo proxy/rewrite)
   const res = await fetch(`${baseUrl}/api${endpoint}`, {
     ...options,
     headers: { ...defaultHeaders, ...options.headers },
