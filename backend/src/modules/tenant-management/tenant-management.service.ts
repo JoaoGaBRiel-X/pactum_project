@@ -12,7 +12,7 @@ const execAsync = promisify(exec);
 export class TenantManagementService {
   private readonly logger = new Logger(TenantManagementService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async createTenant(dto: CreateTenantDto) {
     // 1. Validar se CNPJ já existe
@@ -38,7 +38,7 @@ export class TenantManagementService {
     // O ideal é enviar um e-mail transacional (AWS SES, SendGrid) com um link mágico 
     // ou senha temporária que expira.
     const generatedPassword = dto.adminPassword || Math.random().toString(36).slice(-8) + 'A@1';
-    
+
     // Hash da senha do admin
     const hashedPassword = await bcrypt.hash(generatedPassword, 10);
 
@@ -58,14 +58,14 @@ export class TenantManagementService {
       const pushUrl = dbUrl.toString();
 
       this.logger.log(`Executando prisma db push para o schema ${schemaName}...`);
-      
+
       await execAsync('npx prisma db push --accept-data-loss', {
         env: {
           ...process.env,
           DATABASE_URL: pushUrl,
         }
       });
-      
+
       this.logger.log(`Tabelas provisionadas com sucesso para ${schemaName}.`);
     } catch (error: any) {
       this.logger.error(`Erro ao rodar db push para ${schemaName}: ${error.message}`);
@@ -85,9 +85,32 @@ export class TenantManagementService {
         // Seed default role profiles for the tenant
         roleProfiles: {
           create: [
-            { name: 'Admin', description: 'Acesso total ao sistema', permissions: ['*'] },
-            { name: 'Financeiro', description: 'Acesso ao módulo financeiro', permissions: ['financial:read', 'financial:write'] },
-            { name: 'Visualizador', description: 'Apenas visualização', permissions: ['contracts:read', 'customers:read'] },
+            {
+              name: 'Admin',
+              description: 'Acesso total ao sistema',
+              permissions: [
+                'customers:create', 'customers:read', 'customers:read_own', 'customers:update', 'customers:delete',
+                'contracts:create', 'contracts:read', 'contracts:read_own', 'contracts:update', 'contracts:delete', 'contracts:approve_discount',
+                'financial:read', 'financial:manage',
+                'settings:manage',
+                'users:manage',
+                'roles:create', 'roles:read', 'roles:update', 'roles:delete'
+              ]
+            },
+            {
+              name: 'Financeiro',
+              description: 'Acesso ao módulo financeiro e visualização de clientes/contratos',
+              permissions: [
+                'customers:create', 'customers:read', 'customers:update',
+                'contracts:create', 'contracts:read', 'contracts:update',
+                'financial:read', 'financial:manage',
+              ]
+            },
+            {
+              name: 'Visualizador',
+              description: 'Apenas visualização geral',
+              permissions: ['contracts:read', 'customers:read', 'financial:read']
+            },
           ]
         }
       },
