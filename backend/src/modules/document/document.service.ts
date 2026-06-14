@@ -100,11 +100,11 @@ export class DocumentService {
         renewalMode: contract.renewalMode === 'AUTOMATIC' ? 'Automática' : 'Manual',
       },
       software: {
-        name: contract.product.name,
-        description: contract.product.description || '',
+        name: contract.product?.name || 'Vários Produtos',
+        description: contract.product?.description || '',
       },
       modules: contract.items.map(item => {
-        const moduleDef = contract.product.modules.find(m => m.id === item.moduleId);
+        const moduleDef = contract.product?.modules.find(m => m.id === item.moduleId);
         return {
           name: moduleDef ? moduleDef.name : item.moduleId,
           quantity: item.quantity,

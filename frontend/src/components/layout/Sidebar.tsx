@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Users, Package, Home, Settings, LogOut, FileText, DollarSign, TrendingUp, FileSignature, Mail, Key, Boxes, Building, Shield } from 'lucide-react';
+import { Users, Package, Home, Settings, LogOut, FileText, DollarSign, TrendingUp, FileSignature, Mail, Key, Boxes, Building, Shield, Target, UserPlus, Briefcase, ClipboardCheck } from 'lucide-react';
 import { useTenantSettings } from '@/contexts/TenantSettingsContext';
 import { getImageUrl } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -13,6 +13,15 @@ export const navigationGroups = [
     label: "Visão Geral",
     items: [
       { href: "/", icon: Home, label: "Dashboard", requiredPermissions: [] }
+    ]
+  },
+  {
+    label: "Vendas / CRM",
+    items: [
+      { href: "/crm/dashboard", icon: TrendingUp, label: "Dashboard de Vendas", requiredPermissions: ['crm:read'] },
+      { href: "/crm/pipeline", icon: Target, label: "Pipeline (Kanban)", requiredPermissions: ['crm:read'] },
+      { href: "/crm/leads", icon: UserPlus, label: "Leads", requiredPermissions: ['crm:read'] },
+      { href: "/crm/proposals", icon: FileText, label: "Propostas", requiredPermissions: ['crm:read'] }
     ]
   },
   {
@@ -29,6 +38,19 @@ export const navigationGroups = [
     items: [
       { href: "/contracts", icon: FileText, label: "Contratos", requiredPermissions: ['contracts:read', 'contracts:read_own'] },
       { href: "/templates", icon: FileSignature, label: "Templates", requiredPermissions: ['settings:manage'] }
+    ]
+  },
+  {
+    label: "Parceiros",
+    items: [
+      { href: "/representatives", icon: Briefcase, label: "Representantes", requiredPermissions: ['representatives:read'] },
+      { href: "/representatives/commissions", icon: DollarSign, label: "Comissões", requiredPermissions: ['representatives:read'] }
+    ]
+  },
+  {
+    label: "Implantação",
+    items: [
+      { href: "/onboarding", icon: ClipboardCheck, label: "Projetos (Onboarding)", requiredPermissions: ['onboarding:read'] }
     ]
   },
   {

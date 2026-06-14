@@ -11,10 +11,10 @@ datasource db {
 // ==========================================
 
 model Tenant {
-  id       String @id @default(uuid())
-  name     String
-  document String @unique // CNPJ
-  schema   String @unique // The schema name for this tenant (e.g. "tenant_123")
+  id        String  @id @default(uuid())
+  name      String
+  document  String  @unique // CNPJ
+  schema    String  @unique // The schema name for this tenant (e.g. "tenant_123")
   tradeName String? @map("trade_name")
   slug      String? @unique
 
@@ -29,10 +29,10 @@ model Tenant {
   city         String?
   state        String?
 
-  createdAt  DateTime     @default(now()) @map("created_at")
-  updatedAt  DateTime     @updatedAt @map("updated_at")
-  userLinks  UserTenant[]
-  apiClients ApiClient[]
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+  userLinks    UserTenant[]
+  apiClients   ApiClient[]
   roleProfiles RoleProfile[]
   invitations  UserInvitation[]
 
@@ -64,7 +64,7 @@ model User {
   mfaSecret    String? @map("mfa_secret")
   avatarUrl    String? @map("avatar_url")
 
-  tenantLinks UserTenant[]
+  tenantLinks         UserTenant[]
   passwordResetTokens PasswordResetToken[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -91,7 +91,7 @@ model RoleProfile {
   permissions String[]
   tenantId    String   @map("tenant_id")
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   users  UserTenant[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -116,9 +116,9 @@ model UserInvitation {
 }
 
 model UserTenant {
-  userId        String @map("user_id")
-  tenantId      String @map("tenant_id")
-  roleProfileId String? @map("role_profile_id")
+  userId        String   @map("user_id")
+  tenantId      String   @map("tenant_id")
+  roleProfileId String?  @map("role_profile_id")
   maxDiscount   Decimal? @map("max_discount") // Specific discount limit for this user in this tenant
 
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -150,27 +150,28 @@ model CorporateGroup {
 }
 
 model Customer {
-  id               String                 @id @default(uuid())
-  document         String                 @unique // CNPJ
-  corporateName    String                 @map("corporate_name")
-  tradeName        String?                @map("trade_name")
-  zipCode          String?                @map("zip_code")
-  street           String?
-  number           String?
-  complement       String?
-  neighborhood     String?
-  city             String?
-  state            String?
-  corporateGroupId String?                @map("corporate_group_id")
-  corporateGroup   CorporateGroup?        @relation(fields: [corporateGroupId], references: [id])
+  id                   String                 @id @default(uuid())
+  document             String                 @unique // CNPJ
+  corporateName        String                 @map("corporate_name")
+  tradeName            String?                @map("trade_name")
+  zipCode              String?                @map("zip_code")
+  street               String?
+  number               String?
+  complement           String?
+  neighborhood         String?
+  city                 String?
+  state                String?
+  corporateGroupId     String?                @map("corporate_group_id")
+  corporateGroup       CorporateGroup?        @relation(fields: [corporateGroupId], references: [id])
   contacts             Contact[]
   partners             Partner[]
   legalRepresentatives LegalRepresentative[]
   contracts            Contract[]
-  receivables      Receivable[]
-  renegotiations   DebtRenegotiation[]
-  communications   CommunicationHistory[]
-  delinquencyScore Int                    @default(1000) @map("delinquency_score")
+  receivables          Receivable[]
+  renegotiations       DebtRenegotiation[]
+  communications       CommunicationHistory[]
+  opportunities        Opportunity[]
+  delinquencyScore     Int                    @default(1000) @map("delinquency_score")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -303,15 +304,15 @@ model ProductGroup {
 // --- Tenant Settings ---
 
 model TenantSetting {
-  id              String  @id @default(uuid())
-  logoUrl         String? @map("logo_url")
-  primaryColor    String? @map("primary_color")
-  secondaryColor  String? @map("secondary_color")
-  sidebarColor    String? @map("sidebar_color")
+  id               String  @id @default(uuid())
+  logoUrl          String? @map("logo_url")
+  primaryColor     String? @map("primary_color")
+  secondaryColor   String? @map("secondary_color")
+  sidebarColor     String? @map("sidebar_color")
   sidebarTextColor String? @map("sidebar_text_color")
-  supportEmail    String? @map("support_email")
-  supportPhone    String? @map("support_phone")
-  companyDocument String? @map("company_document")
+  supportEmail     String? @map("support_email")
+  supportPhone     String? @map("support_phone")
+  companyDocument  String? @map("company_document")
 
   gatewayToken   String? @map("gateway_token")
   clicksignToken String? @map("clicksign_token")
@@ -319,8 +320,11 @@ model TenantSetting {
   billingCutoffStrategy BillingCutoffStrategy @default(GLOBAL) @map("billing_cutoff_strategy")
   globalCutoffDay       Int                   @default(15) @map("global_cutoff_day")
   globalDiscountLimit   Decimal               @default(10.0) @map("global_discount_limit") // Global fallback limit
-  
+
   allowActivationWithoutDocument Boolean @default(false) @map("allow_activation_without_doc")
+  restrictProposalToSingleProduct Boolean @default(true) @map("restrict_proposal_single_product")
+  needsMappingConfig    Json?                 @map("needs_mapping_config")
+  preRegisteredSegments String[]              @default([]) @map("pre_registered_segments")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -364,8 +368,8 @@ model Contract {
   id             String          @id @default(uuid())
   customerId     String          @map("customer_id")
   customer       Customer        @relation(fields: [customerId], references: [id])
-  productId      String          @map("product_id")
-  product        SoftwareProduct @relation(fields: [productId], references: [id])
+  productId      String?         @map("product_id")
+  product        SoftwareProduct? @relation(fields: [productId], references: [id])
   status         String          @default("DRAFT")
   startDate      DateTime?       @map("start_date")
   endDate        DateTime?       @map("end_date")
@@ -374,12 +378,16 @@ model Contract {
   renewalMode    String          @default("AUTOMATIC") @map("renewal_mode")
   cutoffDay      Int?            @map("cutoff_day")
 
-  items       ContractItem[]
-  documents   ContractDocument[]
-  history     ContractHistory[]
-  receivables Receivable[]
-  adjustments ContractAdjustment[]
+  items              ContractItem[]
+  documents          ContractDocument[]
+  history            ContractHistory[]
+  receivables        Receivable[]
+  adjustments        ContractAdjustment[]
+  commissionEntries  CommissionEntry[]
+  onboardingProjects OnboardingProject[]
 
+  representativeId   String?          @map("representative_id")
+  representative     Representative?  @relation(fields: [representativeId], references: [id])
   adjustmentIndexId  String?          @map("adjustment_index_id")
   adjustmentIndex    AdjustmentIndex? @relation(fields: [adjustmentIndexId], references: [id])
   nextAdjustmentDate DateTime?        @map("next_adjustment_date")
@@ -609,4 +617,268 @@ model CommunicationHistory {
   createdBy String?  @map("created_by")
 
   @@map("communication_history")
+}
+
+// ==========================================
+// Representative Management
+// ==========================================
+
+model Representative {
+  id           String  @id @default(uuid())
+  name         String
+  document     String  @unique // CPF/CNPJ
+  email        String?
+  phone        String?
+  zipCode      String? @map("zip_code")
+  street       String?
+  number       String?
+  neighborhood String?
+  city         String?
+  state        String?
+
+  setupFeeCommissionPercentage  Decimal @default(0.0) @map("setup_fee_commission_percentage")
+  recurringCommissionPercentage Decimal @default(0.0) @map("recurring_commission_percentage")
+
+  pixKey        String? @map("pix_key")
+  bankCode      String? @map("bank_code")
+  agency        String?
+  accountNumber String? @map("account_number")
+
+  isActive Boolean @default(true) @map("is_active")
+
+  opportunities     Opportunity[]
+  proposals         Proposal[]
+  contracts         Contract[]
+  commissionEntries CommissionEntry[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
+  @@map("representatives")
+}
+
+model CommissionEntry {
+  id               String         @id @default(uuid())
+  representativeId String         @map("representative_id")
+  representative   Representative @relation(fields: [representativeId], references: [id])
+  contractId       String?        @map("contract_id")
+  contract         Contract?      @relation(fields: [contractId], references: [id])
+  customerId       String?        @map("customer_id")
+
+  competence      String // YYYY-MM
+  type            String // SETUP, RECURRING
+  baseValue       Decimal @map("base_value")
+  commissionValue Decimal @map("commission_value")
+
+  status      String    @default("PENDING") // PENDING, PAID, CANCELED
+  paymentDate DateTime? @map("payment_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
+  @@map("commission_entries")
+}
+
+// ==========================================
+// CRM & Sales Management
+// ==========================================
+
+model Lead {
+  id              String  @id @default(uuid())
+  companyName     String  @map("company_name")
+  tradeName       String? @map("trade_name")
+  document        String? // CNPJ
+  contactName     String? @map("contact_name")
+  whatsapp        String?
+  email           String?
+  segment         String?
+  needsMappingAnswers Json? @map("needs_mapping_answers")
+  sourceChannel   String? @map("source_channel")
+
+  opportunities Opportunity[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
+  @@map("leads")
+}
+
+model Pipeline {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  isActive    Boolean @default(true) @map("is_active")
+
+  stages PipelineStage[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
+  @@map("pipelines")
+}
+
+model PipelineStage {
+  id         String   @id @default(uuid())
+  name       String
+  orderIndex Int      @default(0) @map("order_index")
+  pipelineId String   @map("pipeline_id")
+  pipeline   Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+
+  opportunities Opportunity[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
+  @@map("pipeline_stages")
+}
+
+model Opportunity {
+  id         String    @id @default(uuid())
+  name       String
+  leadId     String?   @map("lead_id")
+  lead       Lead?     @relation(fields: [leadId], references: [id])
+  customerId String?   @map("customer_id")
+  customer   Customer? @relation(fields: [customerId], references: [id])
+
+  pipelineStageId String        @map("pipeline_stage_id")
+  pipelineStage   PipelineStage @relation(fields: [pipelineStageId], references: [id])
+
+  representativeId String?         @map("representative_id")
+  representative   Representative? @relation(fields: [representativeId], references: [id])
+
+  expectedRevenue   Decimal   @default(0.0) @map("expected_revenue")
+  probability       Int       @default(0) // 0 to 100
+  expectedCloseDate DateTime? @map("expected_close_date")
+  status            String    @default("OPEN") // OPEN, WON, LOST
+  lostReason        String?   @map("lost_reason")
+
+  activities OpportunityActivity[]
+  proposals  Proposal[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
+  @@map("opportunities")
+}
+
+model OpportunityActivity {
+  id            String      @id @default(uuid())
+  opportunityId String      @map("opportunity_id")
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  type           String // NOTE, CALL, EMAIL, MEETING, COMPETITOR_ANALYSIS
+  content        String    @db.Text
+  nextActionDate DateTime? @map("next_action_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
+  @@map("opportunity_activities")
+}
+
+model Proposal {
+  id            String      @id @default(uuid())
+  opportunityId String      @map("opportunity_id")
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  representativeId String?         @map("representative_id")
+  representative   Representative? @relation(fields: [representativeId], references: [id])
+
+  status     String    @default("DRAFT") // DRAFT, SENT, APPROVED, REJECTED
+  totalValue Decimal   @default(0.0) @map("total_value")
+  setupFee   Decimal   @default(0.0) @map("setup_fee")
+  validUntil DateTime? @map("valid_until")
+
+  items     ProposalItem[]
+  documents ProposalDocument[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
+  @@map("proposals")
+}
+
+model ProposalItem {
+  id         String   @id @default(uuid())
+  proposalId String   @map("proposal_id")
+  proposal   Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  moduleId  String  @map("module_id") // ID of SoftwareModule
+  quantity  Int     @default(1)
+  unitPrice Decimal @map("unit_price")
+  discount  Decimal @default(0.0)
+
+  @@map("proposal_items")
+}
+
+model ProposalDocument {
+  id         String   @id @default(uuid())
+  proposalId String   @map("proposal_id")
+  proposal   Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  type   String // DOCX, PDF
+  path   String // S3/MinIO path
+  status String @default("GENERATED")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String?  @map("created_by")
+
+  @@map("proposal_documents")
+}
+
+// ==========================================
+// Onboarding Management
+// ==========================================
+
+model OnboardingProject {
+  id         String   @id @default(uuid())
+  contractId String   @map("contract_id")
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  status    String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  startDate DateTime? @map("start_date")
+  endDate   DateTime? @map("end_date")
+
+  tasks OnboardingTask[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+  updatedBy String?  @map("updated_by")
+
+  @@map("onboarding_projects")
+}
+
+model OnboardingTask {
+  id        String            @id @default(uuid())
+  projectId String            @map("project_id")
+  project   OnboardingProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?
+  status      String    @default("PENDING") // PENDING, DONE
+  assignedTo  String?   @map("assigned_to")
+  dueDate     DateTime? @map("due_date")
+  completedAt DateTime? @map("completed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("onboarding_tasks")
 }

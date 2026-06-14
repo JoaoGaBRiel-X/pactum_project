@@ -1,4 +1,4 @@
-import { IsString, IsOptional, Matches, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, Matches, IsBoolean, IsArray } from 'class-validator';
 
 export class UpdateTenantSettingsDto {
   @IsOptional()
@@ -93,4 +93,17 @@ export class UpdateTenantSettingsDto {
   @IsOptional()
   @IsString()
   state?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  restrictProposalToSingleProduct?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  needsMappingConfig?: any[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  preRegisteredSegments?: string[];
 }

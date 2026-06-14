@@ -1,16 +1,15 @@
-import { PrismaClient } from '@prisma/client';
 import { Injectable, ConflictException, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
-import { PrismaService } from '../../prisma/prisma.service';
-import { TENANT_PRISMA_SERVICE } from '../../tenant/tenant.module';
+import { CUSTOMER_REPOSITORY } from './repositories/customer.repository.interface';
+import type { ICustomerRepository } from './repositories/customer.repository.interface';
 import { PortalAuthService } from '../portal/auth/portal-auth.service';
 
 @Injectable()
 export class CustomerService {
   constructor(
-    @Inject(TENANT_PRISMA_SERVICE)
-    private readonly prisma: PrismaClient,
+    @Inject(CUSTOMER_REPOSITORY)
+    private readonly customerRepository: ICustomerRepository,
     private readonly portalAuthService: PortalAuthService,
   ) {}
 
@@ -29,30 +28,27 @@ export class CustomerService {
     }
 
     if (customerData.corporateGroupId) {
-      const group = await this.prisma.corporateGroup.findUnique({ where: { id: customerData.corporateGroupId } });
+      const group = await this.customerRepository.findGroupById(customerData.corporateGroupId);
       if (!group) throw new NotFoundException('Grupo Econômico não encontrado.');
     }
 
     try {
-      const customer = await this.prisma.customer.create({
-        data: {
-          ...customerData,
-          createdBy: userId,
-          contacts: contacts.length > 0 ? {
-            create: contacts.map(c => ({ ...c, createdBy: userId }))
-          } : undefined,
-          partners: partners && partners.length > 0 ? {
-            create: partners.map(p => ({ ...p, createdBy: userId }))
-          } : undefined,
-          legalRepresentatives: legalRepresentatives && legalRepresentatives.length > 0 ? {
-            create: legalRepresentatives.map(lr => ({ ...lr, createdBy: userId }))
-          } : undefined,
-        },
-        include: {
-          contacts: true,
-          partners: true,
-          legalRepresentatives: true,
-        }
+      const customer = await this.customerRepository.create({
+        ...customerData,
+        createdBy: userId,
+        contacts: contacts.length > 0 ? {
+          create: contacts.map(c => ({ ...c, createdBy: userId }))
+        } : undefined,
+        partners: partners && partners.length > 0 ? {
+          create: partners.map(p => ({ ...p, createdBy: userId }))
+        } : undefined,
+        legalRepresentatives: legalRepresentatives && legalRepresentatives.length > 0 ? {
+          create: legalRepresentatives.map(lr => ({ ...lr, createdBy: userId }))
+        } : undefined,
+      }, {
+        contacts: true,
+        partners: true,
+        legalRepresentatives: true,
       });
       return customer;
     } catch (error) {
@@ -69,15 +65,12 @@ export class CustomerService {
       whereClause.createdBy = userId;
     }
 
-    return this.prisma.customer.findMany({
-      where: whereClause,
-      include: {
-        contacts: true,
-        corporateGroup: true,
-        contracts: {
-          select: {
-            status: true
-          }
+    return this.customerRepository.findAll(whereClause, {
+      contacts: true,
+      corporateGroup: true,
+      contracts: {
+        select: {
+          status: true
         }
       }
     });
@@ -89,19 +82,16 @@ export class CustomerService {
       whereClause.createdBy = userId;
     }
 
-    const customer = await this.prisma.customer.findUnique({
-      where: whereClause,
-      include: {
-        contacts: true,
-        partners: true,
-        legalRepresentatives: true,
-        corporateGroup: true,
-        contracts: {
-          include: {
-            product: { select: { name: true } }
-          },
-          orderBy: { createdAt: 'desc' }
-        }
+    const customer = await this.customerRepository.findById(id, whereClause, {
+      contacts: true,
+      partners: true,
+      legalRepresentatives: true,
+      corporateGroup: true,
+      contracts: {
+        include: {
+          product: { select: { name: true } }
+        },
+        orderBy: { createdAt: 'desc' }
       }
     });
 
@@ -138,34 +128,30 @@ export class CustomerService {
     }
 
     if (customerData.corporateGroupId) {
-      const group = await this.prisma.corporateGroup.findUnique({ where: { id: customerData.corporateGroupId } });
+      const group = await this.customerRepository.findGroupById(customerData.corporateGroupId);
       if (!group) throw new NotFoundException('Grupo Econômico não encontrado.');
     }
 
     try {
-      const customer = await this.prisma.customer.update({
-        where: { id },
-        data: {
-          ...customerData,
-          updatedBy: userId,
-          contacts: finalContacts.length >= 0 && contacts !== undefined ? {
-            deleteMany: {},
-            create: finalContacts.map(c => ({ ...c, createdBy: userId, updatedBy: userId }))
-          } : undefined,
-          partners: partners !== undefined ? {
-            deleteMany: {},
-            create: partners.map(p => ({ ...p, createdBy: userId, updatedBy: userId }))
-          } : undefined,
-          legalRepresentatives: legalRepresentatives !== undefined ? {
-            deleteMany: {},
-            create: legalRepresentatives.map(lr => ({ ...lr, createdBy: userId, updatedBy: userId }))
-          } : undefined,
-        },
-        include: {
-          contacts: true,
-          partners: true,
-          legalRepresentatives: true,
-        }
+      const customer = await this.customerRepository.update(id, {
+        ...customerData,
+        updatedBy: userId,
+        contacts: finalContacts.length >= 0 && contacts !== undefined ? {
+          deleteMany: {},
+          create: finalContacts.map(c => ({ ...c, createdBy: userId, updatedBy: userId }))
+        } : undefined,
+        partners: partners !== undefined ? {
+          deleteMany: {},
+          create: partners.map(p => ({ ...p, createdBy: userId, updatedBy: userId }))
+        } : undefined,
+        legalRepresentatives: legalRepresentatives !== undefined ? {
+          deleteMany: {},
+          create: legalRepresentatives.map(lr => ({ ...lr, createdBy: userId, updatedBy: userId }))
+        } : undefined,
+      }, {
+        contacts: true,
+        partners: true,
+        legalRepresentatives: true,
       });
 
       // Se informaram tenantSlug e contatos no payload, avaliamos o Magic Link
@@ -196,9 +182,7 @@ export class CustomerService {
     await this.findOne(id, userId, permissions);
 
     try {
-      await this.prisma.customer.delete({
-        where: { id }
-      });
+      await this.customerRepository.delete(id);
       return { message: 'Cliente excluído com sucesso.' };
     } catch (error) {
       if (error.code === 'P2003') {

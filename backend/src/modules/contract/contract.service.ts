@@ -207,7 +207,7 @@ export class ContractService {
         
         // Fetch product modules again to get prices
         const product = await tx.softwareProduct.findUnique({
-          where: { id: updateDto.productId || contract.productId },
+          where: { id: updateDto.productId || contract.productId || undefined },
           include: { modules: true }
         });
         if (!product) throw new NotFoundException('Produto não encontrado.');
@@ -306,7 +306,7 @@ export class ContractService {
 
     if (amendDto.items && amendDto.items.length > 0) {
       const product = await this.prisma.softwareProduct.findUnique({
-        where: { id: amendDto.productId || contract.productId },
+        where: { id: amendDto.productId || contract.productId || undefined },
         include: { modules: true }
       });
       if (!product) throw new NotFoundException('Produto não encontrado.');
@@ -497,12 +497,12 @@ export class ContractService {
 
         if (strategy === 'PER_CONTRACT') {
           cutoffDay = contract.cutoffDay || cutoffDay;
-        } else if (strategy === 'PER_PRODUCT_GROUP') {
+        } else if (strategy === 'PER_PRODUCT_GROUP' && contract.productId) {
           const product = await tx.softwareProduct.findUnique({
              where: { id: contract.productId },
              include: { productGroup: true }
           });
-          cutoffDay = product?.cutoffDay || product?.productGroup?.cutoffDay || cutoffDay;
+          cutoffDay = product?.cutoffDay || (product as any)?.productGroup?.cutoffDay || cutoffDay;
         }
 
         const today = new Date().getDate();

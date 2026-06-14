@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { tenantSettingsApi } from "@/services/tenant-settings-api";
 import { maskCNPJ, maskCPF, maskCEP, maskPhone } from "@/lib/masks";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 const settingsSchema = z.object({
@@ -42,6 +42,15 @@ const settingsSchema = z.object({
   billingCutoffStrategy: z.enum(['GLOBAL', 'PER_CONTRACT', 'PER_PRODUCT_GROUP']).optional().default('GLOBAL'),
   globalCutoffDay: z.coerce.number().min(1).max(31).optional().default(15),
   allowActivationWithoutDocument: z.boolean().optional().default(false),
+  restrictProposalToSingleProduct: z.boolean().optional().default(false),
+  needsMappingConfig: z.array(z.object({
+    id: z.string(),
+    label: z.string().min(1, "O rótulo é obrigatório"),
+    type: z.enum(['text', 'textarea', 'number'])
+  })).optional().default([]),
+  preRegisteredSegmentsUI: z.array(z.object({
+    value: z.string().min(1, "Segmento não pode ser vazio")
+  })).optional().default([]),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -72,7 +81,20 @@ export default function GeneralSettingsPage() {
       billingCutoffStrategy: "GLOBAL",
       globalCutoffDay: 15,
       allowActivationWithoutDocument: false,
+      restrictProposalToSingleProduct: false,
+      needsMappingConfig: [],
+      preRegisteredSegmentsUI: [],
     },
+  });
+
+  const { fields: segmentsFields, append: appendSegment, remove: removeSegment } = useFieldArray({
+    control: form.control,
+    name: "preRegisteredSegmentsUI",
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "needsMappingConfig",
   });
 
   useEffect(() => {
@@ -98,6 +120,9 @@ export default function GeneralSettingsPage() {
           billingCutoffStrategy: data.billingCutoffStrategy || "GLOBAL",
           globalCutoffDay: data.globalCutoffDay || 15,
           allowActivationWithoutDocument: data.allowActivationWithoutDocument || false,
+          restrictProposalToSingleProduct: data.restrictProposalToSingleProduct || false,
+          needsMappingConfig: data.needsMappingConfig || [],
+          preRegisteredSegmentsUI: (data.preRegisteredSegments || []).map((seg: string) => ({ value: seg })),
         });
       } catch (err) {
         console.error(err);
@@ -110,7 +135,14 @@ export default function GeneralSettingsPage() {
 
   async function onSubmit(data: SettingsFormValues) {
     try {
-      await tenantSettingsApi.updateSettings(data);
+      const payload = {
+        ...data,
+        preRegisteredSegments: data.preRegisteredSegmentsUI?.map(s => s.value) || [],
+      };
+      // @ts-ignore
+      delete payload.preRegisteredSegmentsUI;
+
+      await tenantSettingsApi.updateSettings(payload);
       toast.success("Configurações salvas com sucesso!");
     } catch (err: any) {
       toast.error(err.message || "Erro ao salvar as configurações");
@@ -577,6 +609,144 @@ export default function GeneralSettingsPage() {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="restrictProposalToSingleProduct"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Restringir propostas a um único produto</FormLabel>
+                        <FormDescription>
+                          Se ativado, não será possível adicionar itens de produtos diferentes em uma mesma proposta.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Mapeamento de Necessidades (Leads)</CardTitle>
+              <CardDescription>
+                Configure as perguntas padrão que sua equipe comercial fará aos novos leads durante a qualificação.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {fields.map((field, index) => (
+                  <div key={field.id} className="flex gap-4 items-end bg-slate-50 p-4 rounded-lg border">
+                    <FormField
+                      control={form.control}
+                      name={`needsMappingConfig.${index}.label`}
+                      render={({ field: f }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel>Pergunta / Rótulo</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: Qual o sistema atual?" {...f} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`needsMappingConfig.${index}.type`}
+                      render={({ field: f }) => (
+                        <FormItem className="w-48">
+                          <FormLabel>Tipo de Campo</FormLabel>
+                          <Select onValueChange={f.onChange} defaultValue={f.value} value={f.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Tipo" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="text">Texto Curto</SelectItem>
+                              <SelectItem value="textarea">Texto Longo</SelectItem>
+                              <SelectItem value="number">Número</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="destructive" 
+                      size="icon" 
+                      onClick={() => remove(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => append({ id: Date.now().toString(), label: "", type: "text" })}
+                  className="w-full mt-2"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Pergunta
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Segmentos de CRM</CardTitle>
+              <CardDescription>
+                Gerencie a lista central de segmentos sugeridos no formulário de Leads. 
+                Isso ajuda a manter o banco de dados padronizado (Padrão Pipedrive).
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {segmentsFields.map((field, index) => (
+                  <div key={field.id} className="flex gap-4 items-end bg-slate-50 p-4 rounded-lg border w-full md:max-w-xl">
+                    <FormField
+                      control={form.control}
+                      name={`preRegisteredSegmentsUI.${index}.value`}
+                      render={({ field: f }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel>Nome do Segmento</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: Tecnologia da Informação" {...f} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="destructive" 
+                      size="icon" 
+                      onClick={() => removeSegment(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => appendSegment({ value: "" })}
+                  className="w-full md:max-w-xl mt-2 border-dashed border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Segmento
+                </Button>
               </div>
             </CardContent>
           </Card>

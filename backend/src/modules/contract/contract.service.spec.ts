@@ -99,7 +99,7 @@ describe('ContractService', () => {
       return Promise.all(arg);
     });
 
-    const result = await service.create(createDto, 'user-1');
+    const result = await service.create(createDto as any, 'user-1', 'tenant-1');
     
     expect(mockPrisma.client.softwareProduct.findUnique).toHaveBeenCalledWith({
       where: { id: 'prod-1' },
@@ -141,7 +141,7 @@ describe('ContractService', () => {
 
     mockPrisma.client.contractDocument.count.mockResolvedValue(1);
 
-    const result = await service.updateStatus('contract-1', { status: 'PENDING_SIGNATURE', reason: 'Enviado' }, 'user-1');
+    const result = await service.updateStatus('contract-1', { status: 'PENDING_SIGNATURE', reason: 'Enviado' } as any, 'user-1', 'tenant-1');
     
     expect(mockPrisma.client.contract.update).toHaveBeenCalledWith({
       where: { id: 'contract-1' },
@@ -180,7 +180,7 @@ describe('ContractService', () => {
       globalDiscount: 10,
     };
 
-    await service.amendContract('contract-1', amendDto as any, 'user-1');
+    await service.amendContract('contract-1', amendDto as any, 'user-1', []);
 
     expect(mockPrisma.client.contract.update).toHaveBeenCalledWith({
       where: { id: 'contract-1' },
@@ -220,7 +220,7 @@ describe('ContractService', () => {
       return Promise.all(arg);
     });
 
-    await service.applyAmendment('contract-1', 'user-1');
+    await service.applyAmendment('contract-1', 'user-1', 'tenant-1');
 
     expect(mockPrisma.client.contractItem.deleteMany).toHaveBeenCalledWith({ where: { contractId: 'contract-1' } });
     expect(mockPrisma.client.contract.update).toHaveBeenCalledWith({
@@ -276,7 +276,7 @@ describe('ContractService', () => {
         globalCutoffDay: 15,
       });
 
-      await service.updateStatus('contract-1', { status: 'CANCELLED', reason: 'Cancelado pelo cliente' }, 'user-1');
+      await service.updateStatus('contract-1', { status: 'CANCELLED', reason: 'Cancelado pelo cliente' } as any, 'user-1', 'tenant-1');
 
       // today (10) <= cutoff (15), should cancel ALL
       expect(mockPrisma.client.receivable.updateMany).toHaveBeenCalledWith({
@@ -298,7 +298,7 @@ describe('ContractService', () => {
         globalCutoffDay: 15,
       });
 
-      await service.updateStatus('contract-1', { status: 'CANCELLED', reason: 'Cancelado pelo cliente' }, 'user-1');
+      await service.updateStatus('contract-1', { status: 'CANCELLED', reason: 'Cancelado pelo cliente' } as any, 'user-1', 'tenant-1');
 
       // today (20) > cutoff (15), should keep rec-1 and cancel rec-2
       expect(mockPrisma.client.receivable.updateMany).toHaveBeenCalledWith({

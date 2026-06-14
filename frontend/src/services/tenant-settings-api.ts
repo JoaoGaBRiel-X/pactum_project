@@ -25,6 +25,9 @@ export interface TenantSettings {
   neighborhood?: string;
   city?: string;
   state?: string;
+  restrictProposalToSingleProduct?: boolean;
+  needsMappingConfig?: any[];
+  preRegisteredSegments?: string[];
 }
 
 export const tenantSettingsApi = {

@@ -28,6 +28,9 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { TenantSettingsModule } from './modules/tenant-settings/tenant-settings.module';
 import { ProductGroupModule } from './modules/product-group/product-group.module';
 import { RoleProfileModule } from './modules/role-profile/role-profile.module';
+import { CrmModule } from './modules/crm/crm.module';
+import { RepresentativeModule } from './modules/representative/representative.module';
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
 
 @Module({
   imports: [
@@ -64,6 +67,9 @@ import { RoleProfileModule } from './modules/role-profile/role-profile.module';
       limit: 60,
     }]),
     RoleProfileModule,
+    CrmModule,
+    RepresentativeModule,
+    OnboardingModule,
   ],
   controllers: [AppController],
   providers: [
